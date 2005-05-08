@@ -81,7 +81,7 @@ class MainWindow
 	def initialize
 		@config = Config.new
 		@serverlist = ServerList.new(self)
-		@glade = GladeXML.new("rirc/rirc.glade") {|handler| method(handler)}
+		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		@usernamebutton = @glade["username"]
 		@topic = @glade["topic"]
 		@messages = @glade["message_window"]
@@ -296,7 +296,9 @@ class MainWindow
 			@currentchan.send_event(line, USERMESSAGE)
 			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 		elsif !network
-			@currentchan.send_text('invalid server command')
+			line['err'] = 'Invalid server command'
+			line['time'] = Time.new.to_i
+			@currentchan.send_event(line, ERROR)
 		end
 		
 		widget.text = ''

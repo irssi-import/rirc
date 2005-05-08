@@ -124,6 +124,7 @@ module Stuff
 		elsif type == USERPART
 			@status = NEWDATA
 			pattern += @config.userpart.deep_clone
+			pattern['%m'] = line['err']
 			
 		elsif type == ERROR
 			@status == NEWDATA
