@@ -1,0 +1,4 @@
+#rename this file to config.rb after you've filled in the values.
+
+$path = ENV['HOME']+'/.irssi2/client-listener'
+$presence = 'myname'
