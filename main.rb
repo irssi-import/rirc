@@ -296,6 +296,7 @@ class MainWindow
 			@currentchan.send_event(line, USERMESSAGE)
 			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 		elsif !network
+			line = {}
 			line['err'] = 'Invalid server command'
 			line['time'] = Time.new.to_i
 			@currentchan.send_event(line, ERROR)
