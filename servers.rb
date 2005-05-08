@@ -57,9 +57,29 @@ module Stuff
 	def setstatus(status)
 		if(status > @status)
 			@status = status
-			puts "status set to "+status.to_s
+			#puts "status set to "+status.to_s
 			recolor
 		end
+	end
+	
+	def disconnect
+		@button.label = '('+@name+')'
+		line = {}
+		line['err'] = 'Disconnected'
+		line['time'] = Time.new.to_i
+		send_event(line, ERROR)
+		@connected = false
+		#puts 'disconnecting ' +@name
+	end
+	
+	def reconnect
+		@button.label = @name
+		@connected = true
+		line = {}
+		line['msg'] = 'Reconnected'
+		line['time'] = Time.new.to_i
+		send_event(line, NOTICE)
+		#puts 'disconnecting ' +@name
 	end
 	
 	#set the button color
@@ -69,6 +89,7 @@ module Stuff
 	end
 	
 	def send_event(line, type, insert_location=BUFFER_END)
+		return if !@connected
 		
 		if insert_location == BUFFER_END
 			insert = @buffer.end_iter
@@ -239,7 +260,7 @@ end
 
 class ServerList
 	include Stuff
-	attr_reader :servers, :box, :buffer, :button, :name, :parent, :config, :username
+	attr_reader :servers, :box, :buffer, :button, :name, :parent, :config, :username, :connected
 	def initialize(parent)
 		@username = ''
 		@parent = parent
@@ -269,19 +290,25 @@ class ServerList
 		end
 		box.pack_start(@button)
 		@status = INACTIVE
+		@connected = true
 	end
 	
 	def add(name, presence)
 		return if !presence or !name
-		if name2index(name, presence) != nil
+		x = name2index(name, presence)
+		if x  != nil and x.connected
 			puts "You are already connected to " + name + "for presence "+ presence
 			return
+		#elsif x!= nil and ! x.connected
+		#	x.connect
+		#	return x
+		else
+			newserver = Server.new(name, presence, self)
+			@servers.push(newserver)
+			@servers = @servers.sort
+			insertintobox(newserver)
+			return newserver
 		end
-		newserver = Server.new(name, presence, self)
-		@servers.push(newserver)
-		@servers = @servers.sort
-		insertintobox(newserver)
-		return newserver
 	end
 	
 	def insertintobox(newserver)
@@ -342,7 +369,7 @@ end
 
 class Server
 	include Stuff
-	attr_reader :name, :channels, :buffer, :button, :box, :parent, :config, :username, :presence
+	attr_reader :name, :channels, :buffer, :button, :box, :parent, :config, :username, :presence, :connected
 	attr_writer :username, :presence
 	def initialize(name, presence, parent)
 		@presence = presence
@@ -377,6 +404,7 @@ class Server
 		if(@config.serverbuttons)
 			@button.show
 		end
+		@connected = true
 	end
 	
 	def add(name)
@@ -434,7 +462,7 @@ end
 
 class Channel
 	include Stuff
-	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column
+	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected
 	def initialize(name, server)
 		@server = server
 		@name = name
@@ -466,6 +494,7 @@ class Channel
 		@button.active = false
 		@button.show
 		@users = {}
+		@connected = true
 	end
 	
 	def add(name)

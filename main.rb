@@ -2,7 +2,13 @@
 
 require 'libglade2'
 require 'socket'
-require 'config'
+
+begin
+	require 'config'
+rescue LoadError
+	puts "Cannot load config.rb, please rename and edit config.rb.factory"
+	exit
+end
 
 Thread.abort_on_exception = true
 
@@ -146,11 +152,39 @@ class MainWindow
 				sleep 10
 				retry
 			else
+				puts "Connected to irssi2!"
 				startlistenthread
-				send_command('presences', 'presence list')
+				if @serverlist.servers.length > 0
+					#~ @serverlist.servers.each{|server|
+						#~ connectnetwork(server.name, server.address, server.presence
+						#~ server.channels.each {|channel|
+							#~ channel.disconnect
+						#~ }
+					#~ }
+				else
+					send_command('presences', 'presence list')
+				end
 			end
 		}
 	end
+	
+	def disconnect
+		puts 'doing global disconnect'
+		@serverlist.servers.each{|server|
+			server.disconnect
+			server.channels.each {|channel|
+				channel.disconnect
+			}
+		}
+	end
+	
+	def connectnetwork(name, address, presence)
+		send_command('addnet', "network add:name="+name+":protocol=irc")
+		send_command('addpres', "presence add:name="+presence+":network="+name)
+		send_command('addhost', "gateway add:host="+address+":network="+name+":port=6667")
+		send_command('connect', "presence connect:network="+name+":presence="+presence)
+	end
+			
 	
 	def startlistenthread
 		@listenthread = Thread.start{
@@ -256,6 +290,8 @@ class MainWindow
 		elsif @currentchan.class == Server
 			network = @currentchan.name
 			presence = @currentchan.presence
+		else
+			presence = $presence
 		end
 		
 		message = widget.text
@@ -264,17 +300,17 @@ class MainWindow
 			if message =~ /^\/join (#[^\s]+)/ and network
 				send_command('join', "channel join:network="+network+":channel="+$1)
 			elsif message =~ /^\/server ([a-zA-Z0-9_]+):([a-zA-Z0-9_.]+)$/
-				send_command('addnet', "network add:name="+$1+":protocol=irc")
-				send_command('addpres', "presence add:name="+$presence+":network="+$1)
-				send_command('addhost', "gateway add:host="+$2+":network="+$1+":port=6667")
-				send_command('connect', "presence connect:network="+$1+":presence="+$presence)
+				puts $1, $2, presence
+				connectnetwork($1, $2, presence)
 			elsif message =~ /^\/part(.*)$/
 				if $1 =~/(#[^\s]+)/
 					#puts network
-					#puts $1
 					send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+$1)
 				else
-					@currentchan.addtext('/part requires a channel argument')
+					line = {}
+					line['err'] = 'Part requires a channel argument'
+					line['time'] = Time.new.to_i
+					@currentchan.send_event(line, ERROR)
 				end
 			elsif message =~ /^\/quit(.*)$/
 				send_command('quit', 'quit')
@@ -319,6 +355,8 @@ class MainWindow
 	end
 	
 	def send_command(tag, command)
+		return if !@client
+		
 		begin
 		bleh = command.split(':', 2)
 		createeventcatchthread(tag, bleh[0])
@@ -326,6 +364,9 @@ class MainWindow
 		
 		rescue SystemCallError
 			puts 'Broken Pipe to Irssi'
+			@listenthread.kill
+			@client = nil
+			disconnect
 			connect
 		end
 	end
@@ -491,6 +532,9 @@ class MainWindow
 		if line['type'] == 'gateway_connecting'
 			if !@serverlist[line['network'], line['presence']]
 				switchchannel(@serverlist.add(line['network'], line['presence']))
+			elsif !@serverlist[line['network'], line['presence']].connected
+				puts 'server exists but is not connected'
+				@serverlist[line['network'], line['presence']].reconnect
 			else
 				puts 'request to create already existing channel, ignoring'
 				return
@@ -499,6 +543,10 @@ class MainWindow
 			if !@serverlist[line['network'], line['presence']]
 				puts 'Error, non existant channel init event caught, ignoring'
 				return
+			elsif @serverlist[line['network'], line['presence']][line['channel']] and ! @serverlist[line['network'], line['presence']][line['channel']].connected
+				puts 'channel exists, but is not connected'
+				@serverlist[line['network'], line['presence']][line['channel']].reconnect
+				
 			elsif @serverlist[line['network'], line['presence']][line['channel']]
 				puts 'request to create already existing channel, ignoring'
 				return
