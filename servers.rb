@@ -257,6 +257,8 @@ module Stuff
 end
 
 
+class User
+end
 
 class ServerList
 	include Stuff

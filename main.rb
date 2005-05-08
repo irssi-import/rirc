@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 require 'libglade2'
 require 'socket'
@@ -318,19 +318,25 @@ class MainWindow
 			elsif message =~ /^\/shutdown(.*)$/
 				send_command('shutdown', 'shutdown')
 				Gtk.main_quit
+			elsif message =~ /^\/ruby (.*)$/
+				puts 'possibly evil ruby code inputted'
+				eval($1)
 			end
 		elsif network
-			message.gsub!('\\', '\\\\\\')
-			message.gsub!(':', '\\.')
-			send_command('message'+rand(100).to_s, 'msg:network='+network+':channel='+channel+':msg='+message+":presence="+presence)
-			line = {}
-			line['nick'] = presence
-			message.gsub!('\\.', ':')
-			message.gsub!('\\\\', '\\')
-			line['msg'] = message
-			line['time'] = Time.new.to_i
-			@currentchan.send_event(line, USERMESSAGE)
-			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+			messages = message.split("\n")
+			messages.each { |message|
+				message.gsub!('\\', '\\\\\\')
+				message.gsub!(':', '\\.')
+				send_command('message'+rand(100).to_s, 'msg:network='+network+':channel='+channel+':msg='+message+":presence="+presence)
+				line = {}
+				line['nick'] = presence
+				message.gsub!('\\.', ':')
+				message.gsub!('\\\\', '\\')
+				line['msg'] = message
+				line['time'] = Time.new.to_i
+				@currentchan.send_event(line, USERMESSAGE)
+				@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+			}
 		elsif !network
 			line = {}
 			line['err'] = 'Invalid server command'
