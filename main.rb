@@ -222,7 +222,7 @@ class MainWindow
 					items.each do |x|
 						vals = x.split('=', 2)
 						if vals[1] and vals[1] != ''
-							temp[vals[0]] = vals[1].gsub('\\.', ':')
+							temp[vals[0]] = vals[1].gsub('\\\\.', ':')
 						elsif x.count('=') == 0
 							temp[x] = true
 						end
