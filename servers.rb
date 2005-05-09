@@ -304,7 +304,7 @@ class UserList
 		new = User.new(name)
 		@users.push(new)
 		@users.sort
-		puts 'creating user: ' +name
+		#puts 'creating user: ' +name
 		puts @users.length
 		return new
 	end
@@ -319,7 +319,7 @@ class UserList
 			if user.name == name
 				puts @users.length.to_s
 				@users.delete_at(i)
-				puts 'removed at ' +i.to_s
+				#puts 'removed at ' +i.to_s
 				puts @users.length.to_s
 				@users.sort
 				return
@@ -332,7 +332,7 @@ class UserList
 		result = nil
 		@users.each{ |user|
 			if user.name == name
-				puts 'matched ' +name
+				#puts 'matched ' +name
 				result = user
 			end
 		}

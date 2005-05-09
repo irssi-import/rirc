@@ -363,13 +363,14 @@ class MainWindow
 	
 	def handle_output(string)
 		return if string.length == 0
-		puts string
+		#puts string
 		line= {}
 		re = /(^[^\*]+):([+\->]+)(.*)$/
 		re2 = /^[*]+:([a-zA-Z_]+):(.+)$/
 		
 		if md = re.match(string)
 			if @events[$1]
+				puts string
 				@events[$1]['raw_lines'].push(string)
 			else
 				puts "Event for dead or unregistered handler recieved " + string
@@ -404,6 +405,13 @@ class MainWindow
 	end
 	
 	def parse_command_output(line)
+		#~ line.each{ |key, value|
+				#~ if value === true
+					#~ value = 'true'
+				#~ end
+				#~ puts key+'='+value+"\n"
+				#~ }
+			#~ puts "\n"
 		
 		if line['command'] == 'presence list'
 			if line['network'] and line['presence']
@@ -449,6 +457,10 @@ class MainWindow
 				end
 			elsif line['command'] == 'event get'
 				if line['msg']
+					if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
+						network.users[line['name']].hostname = line['address']
+					end
+						
 					if line['own']
 						line['nick'] = line['presence']
 						channel.send_event(line, USERMESSAGE, BUFFER_START)
@@ -492,6 +504,11 @@ class MainWindow
 				end
 			elsif line['status'] == '+'
 				return
+			else
+				#line.each{ |key, value|
+			#		puts key+'='+value+"\n"
+			#		}
+			#	puts "\n"
 			end
 		end
 		@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
@@ -633,6 +650,11 @@ class MainWindow
 				
 			elsif line['type'] == 'msg'
 				return if !line['channel']
+				
+				if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
+					network.users[line['name']].hostname = line['address']
+				end
+				
 				if line['own']
 					channel.send_event(line, USERMESSAGE)
 				else
