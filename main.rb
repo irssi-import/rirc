@@ -363,6 +363,7 @@ class MainWindow
 	
 	def handle_output(string)
 		return if string.length == 0
+		puts string
 		line= {}
 		re = /(^[^\*]+):([+\->]+)(.*)$/
 		re2 = /^[*]+:([a-zA-Z_]+):(.+)$/
@@ -479,6 +480,7 @@ class MainWindow
 					else
 						channel.send_event(line, PART, BUFFER_START)
 					end
+					
 				elsif line['channel_presence_added']
 					return if line['init']
 					
@@ -548,48 +550,81 @@ class MainWindow
 			elsif line['type'] == 'channel_presence_removed'
 				#puts "Removed - "+ line['name']
 				#channel.deluser(line['name'])
+				
+				if ! line['deinit']
+				
+					if line['name'] == network.username
+						channel.send_event(line, USERPART)
+					else
+						channel.send_event(line, PART)
+					end
+				end
+				
 				channel.deluser(line['name'])
 				
-				if line['deinit']
-					return
-				end
-				
-				if line['name'] == network.username
-					channel.send_event(line, USERPART)
-				else
-					channel.send_event(line, PART)
-				end
-				
 			elsif line['type'] == 'channel_presence_added'
-				channel.adduser(line['name'])
 				#puts "Added - "+ line['name']
 				#channel.adduser(line['name'])
-				if line['init']
-					return
-				end
-				if line['name'] == network.username
-					channel.send_event(line, USERJOIN)
-				else
-					channel.send_event(line, JOIN)
+				channel.adduser(line['name'])
+				
+				if !line['init']
+					if line['name'] == network.username
+						channel.send_event(line, USERJOIN)
+					else
+						channel.send_event(line, JOIN)
+					end
 				end
 				
 			elsif line['type'] == 'presence_changed'
 				if line['new_name']
 					pattern = @config.notice.deep_clone
 					
+					user = network.users[line['name']]
+					
+					if user
+						puts 'matched uswer'+user.name
+						user.rename(line['new_name'])
+						puts 'matched uswer'+user.name
+						puts network.users[line['new_name']]
+						#puts channel.users[line['name']] if channel.users[line['name']]
+						#puts channel.users[line['new_name']] if channel.users[line['new_name']]
+					end
+					
 					if line['name'] == line['presence']
-						network.presence = line['new_name']
-						pattern['%m'] = 'You are now known as '+line['new_name']
+						#network.presence = line['new_name']
+						pattern = 'You are now known as '+line['new_name']
 					elsif line['name'] != line['new_name']
-						pattern['%m'] = line['name']+' is now known as '+line['new_name']
+						pattern= line['name']+' is now known as '+line['new_name']
 					else
 						pattern = nil
+					end
+					
+					line['msg'] = pattern
+					
+					if pattern
+						network.channels.each{ |c|
+							if c.users[line['new_name']]
+								puts c.users[line['new_name']]
+								c.drawusers
+								c.send_event(line, NOTICE)
+							end
+						}
+					end
+				end
+	
+				if line['address']
+					if user = network.users[line['name']]
+						user.hostname = line['address']
 					end
 				end
 				
 			elsif line['type'] == 'presence_init'
 				puts 'presence init'
 				network.users.create(line['name'])
+				
+			elsif line['type'] == 'presence_deinit'
+				puts 'presence deinit'
+				network.users.remove(line['name'])
 				
 			elsif line['type'] == 'presence_changed'
 				if network.users[line['name']]

@@ -128,6 +128,9 @@ module Stuff
 			pattern += @config.join.deep_clone
 			pattern['%u'] = line['name']
 			pattern['%c'] = line['channel']
+			if user = @users[line['name']]
+				pattern['%h'] = user.hostname
+			end
 			
 			
 		elsif type == USERJOIN
@@ -140,7 +143,9 @@ module Stuff
 			pattern['%u'] = line['name']
 			pattern['%r'] = line['reason'] if line['reason']
 			pattern['%c'] = line['channel']
-			
+			if user = @users[line['name']]
+				pattern['%h'] = user.hostname
+			end
 			
 		elsif type == USERPART
 			@status = NEWDATA
@@ -156,7 +161,6 @@ module Stuff
 			@status == NEWDATA
 			pattern += @config.notice.deep_clone
 			pattern['%m'] = line['msg']
-			
 			
 		end
 		
@@ -259,11 +263,15 @@ end
 
 class User
 	attr_reader :hostname, :name, :lastspoke
-	attr_writer :hostname, :name, :lastspoke
+	attr_writer :hostname, :lastspoke
 	def initialize(name)
-		@hostname = hostname
+		@hostname = 'hostname'
 		@name = name
 		@lastspoke = Time.new
+	end
+	
+	def rename(name)
+		@name = name
 	end
 	
 	def <=>(object)
@@ -292,11 +300,13 @@ class UserList
 	end
 	
 	def create(name)
+		return if self[name]
 		new = User.new(name)
 		@users.push(new)
 		@users.sort
 		puts 'creating user: ' +name
 		puts @users.length
+		return new
 	end
 	
 	def add(user)
@@ -307,7 +317,10 @@ class UserList
 		i = 0
 		@users.each{ |user|
 			if user.name == name
-				user.delete(i)
+				puts @users.length.to_s
+				@users.delete_at(i)
+				puts 'removed at ' +i.to_s
+				puts @users.length.to_s
 				@users.sort
 				return
 			end
@@ -536,7 +549,7 @@ end
 
 class Channel
 	include Stuff
-	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected
+	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users
 	def initialize(name, server)
 		@server = server
 		@name = name
@@ -585,6 +598,8 @@ class Channel
 				@users.add(@server.users[name])
 				drawusers
 				@users.sort
+			else
+				puts name+' already exists in userlist'
 			end
 			#iter = @userlist.append
 			#@users[name] = iter
@@ -597,6 +612,7 @@ class Channel
 	def drawusers
 		#I *really* should just sync the list
 		@userlist.clear
+		@users.sort
 		@users.users.each{ |user|
 			iter = @userlist.append
 			iter[0] = user.name
@@ -621,13 +637,13 @@ class Channel
 		return @server.username
 	end
 	
-	def changeuser(old, new)
-		if @users[old]
-			@users[new] = @users[old]
-			@users[new][0] = new
-			@users.delete(old)
-		end
-	end
+	#~ def changeuser(old, new)
+		#~ if @users[old]
+			#~ @users[new] = @users[old]
+			#~ @users[new][0] = new
+			#~ @users.delete(old)
+		#~ end
+	#~ end
 
 end
 		
