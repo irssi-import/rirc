@@ -258,6 +258,77 @@ end
 
 
 class User
+	attr_reader :hostname, :name, :lastspoke
+	attr_writer :hostname, :name, :lastspoke
+	def initialize(name)
+		@hostname = hostname
+		@name = name
+		@lastspoke = Time.new
+	end
+	
+	def <=>(object)
+		length = @name.length
+		retval =-1
+		if object.name.length < @name.length
+			length = object.name.length
+			retval = 1
+		end
+		
+		for i in 0...(length)
+			if @name[i] > object.name[i]
+				return 1
+			elsif @name[i] < object.name[i]
+				return -1
+			end
+		end
+		return retval
+	end
+end
+
+class UserList
+	attr_reader :users
+	def initialize
+		@users = []
+	end
+	
+	def create(name)
+		new = User.new(name)
+		@users.push(new)
+		@users.sort
+		puts 'creating user: ' +name
+		puts @users.length
+	end
+	
+	def add(user)
+		@users.push(user)
+		@users.sort
+	end
+	def remove(name)
+		i = 0
+		@users.each{ |user|
+			if user.name == name
+				user.delete(i)
+				@users.sort
+				return
+			end
+			i += 1
+		}
+	end
+	
+	def[](name)
+		result = nil
+		@users.each{ |user|
+			if user.name == name
+				puts 'matched ' +name
+				result = user
+			end
+		}
+		return result
+	end
+	
+	def sort
+		@users.sort
+	end
 end
 
 class ServerList
@@ -371,7 +442,7 @@ end
 
 class Server
 	include Stuff
-	attr_reader :name, :channels, :buffer, :button, :box, :parent, :config, :username, :presence, :connected
+	attr_reader :name, :channels, :buffer, :button, :box, :parent, :config, :username, :presence, :connected, :users
 	attr_writer :username, :presence
 	def initialize(name, presence, parent)
 		@presence = presence
@@ -382,6 +453,7 @@ class Server
 		@channels = Array.new
 		@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
+		@users = UserList.new
 		@buffer.create_tag('color1', {'foreground_gdk'=>@config.color1})
 		@buffer.create_tag('color2', {'foreground_gdk'=>@config.color2})
 		@buffer.create_tag('color3', {'foreground_gdk'=>@config.color3})
@@ -495,7 +567,7 @@ class Channel
 		@button.label= @name
 		@button.active = false
 		@button.show
-		@users = {}
+		@users = UserList.new
 		@connected = true
 	end
 	
@@ -508,11 +580,27 @@ class Channel
 	end
 	
 	def adduser(name)
-		if !@users[name]
-			iter = @userlist.append
-			@users[name] = iter
-			iter[0] = name
+		if @server.users[name]
+			if ! @users[name]
+				@users.add(@server.users[name])
+				drawusers
+				@users.sort
+			end
+			#iter = @userlist.append
+			#@users[name] = iter
+			#iter[0] = name
+		else
+			puts 'Unknown user '+name
 		end
+	end
+	
+	def drawusers
+		#I *really* should just sync the list
+		@userlist.clear
+		@users.users.each{ |user|
+			iter = @userlist.append
+			iter[0] = user.name
+		}
 	end
 	
 	def clearusers
@@ -521,8 +609,10 @@ class Channel
 	
 	def deluser(user)
 		if @users[user]
-			@userlist.remove(@users[user])
-			@users.delete(user)
+			#@userlist.remove(@users[user])
+			@users.remove(user)
+			@users.sort
+			drawusers
 		end
 	end
 			

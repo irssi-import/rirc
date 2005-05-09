@@ -116,23 +116,10 @@ class MainWindow
 		
 		@path= $path
 		
-		#@client = UNIXSocket.open(@path);
 		@me = self
 
 		@events = {}
-		#send_command("1:network add:name=local:protocol=irc")
-		#send_command("1:network add:name=freenode:protocol=irc")
-		#send_command("2:presence add:name=vag:network=local")
-		#send_command("2:presence add:name=vag:network=freenode")
-		#send_command("3:gateway add:host=localhost:network=local:port=6667")
-		#send_command("3:gateway add:host=irc.eu.freenode.net:network=freenode:port=6667")
-		#send_command("4:presence connect:network=local:presence=vag")
-		#send_command("4:presence connect:network=freenode:presence=vag")
-		#send_command("5:channel join:network=local:channel=#irssi2test")
-		#send_command("5:channel join:network=local:channel=#trotw")
-		#send_command("5:channel join:network=freenode:channel=#otw")
-		
-		#send_command("5:user list")
+
 		@buffer = []
 		@buffer[0] = true
 		@last = nil
@@ -207,8 +194,6 @@ class MainWindow
 	end
 	
 	def createeventcatchthread(tag, command)
-		#@events[tag] = {}
-		#@events[tag]['command'] = command
 		if @events[tag]
 			#puts 'name currently in use!'
 		end
@@ -295,7 +280,7 @@ class MainWindow
 		end
 		
 		message = widget.text
-		#puts message
+
 		if message[0] == '/'[0]
 			if message =~ /^\/join (#[^\s]+)/ and network
 				send_command('join', "channel join:network="+network+":channel="+$1)
@@ -304,7 +289,6 @@ class MainWindow
 				connectnetwork($1, $2, presence)
 			elsif message =~ /^\/part(.*)$/
 				if $1 =~/(#[^\s]+)/
-					#puts network
 					send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+$1)
 				else
 					line = {}
@@ -379,7 +363,6 @@ class MainWindow
 	
 	def handle_output(string)
 		return if string.length == 0
-		#puts string
 		line= {}
 		re = /(^[^\*]+):([+\->]+)(.*)$/
 		re2 = /^[*]+:([a-zA-Z_]+):(.+)$/
@@ -408,30 +391,18 @@ class MainWindow
 			end
 		end
 		
-		#line.each {|key, value| print key, " is ", value, "\n" }
-		#puts "\n"
-		
 		num = line['id'].to_i
 		@buffer[num] = line 
 		
 		if @last == nil
 			@last = num-1
 		end
-		
-		#if @buffer[num] and num-1 == @last
-		#	while @buffer[num]
+
 		parse_line(@buffer[num])
-				#puts num.to_s
-		#		num+=1
-		#	end
-		#	@last = num-1
-		#end
+
 	end
 	
 	def parse_command_output(line)
-	
-		#line.each {|key, value| print key, " is ", value, "\n" }
-		#puts "\n"
 		
 		if line['command'] == 'presence list'
 			if line['network'] and line['presence']
@@ -442,11 +413,8 @@ class MainWindow
 		elsif line['command'] == 'channel list'
 			if line['network'] and line['presence'] and line['name']
 				if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
-					#network = createnetworkifnot(line['network'], line['presence'])
-					#createchannelifnot(network, line['name'])
 					switchchannel(@serverlist[line['network'], line['presence']].add(line['name']))
 					send_command('listchan'+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
-					#puts 'events'+line['name']+ ":event get:end=*:limit=100:filter=channel=="+line['name']
 					send_command('events'+line['name'], "event get:end=*:limit=100:filter=channel=="+line['name'])
 				else
 					puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
@@ -473,8 +441,10 @@ class MainWindow
 			end
 		
 			if line['command'] == 'channel names'
-				if line['network'] and line['presence'] and line['channel']
-					@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
+				if line['network'] and line['presence'] and line['channel'] and line['name']
+					#@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
+					network.users.create(line['name'])
+					channel.adduser(line['name'])
 				end
 			elsif line['command'] == 'event get'
 				if line['msg']
@@ -517,16 +487,9 @@ class MainWindow
 					else
 						channel.send_event(line, JOIN, BUFFER_START)
 					end
-					
-				else
-					#line.each {|key, value| print key, " is ", value, "\n" }
-					#puts "\n"
 				end
 			elsif line['status'] == '+'
 				return
-			else
-				#line.each {|key, value| print key, " is ", value, "\n" }
-				#puts "\n"
 			end
 		end
 		@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
@@ -579,62 +542,12 @@ class MainWindow
 				end
 			end
 				
-				
-			#~ if line['network'] and line['presence']
-				#~ switchchannel(@serverlist.add(line['network'], line['presence'])) if !@serverlist[line['network'], line['presence']]
-				
-				#~ if line['channel']
-					#~ if !@serverlist[line['network'], line['presence']] [line['channel']]
-						#~ switchchannel(@serverlist[line['network'], line['presence']].add(line['channel']))
-						#~ send_command("8:channel names:network="+line['network']+":channel="+line['channel']+":presence="+line['presence'])
-					#~ end
-				#~ end
-			#~ end
-		
-			#~ if line['type'] == 'irc_event'
-				#~ if line['event'] == 'join'
-					#~ line['data'].gsub!(':', '')
-					#~ @serverlist[line['network'], line['presence']].add(line['data']) if !@serverlist[line['network'], line['presence']] [line['data']]
-					#~ if line['nick'] == @serverlist[line['network'], line['presence']].username
-						#~ pattern = @config.userjoin.deep_clone
-						#~ pattern['%c'] = line['data']
-					#~ else
-						#~ pattern = @config.join.deep_clone
-						#~ pattern['%u'] = line['nick']
-						#~ pattern['%h'] = line['address']
-						#~ pattern['%c'] = line['data']
-						#~ @serverlist[line['network'], line['presence']][line['data']].adduser(line['nick'])
-					#~ end
-					#~ @serverlist[line['network'], line['presence']] [line['data']].addtext(gettimestamp(line['time'])+' '+pattern)
-				#~ else
-					#~ pattern = @config.notice.deep_clone
-					#~ pattern['%m'] = line['data']
-					#~ @serverlist.addtext(gettimestamp(line['time'])+' '+pattern)
-					#~ if ! line['channel']
-						#~ @serverlist[line['network'], line['presence']].3(gettimestamp(line['time'])+' '+pattern)
-					#~ else
-						#~ @serverlist[line['network']] [line['channel']].addtext(gettimestamp(line['time'])+' '+pattern)
-					#~ end
-				#~ end
-				
 			if line['type'] == 'notice'
-				#pattern = @config.notice.deep_clone
-				#pattern['%m'] = line['msg']
-				#network = createnetworkifnot(line['network'], line['presence'])
 				network.send_event(line, NOTICE)
 				
-			#~ elsif line['type'] == 'irc_event_error'
-				#~ pattern =  @config.error.deep_clone
-				#~ pattern['%m'] = line['data']
-				#~ @serverlist.addtext(gettimestamp(line['time'])+' '+pattern)
-				#~ @serverlist[line['network'], line['presence']].addtext(gettimestamp(line['time'])+' '+pattern)
-				
-	
-				
 			elsif line['type'] == 'channel_presence_removed'
-				puts "Removed - "+ line['name']
-				#network = createnetworkifnot(line['network'], line['presence'])
-				#channel = createchannelifnot(network, line['channel'])
+				#puts "Removed - "+ line['name']
+				#channel.deluser(line['name'])
 				channel.deluser(line['name'])
 				
 				if line['deinit']
@@ -642,44 +555,26 @@ class MainWindow
 				end
 				
 				if line['name'] == network.username
-					#pattern = @config.userpart.deep_clone
-					#pattern['%c'] = line['channel']
 					channel.send_event(line, USERPART)
 				else
-					#pattern = @config.part.deep_clone
-					#pattern['%u'] = line['name']
-					#pattern['%h'] = line['address']
-					#pattern['%c'] = line['channel']
 					channel.send_event(line, PART)
 				end
-				#channel.addtext(gettimestamp(line['time'])+' '+pattern)
-				
 				
 			elsif line['type'] == 'channel_presence_added'
-				puts "Added - "+ line['name']
-				#network = createnetworkifnot(line['network'], line['presence'])
-				#channel = createchannelifnot(network, line['channel'])
 				channel.adduser(line['name'])
+				#puts "Added - "+ line['name']
+				#channel.adduser(line['name'])
 				if line['init']
 					return
 				end
 				if line['name'] == network.username
-					#pattern = @config.userjoin.deep_clone
-					#pattern['%c'] = line['channel']
 					channel.send_event(line, USERJOIN)
 				else
-					#pattern = @config.join.deep_clone
-					#pattern['%u'] = line['name']
-					#pattern['%h'] = line['address']
-					#pattern['%c'] = line['channel']
 					channel.send_event(line, JOIN)
 				end
-				#channel.addtext(gettimestamp(line['time'])+' '+pattern)
 				
 			elsif line['type'] == 'presence_changed'
 				if line['new_name']
-					#network = createnetworkifnot(line['network'], line['presence'])
-					
 					pattern = @config.notice.deep_clone
 					
 					if line['name'] == line['presence']
@@ -690,77 +585,42 @@ class MainWindow
 					else
 						pattern = nil
 					end
-					
-					#~ network.channels.each {|c|
-						#~ c.changeuser(line['name'], line['new_name'])
-						#~ if pattern
-							#~ c.addtext(pattern)
-						#~ end
-					#~ }
 				end
 				
+			elsif line['type'] == 'presence_init'
+				puts 'presence init'
+				network.users.create(line['name'])
+				
+			elsif line['type'] == 'presence_changed'
+				if network.users[line['name']]
+					network.users[line['name']].hostname = line['address']
+				end	
+				
 			elsif line['type'] == 'msg'
-			#	puts "message from "+line['nick']
 				return if !line['channel']
-				#pattern =  @config.message.deep_clone
-				#pattern['%m'] = line['msg']
-				#pattern['%u'] = line['nick']
-				#network = createnetworkifnot(line['network'], line['presence'])
-				#channel = createchannelifnot(network, line['channel'])
-				#channel.addtext(gettimestamp(line['time'])+' '+pattern)
 				if line['own']
 					channel.send_event(line, USERMESSAGE)
 				else
 					channel.send_event(line, MESSAGE)
 				end
 				
-			#~ elsif line['type'] == 'client_command'
-				#~ if line['command'] == 'msg'
-					#~ #network = createnetworkifnot(line['network'], line['presence'])
-					#~ #channel = createchannelifnot(network, line['target'])
-					#~ #pattern =  @config.usermessage.deep_clone
-					#~ #pattern['%m'] = line['msg']
-					#~ #pattern['%u'] = network.username
-					#~ channel.addtext(gettimestamp(line['time'])+' '+pattern)
-				#~ end
-				
 			elsif line['type'] == 'gateway_connecting'
-				#pattern = @config.notice.deep_clone
 				msg = "Connecting to "+line['ip']+':'+line['port']
-				#pattern['%m'] = msg
-				#puts line['time']+" "+line['presence']+" "+line['network']
-				#network = createnetworkifnot(line['network'], line['presence'])
-				#network.addtext(gettimestamp(line['time'])+' '+pattern)
 				line['msg'] = msg
 				network.send_event(line, NOTICE)
 				
 			elsif line['type'] == 'gateway_connect_failed'
-				#pattern = @config.error.deep_clone
 				err = "Connection to "+line['ip']+':'+line['port']+" failed : "+line['error']
-				#pattern['%m'] = err
-				#network = createnetworkifnot(line['network'], line['presence'])
-				#network.addtext(gettimestamp(line['time'])+' '+pattern)
 				line['err'] = err
 				network.send_event(line, ERROR)
 				
 			elsif line['type'] == 'gwconn_changed' or line['type'] == 'gateway_changed'
-				#pattern = @config.notice.deep_clone
 				msg = line['presence']+" sets mode +"+line['irc_mode']+" "+line['presence']
-				#pattern['%m'] = msg
-				#network = createnetworkifnot(line['network'], line['presence'])
-				#network.addtext(gettimestamp(line['time'])+' '+pattern)
 				line['msg'] = msg
 				network.send_event(line, NOTICE)
 				
 			elsif line['type'] == 'client_command_reply'
 				return
-			#	if line['command'] == 'presence list'
-			#		#@serverlist.add(line['network'], line['presence'])
-			#	elsif line['command'] == 'channel list' and line['network'] and line['presence']
-			#		switchchannel(@serverlist[line['network'], line['presence']].add(line['name']))
-			#		send_command("5:channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
-			#	end
-			#
 			
 			elsif line['type'] == 'gateway_motd'
 				line['msg'] = line['data']
@@ -806,33 +666,6 @@ class MainWindow
 		
 		return network[channel]
 	end
-	
-	#~ def add_message(message, user, type, time, channel=@currentchan)
-		#~ if message.length > 0
-			#~ if(type == 'message')
-				#~ pattern = @config.usermessage[0, @config.usermessage.length]
-			#~ elsif type == 'action'
-				#~ pattern = @config.action[0, @config.action.length]
-			#~ elsif type == 'irc_event'
-				#~ pattern = @config.notice[0, @config.notice.length]
-			#~ else
-				#~ pattern = string
-			#~ end
-			#~ #replace the values in the pattern
-			#~ pattern['%u'] = user if pattern['%u']
-			#~ pattern['%m'] = message if pattern['%m']
-			#~ channel.addtext(gettimestamp(time)+' '+pattern)
-			#~ @messages.scroll_to_mark(channel.endmark, 0.0, false,  0, 0)
-			#~ channel.setstatus(NEWMSG)
-		#~ end
-	#~ end
-	
-	#def gettimestamp(time)
-	#	return "" if time == nil
-	#	#date = IO.popen("date -d '1970-01-01 UTC "+time+" seconds' +"+@config.timestamp, "w+")
-	#	timestamp = Time.at(time.to_i)
-	#	return timestamp.strftime(@config.timestamp)
-	#end
 	
 
 	
@@ -887,7 +720,6 @@ class MainWindow
 	end
 	
 	def quit
-		#@sThread.join
 		Gtk.main_quit
 	end
 end
