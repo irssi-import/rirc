@@ -292,7 +292,7 @@ class MainWindow
 			if command == 'join' and network
 				send_command('join', "channel join:network="+network+":channel="+arguments)
 			elsif command == 'server' and  arguments  =~ /^([a-zA-Z0-9_]+):([a-zA-Z0-9_.]+)$/
-				puts $1, $2, presence
+				#puts $1, $2, presence
 				connectnetwork($1, $2, presence)
 			elsif command == 'part'
 				arguments = arguments.split(' ')
@@ -384,7 +384,7 @@ class MainWindow
 		
 		if md = re.match(string)
 			if @events[$1]
-				puts string
+				#puts string
 				@events[$1]['raw_lines'].push(string)
 			else
 				puts "Event for dead or unregistered handler recieved " + string
@@ -443,7 +443,11 @@ class MainWindow
 		elsif line['command'] == 'channel list'
 			if line['network'] and line['presence'] and line['name']
 				if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
-					switchchannel(@serverlist[line['network'], line['presence']].add(line['name']))
+					channel = @serverlist[line['network'], line['presence']].add(line['name'])
+					if line['topic']
+						channel.topic = line['topic']
+					end
+					switchchannel(channel)
 					send_command('listchan'+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
 					send_command('events'+line['name'], "event get:end=*:limit=100:filter=channel=="+line['name'])
 				else
@@ -499,6 +503,10 @@ class MainWindow
 					end
 					line['msg'] = pattern
 					
+					if line['topic']
+						channel.topic = line['topic']
+					end
+					
 					if pattern
 						channel.send_event(line, NOTICE, BUFFER_START)
 					end
@@ -542,7 +550,7 @@ class MainWindow
 			if !@serverlist[line['network'], line['presence']]
 				switchchannel(@serverlist.add(line['network'], line['presence']))
 			elsif !@serverlist[line['network'], line['presence']].connected
-				puts 'server exists but is not connected'
+				puts 'server exists but is not connected, reconnecting'
 				@serverlist[line['network'], line['presence']].reconnect
 			else
 				puts 'request to create already existing channel, ignoring'
@@ -553,7 +561,7 @@ class MainWindow
 				puts 'Error, non existant channel init event caught, ignoring'
 				return
 			elsif @serverlist[line['network'], line['presence']][line['channel']] and ! @serverlist[line['network'], line['presence']][line['channel']].connected
-				puts 'channel exists, but is not connected'
+				puts 'channel exists, but is not connected, reconnecting'
 				@serverlist[line['network'], line['presence']][line['channel']].reconnect
 				
 			elsif @serverlist[line['network'], line['presence']][line['channel']]
@@ -582,12 +590,13 @@ class MainWindow
 				end
 			end
 				
-			if line['type'] == 'notice'
+			#ignore the spamular stuff here before we get any further
+			if line['type'] == 'irc_event' or line['type'] == 'client_command_reply'
+				return
+			elsif line['type'] == 'notice'
 				network.send_event(line, NOTICE)
 				
 			elsif line['type'] == 'channel_presence_removed'
-				#puts "Removed - "+ line['name']
-				#channel.deluser(line['name'])
 				
 				if ! line['deinit']
 				
@@ -601,18 +610,14 @@ class MainWindow
 				channel.deluser(line['name'])
 				
 			elsif line['type'] == 'channel_part'
-				line['msg'] = 'You have left '+line['channel']
-				channel.send_event(line, NOTICE)
+				channel.send_event(line, USERPART)
 				channel.disconnect
 				
 			elsif line['type'] == 'channel_join'
-				line['msg'] = 'You are now talking in '+line['channel']
 				channel.reconnect
-				channel.send_event(line, NOTICE)
+				channel.send_event(line, USERJOIN)
 				
 			elsif line['type'] == 'channel_presence_added'
-				#puts "Added - "+ line['name']
-				#channel.adduser(line['name'])
 				channel.adduser(line['name'])
 				
 				if !line['init']
@@ -630,16 +635,13 @@ class MainWindow
 					user = network.users[line['name']]
 					
 					if user
-						puts 'matched uswer'+user.name
+						#puts 'matched uswer'+user.name
 						user.rename(line['new_name'])
-						puts 'matched uswer'+user.name
-						puts network.users[line['new_name']]
-						#puts channel.users[line['name']] if channel.users[line['name']]
-						#puts channel.users[line['new_name']] if channel.users[line['new_name']]
+						#puts 'matched uswer'+user.name
+						#puts network.users[line['new_name']]
 					end
 					
 					if line['name'] == line['presence']
-						#network.presence = line['new_name']
 						pattern = 'You are now known as '+line['new_name']
 					elsif line['name'] != line['new_name']
 						pattern= line['name']+' is now known as '+line['new_name']
@@ -652,7 +654,7 @@ class MainWindow
 					if pattern
 						network.channels.each{ |c|
 							if c.users[line['new_name']]
-								puts c.users[line['new_name']]
+								#puts c.users[line['new_name']]
 								c.drawusers
 								c.send_event(line, NOTICE)
 							end
@@ -667,11 +669,11 @@ class MainWindow
 				end
 				
 			elsif line['type'] == 'presence_init'
-				puts 'presence init'
+				#puts 'presence init'
 				network.users.create(line['name'])
 				
 			elsif line['type'] == 'presence_deinit'
-				puts 'presence deinit'
+				#puts 'presence deinit'
 				network.users.remove(line['name'])
 				
 			elsif line['type'] == 'presence_changed'
@@ -706,9 +708,6 @@ class MainWindow
 				msg = line['presence']+" sets mode +"+line['irc_mode']+" "+line['presence']
 				line['msg'] = msg
 				network.send_event(line, NOTICE)
-				
-			elsif line['type'] == 'client_command_reply'
-				return
 			
 			elsif line['type'] == 'gateway_motd'
 				line['msg'] = line['data']
@@ -716,13 +715,19 @@ class MainWindow
 			
 			elsif line['type'] == 'channel_changed'
 				if line['topic'] and line['topic_set_by']
-					pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
+					#pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
+					pattern = "%6"+line['topic_set_by']+'%6 has changed the topic to: %6'+line['topic']+'%6'
 				elsif line['topic']
 					pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
 				elsif line['topic_set_by']
 					pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
 				end
 				line['msg'] = pattern
+				
+				if line['topic']
+					channel.topic = line['topic']
+				end
+				
 				if pattern
 					channel.send_event(line, NOTICE)
 				end
@@ -779,6 +784,7 @@ class MainWindow
 			@userlist.append_column(@currentchan.column)
 			@userlist.show_all
 			@topic.show
+			@topic.text =@currentchan.topic
 		else
 			@mainbox.remove(@panel)
 			@panel.remove(@messagebox)
@@ -800,10 +806,10 @@ class MainWindow
 	
 	def on_preferences1_activate
 		
-		puts 'decorated' if @configwindow.decorated?
+		#puts 'decorated' if @configwindow.decorated?
 		@cells = Gtk::CellRendererText.new
 		@cells.text = "bleh"
-		puts @preferencesbar.insert_column(1, 'Preferences', @cells, {}).to_s 
+		#puts @preferencesbar.insert_column(1, 'Preferences', @cells, {}).to_s 
 		@configwindow.show_all
 	end
 	

@@ -136,6 +136,7 @@ module Stuff
 		elsif type == USERJOIN
 			@status = NEWDATA
 			pattern += @config.userjoin.deep_clone
+			pattern['%c'] = line['channel']
 			
 		elsif type == PART
 			@status = NEWDATA
@@ -150,7 +151,7 @@ module Stuff
 		elsif type == USERPART
 			@status = NEWDATA
 			pattern += @config.userpart.deep_clone
-			
+			pattern['%c'] = line['channel']
 			
 		elsif type == ERROR
 			@status == NEWDATA
@@ -305,7 +306,7 @@ class UserList
 		@users.push(new)
 		@users.sort
 		#puts 'creating user: ' +name
-		puts @users.length
+		#puts @users.length
 		return new
 	end
 	
@@ -317,10 +318,10 @@ class UserList
 		i = 0
 		@users.each{ |user|
 			if user.name == name
-				puts @users.length.to_s
+				#puts @users.length.to_s
 				@users.delete_at(i)
 				#puts 'removed at ' +i.to_s
-				puts @users.length.to_s
+				#puts @users.length.to_s
 				@users.sort
 				return
 			end
@@ -372,7 +373,7 @@ class ServerList
 		@button.setchannel(self)
 		@button.signal_connect('clicked')do |w|
 			@parent.switchchannel(w.channel)
-			puts 'switched'
+			#puts 'switched'
 		end
 		box.pack_start(@button)
 		@status = INACTIVE
@@ -401,7 +402,7 @@ class ServerList
 		#insert the widget
 		@box.pack_start(newserver.box, true, true)
 		for i in 0...(@servers.length)
-			puts @servers[i].name
+			#puts @servers[i].name
 			if @servers[i] == newserver
 				if i !=0 and i == @servers.length-1
 					seperator = Gtk::VSeparator.new
@@ -409,14 +410,14 @@ class ServerList
 					seperator.show
 					@box.reorder_child(seperator, @servers.length*2)
 					@box.reorder_child(newserver.box, @servers.length*2)
-					puts 'a '+ @servers.length.to_s
+					#puts 'a '+ @servers.length.to_s
 				elsif i > 0
 					seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
 					seperator.show
 					@box.reorder_child(seperator, (i*2)+1)
 					@box.reorder_child(newserver.box, (i*2)+2)
-					puts 'b'+i.to_s
+					#puts 'b'+i.to_s
 				elsif i == 0 and @servers.length > 1
 					seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
@@ -424,9 +425,9 @@ class ServerList
 					
 					@box.reorder_child(seperator, i+2)
 					@box.reorder_child(newserver.box, i+2)
-					puts 'c'
+					#puts 'c'
 				else
-					puts 'd'
+					#puts 'd'
 					seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
 					seperator.show
@@ -459,7 +460,7 @@ class Server
 	attr_writer :username, :presence
 	def initialize(name, presence, parent)
 		@presence = presence
-		puts @presence
+		#puts @presence
 		@username = @presence
 		@parent = parent
 		@name = name
@@ -481,7 +482,7 @@ class Server
 		@button.setchannel(self)
 		@button.signal_connect('clicked')do |w|
 			getparentwindow.switchchannel(w.channel)
-			puts 'switched '+ @name+" "+@presence
+			#puts 'switched '+ @name+" "+@presence
 		end
 		@button.active = false
 		@box = Gtk::HBox.new
@@ -549,7 +550,8 @@ end
 
 class Channel
 	include Stuff
-	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users
+	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
+	attr_writer :topic
 	def initialize(name, server)
 		@server = server
 		@name = name
@@ -571,11 +573,12 @@ class Channel
 		@currentcommand = ''
 		@commandindex = 0
 		@status = INACTIVE
+		@topic = ''
 		@button = Gtk::ToggleButton.new(name)
 		@button.setchannel(self)
 		@button.signal_connect('clicked')do |w|
 			getparentwindow.switchchannel(w.channel)
-			puts 'switched '+ @name
+			#puts 'switched '+ @name
 		end
 		@button.label= @name
 		@button.active = false
