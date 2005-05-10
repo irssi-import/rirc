@@ -10,6 +10,7 @@ rescue LoadError
 	exit
 end
 
+#useful for debugginga
 Thread.abort_on_exception = true
 
  #fuck signals, lets just extend the button class to hold a reference to its parent object
@@ -210,6 +211,7 @@ class MainWindow
 					temp['tag'] = vars[0]
 					temp['status'] = vars[1]
 					temp['command'] = thiscommand
+					temp['original'] = line
 					
 					if !vars[2]
 						lines.push(temp)
@@ -236,6 +238,9 @@ class MainWindow
 					
 					if temp['status'] == '-'
 						puts line+" error!"
+						output = {}
+						output['err'] = line
+						@serverlist.send_event(output, ERROR)
 						break
 					end
 					
@@ -281,30 +286,39 @@ class MainWindow
 		
 		message = widget.text
 
-		if message[0] == '/'[0]
-			if message =~ /^\/join (#[^\s]+)/ and network
-				send_command('join', "channel join:network="+network+":channel="+$1)
-			elsif message =~ /^\/server ([a-zA-Z0-9_]+):([a-zA-Z0-9_.]+)$/
+		if message =~ /^\/([a-z]+)[\s]*(.*)$/
+			command = $1
+			arguments = $2
+			if command == 'join' and network
+				send_command('join', "channel join:network="+network+":channel="+arguments)
+			elsif command == 'server' and  arguments  =~ /^([a-zA-Z0-9_]+):([a-zA-Z0-9_.]+)$/
 				puts $1, $2, presence
 				connectnetwork($1, $2, presence)
-			elsif message =~ /^\/part(.*)$/
-				if $1 =~/(#[^\s]+)/
-					send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+$1)
+			elsif command == 'part'
+				arguments = arguments.split(' ')
+				if arguments[0]
+					send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+arguments[0])
 				else
 					line = {}
 					line['err'] = 'Part requires a channel argument'
 					line['time'] = Time.new.to_i
 					@currentchan.send_event(line, ERROR)
 				end
-			elsif message =~ /^\/quit(.*)$/
+			elsif command == 'quit'
 				send_command('quit', 'quit')
 				Gtk.main_quit
-			elsif message =~ /^\/shutdown(.*)$/
+			elsif command == 'shutdown'
 				send_command('shutdown', 'shutdown')
 				Gtk.main_quit
-			elsif message =~ /^\/ruby (.*)$/
-				puts 'possibly evil ruby code inputted'
-				eval($1)
+			elsif command == 'ruby'
+				puts 'possibly evil ruby code inputted, blindly executing'
+				eval(arguments)
+			elsif command == 'raw'
+				puts 'sending '+arguments
+				output = {}
+				output['msg'] = 'Sent raw command "'+arguments+'" to irssi2 directly'
+				@serverlist.send_event(output, NOTICE)
+				send_command('raw', arguments)
 			end
 		elsif network
 			messages = message.split("\n")
@@ -412,6 +426,13 @@ class MainWindow
 				#~ puts key+'='+value+"\n"
 				#~ }
 			#~ puts "\n"
+			
+		if line['tag'] == 'raw'
+			output = {}
+			output['msg'] =  line['original']
+			@serverlist.send_event(output, NOTICE)
+			return
+		end
 		
 		if line['command'] == 'presence list'
 			if line['network'] and line['presence']
@@ -578,6 +599,16 @@ class MainWindow
 				end
 				
 				channel.deluser(line['name'])
+				
+			elsif line['type'] == 'channel_part'
+				line['msg'] = 'You have left '+line['channel']
+				channel.send_event(line, NOTICE)
+				channel.disconnect
+				
+			elsif line['type'] == 'channel_join'
+				line['msg'] = 'You are now talking in '+line['channel']
+				channel.reconnect
+				channel.send_event(line, NOTICE)
 				
 			elsif line['type'] == 'channel_presence_added'
 				#puts "Added - "+ line['name']

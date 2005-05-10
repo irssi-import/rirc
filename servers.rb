@@ -64,10 +64,10 @@ module Stuff
 	
 	def disconnect
 		@button.label = '('+@name+')'
-		line = {}
-		line['err'] = 'Disconnected'
-		line['time'] = Time.new.to_i
-		send_event(line, ERROR)
+		#line = {}
+		#line['err'] = 'Disconnected'
+		#line['time'] = Time.new.to_i
+		#send_event(line, ERROR)
 		@connected = false
 		#puts 'disconnecting ' +@name
 	end
@@ -75,10 +75,10 @@ module Stuff
 	def reconnect
 		@button.label = @name
 		@connected = true
-		line = {}
-		line['msg'] = 'Reconnected'
-		line['time'] = Time.new.to_i
-		send_event(line, NOTICE)
+		#line = {}
+		#line['msg'] = 'Reconnected'
+		#line['time'] = Time.new.to_i
+		#send_event(line, NOTICE)
 		#puts 'disconnecting ' +@name
 	end
 	
