@@ -128,8 +128,10 @@ module Stuff
 			pattern += @config.join.deep_clone
 			pattern['%u'] = line['name']
 			pattern['%c'] = line['channel']
-			if user = @users[line['name']]
+			if user = @users[line['name']] and user.hostname
 				pattern['%h'] = user.hostname
+			elsif line['address']
+				pattern['%h'] = line['address']
 			end
 			
 			
@@ -144,8 +146,10 @@ module Stuff
 			pattern['%u'] = line['name']
 			pattern['%r'] = line['reason'] if line['reason']
 			pattern['%c'] = line['channel']
-			if user = @users[line['name']]
+			if user = @users[line['name']] and user.hostname
 				pattern['%h'] = user.hostname
+			elsif line['address']
+				pattern['%h'] = line['address']
 			end
 			
 		elsif type == USERPART
@@ -266,7 +270,7 @@ class User
 	attr_reader :hostname, :name, :lastspoke
 	attr_writer :hostname, :lastspoke
 	def initialize(name)
-		@hostname = 'hostname'
+		@hostname = nil
 		@name = name
 		@lastspoke = Time.new
 	end
@@ -276,22 +280,60 @@ class User
 	end
 	
 	def <=>(object)
-		length = @name.length
-		retval =-1
-		if object.name.length < @name.length
-			length = object.name.length
-			retval = 1
-		end
+		a = @name.downcase
+		b = object.name.downcase
 		
-		for i in 0...(length)
-			if @name[i] > object.name[i]
-				return 1
-			elsif @name[i] < object.name[i]
-				return -1
-			end
-		end
-		return retval
+		return a <=> b
+		#~ length = @name.length
+		#~ retval =-1
+		#~ if object.name.length < @name.length
+			#~ length = object.name.length
+			#~ retval = 1
+		#~ end
+		
+		#~ for i in 0...(length)
+			#~ if @name[i] > object.name[i]
+				#~ #puts @name+' > '+object.name
+				#~ return 1
+			#~ elsif @name[i] < object.name[i]
+				#~ #puts @name+' < '+object.name
+				#~ return -1
+			#~ end
+		#~ end
+		#~ return retval
 	end
+	
+	def comparetostring(string)
+	
+		a = @name.downcase
+		b = string.downcase
+		
+		return a <=> b
+		#~ orig = @name.deep_clone
+		
+		#~ if string == orig
+			#~ return 0
+		#~ end
+		
+		#~ length = orig.length
+		#~ retval =-1
+		#~ if string.length < orig.length
+			#~ length = string.length
+			#~ retval = 1
+		#~ end
+		
+		#~ for i in 0...(length)
+			#~ if orig[i] > string[i]
+				#~ #puts @name+' > '+object.name
+				#~ return 1
+			#~ elsif orig[i] < string[i]
+				#~ #puts @name+' < '+object.name
+				#~ return -1
+			#~ end
+		#~ end
+		#~ return retval
+	end
+	
 end
 
 class UserList
@@ -304,7 +346,7 @@ class UserList
 		return if self[name]
 		new = User.new(name)
 		@users.push(new)
-		@users.sort
+		@users.sort!
 		#puts 'creating user: ' +name
 		#puts @users.length
 		return new
@@ -312,7 +354,7 @@ class UserList
 	
 	def add(user)
 		@users.push(user)
-		@users.sort
+		@users.sort!
 	end
 	def remove(name)
 		i = 0
@@ -322,7 +364,7 @@ class UserList
 				@users.delete_at(i)
 				#puts 'removed at ' +i.to_s
 				#puts @users.length.to_s
-				@users.sort
+				@users.sort!
 				return
 			end
 			i += 1
@@ -341,7 +383,11 @@ class UserList
 	end
 	
 	def sort
-		@users.sort
+		@users.sort!
+	end
+	
+	def length
+		return @users.length
 	end
 end
 
@@ -585,6 +631,8 @@ class Channel
 		@button.show
 		@users = UserList.new
 		@connected = true
+		
+		@useriters = []
 	end
 	
 	def add(name)
@@ -595,14 +643,17 @@ class Channel
 		return @server.parent.parent
 	end
 	
-	def adduser(name)
+	def adduser(name, init = false)
 		if @server.users[name]
 			if ! @users[name]
 				@users.add(@server.users[name])
-				drawusers
 				@users.sort
-			else
-				puts name+' already exists in userlist'
+				if !init
+					#puts 'syncing list'
+					drawusers
+				end
+			#else
+				#puts name+' already exists in userlist'
 			end
 			#iter = @userlist.append
 			#@users[name] = iter
@@ -614,24 +665,68 @@ class Channel
 	
 	def drawusers
 		#I *really* should just sync the list
-		@userlist.clear
-		@users.sort
-		@users.users.each{ |user|
-			iter = @userlist.append
-			iter[0] = user.name
-		}
+		#@userlist.clear
+		#@users.sort
+		
+		if @useriters.length == 0
+			@users.users.each{ |user|
+				iter = @userlist.append
+				iter[0] = user.name
+				@useriters .push(iter)
+			}
+		else
+			i = 0
+			@users.users.each do |user|
+				if !@useriters[i]
+					iter = @userlist.append
+					iter[0] = user.name
+					@useriters .push(iter)
+					#puts 'end of iter list'
+					return
+				end
+				#puts i, @useriters[i][0], user.name
+				res = user.comparetostring(@useriters[i][0])
+				if res == 0
+					#puts 'equal, continuing'
+				elsif res == 1
+					#puts 'removing '+@useriters[i][0]+' at '+i.to_s
+					#puts @useriters[i]
+					@userlist.remove(@useriters[i])
+					@useriters.delete_at(i)
+				elsif res == -1
+					#puts 'adding '+user.name+' at '+i.to_s
+					iter = @userlist.insert_before(@useriters[i])
+					iter[0] = user.name
+					@useriters[i] = [iter, @useriters.at(i)]
+					@useriters.flatten!
+					#puts @useriters[i].class, @useriters[i+1].class
+					#put in the useriters at the right place somehow...
+				end
+				
+				i += 1
+			end
+			while @users.length < @useriters.length
+				@userlist.remove(@useriters[@useriters.length-1])
+				@useriters.delete_at(@useriters.length-1)
+			end
+			
+			#puts @users.length.to_s,  @useriters.length.to_s
+		end
 	end
 	
 	def clearusers
 		@userlist.clear
 	end
 	
-	def deluser(user)
+	def deluser(user, deinit = false)
 		if @users[user]
 			#@userlist.remove(@users[user])
 			@users.remove(user)
 			@users.sort
-			drawusers
+			if !deinit
+				#puts 'syncing list'
+				drawusers
+			end
 		end
 	end
 			

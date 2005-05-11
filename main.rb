@@ -82,6 +82,7 @@ end
 
 #load servers.rb
 require 'servers'
+require 'events'
 
 class MainWindow
 	attr :config
@@ -93,6 +94,15 @@ class MainWindow
 		@topic = @glade["topic"]
 		@messages = @glade["message_window"]
 		@messageinput = @glade["message_input"]
+		@messagescroll = @glade['message_scroll']
+		@messagescroll.vadjustment.signal_connect('value-changed') do |w|
+			#~ puts w.value.to_s
+			#~ puts w.page_size.to_s
+			#~ puts w.lower.to_s
+			#~ puts w.upper.to_s
+			#~ puts @messages.buffer.line_count.to_s
+			
+		end
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
 			if event.keyval == Gdk::Keyval.from_name('Up')
@@ -177,91 +187,96 @@ class MainWindow
 	def startlistenthread
 		@listenthread = Thread.start{
 			input = ''
-			while line = @client.recv(10)
+			while line = @client.recv(70)
 				if line.length == 0
-					sleep 5
+					sleep 1
 				end
 				input += line
 				if input.count("\n") > 0
 					pos = input.rindex("\n")
+					string = input[0, pos]
+					input = input[pos, input.length]
 					Thread.start{
-						string = input[0, pos]
 						parse_lines(string)
 					}
-					input = input[pos, input.length]
+					#puts input[0, pos]+"---"
+					#puts input
 				end
 			end
 		}
 	end
 	
-	def createeventcatchthread(tag, command)
-		if @events[tag]
-			#puts 'name currently in use!'
-		end
-		@events[tag] = Thread.new{
-			Thread.current['raw_lines'] = []
-			lines = []
-			temp = {}
-			thiscommand = command.deep_clone
-			while true
-				while Thread.current['raw_lines'].length  >= 1
-					temp = {}
-					line = Thread.current['raw_lines'][0]
-					vars = line.split(":", 3)
-					temp['tag'] = vars[0]
-					temp['status'] = vars[1]
-					temp['command'] = thiscommand
-					temp['original'] = line
-					
-					if !vars[2]
-						lines.push(temp)
-						puts'no other info'
-						break
-					end
-					
-					items = vars[2].split(':')
-					
-					items.each do |x|
-						vals = x.split('=', 2)
-						if vals[1] and vals[1] != ''
-							vals[1].gsub!('\\\\.', ':')
-							vals[1].gsub!('\\.', ':')
-							temp[vals[0]] = vals[1]
-						elsif x.count('=') == 0
-							temp[x] = true
-						end
-					end
-					
-					Thread.current['raw_lines'].delete_at(0)
-					lines.push(temp)
-					if temp['status'] == '+'
-						break
-					end
-					
-					if temp['status'] == '-'
-						puts line+" error!"
-						output = {}
-						output['err'] = line
-						@serverlist.send_event(output, ERROR)
-						break
-					end
-					
-				end
-				
-				if temp['status'] == '+'
-					break
-				end
-				
-				sleep 1
-			end
+	#~ def createeventcatchthread(tag, command, network = nil, presence = nil)
+		#~ if @events[tag]
+			#~ #puts 'name currently in use!'
+		#~ end
+		#~ @events[tag] = Thread.new{
 			
-			@events.delete(lines[0]['tag'])
-			#puts "removed listener thread for "+tag
+			#~ Thread.current['raw_lines'] = []
+			#~ lines = []
+			#~ temp = {}
+			#~ thiscommand = command.deep_clone
+			#~ while true
+				#~ while Thread.current['raw_lines'].length  >= 1
+					#~ temp = {}
+					#~ line = Thread.current['raw_lines'][0]
+					#~ vars = line.split(":", 3)
+					#~ temp['tagname'] = vars[0]
+					#~ temp['status'] = vars[1]
+					#~ temp['command'] = thiscommand
+					#~ temp['original'] = line
+					
+					#~ if !vars[2]
+						#~ lines.push(temp)
+						#~ puts'no other info'
+						#~ break
+					#~ end
+					
+					#~ items = vars[2].split(':')
+					
+					#~ items.each do |x|
+						#~ vals = x.split('=', 2)
+						#~ if vals[1] and vals[1] != ''
+							#~ vals[1].gsub!('\\\\.', ':')
+							#~ vals[1].gsub!('\\.', ':')
+							#~ temp[vals[0]] = vals[1]
+						#~ elsif x.count('=') == 0
+							#~ temp[x] = true
+						#~ end
+					#~ end
+					
+					#~ Thread.current['raw_lines'].delete_at(0)
+					#~ lines.push(temp)
+					
+					#~ if temp['status'] == '+'
+						#~ #puts' end of command output'
+						#~ break
+					#~ end
+					
+					#~ if temp['status'] == '-'
+						#~ puts line+" error!"
+						#~ output = {}
+						#~ output['err'] = line
+						#~ @serverlist.send_event(output, ERROR)
+						#~ break
+					#~ end
+					
+				#~ end
+				
+				#~ if temp['status'] == '+'
+					#~ break
+				#~ end
+				
+				#~ sleep 1
+			#~ end
 			
-			lines.each{|l| parse_command_output(l)}
-			}
-		#puts "created listener thread for "+tag
-	end
+			#~ @events.delete(lines[0]['tag'])
+			#~ #puts "removed listener thread for "+tag
+			
+			#~ lines.each{|l| parse_command_output(l)}
+			#~ }
+		#~ #puts "created listener thread for "+tag
+	#~ end
 		
 	def parse_lines(string)
 		lines = string.split("\n")
@@ -293,7 +308,7 @@ class MainWindow
 			arguments = $2
 			if command == 'join' and network
 				send_command('join', "channel join:network="+network+":channel="+arguments)
-			elsif command == 'server' and  arguments  =~ /^([a-zA-Z0-9_]+):([a-zA-Z0-9_.]+)$/
+			elsif command == 'server' and  arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z0-9_.\-]+)$/
 				#puts $1, $2, presence
 				connectnetwork($1, $2, presence)
 			elsif command == 'part'
@@ -364,8 +379,9 @@ class MainWindow
 		return if !@client
 		
 		begin
-		bleh = command.split(':', 2)
-		createeventcatchthread(tag, bleh[0])
+		#bleh = command.split(':', 2)
+		#createeventcatchthread(tag, bleh[0])
+		@events[tag] = Event.new(tag, command)
 		@client.send(tag+':'+command+"\n", 0)
 		
 		rescue SystemCallError
@@ -387,7 +403,14 @@ class MainWindow
 		if md = re.match(string)
 			if @events[$1]
 				#puts string
-				@events[$1]['raw_lines'].push(string)
+				#@events[$1]['raw_lines'].push(string)
+				#puts @events[$1]
+				event = @events[$1]
+				Thread.new{event.addline(string)}
+				if @events[$1].complete
+					puts 'event '+$1+ ' complete'
+					Thread.new{handle_event(event)}
+				end
 			else
 				puts "Event for dead or unregistered handler recieved " + string
 			end
@@ -420,7 +443,7 @@ class MainWindow
 
 	end
 	
-	def parse_command_output(line)
+	#~ def parse_command_output(line)
 		#~ line.each{ |key, value|
 				#~ if value === true
 					#~ value = 'true'
@@ -429,120 +452,280 @@ class MainWindow
 				#~ }
 			#~ puts "\n"
 			
-		if line['tag'] == 'raw'
-			output = {}
-			output['msg'] =  line['original']
-			@serverlist.send_event(output, NOTICE)
-			return
-		end
+		#~ if line['tagname'] == 'raw'
+			#~ output = {}
+			#~ output['msg'] =  line['original']
+			#~ @serverlist.send_event(output, NOTICE)
+			#~ return
+		#~ end
 		
-		if line['command'] == 'presence list'
-			if line['network'] and line['presence']
-				createnetworkifnot(line['network'], line['presence'])
-				send_command('channels', "channel list")
-			end
-			
-		elsif line['command'] == 'channel list'
-			if line['network'] and line['presence'] and line['name']
-				if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
-					channel = @serverlist[line['network'], line['presence']].add(line['name'])
-					if line['topic']
-						channel.topic = line['topic']
-					end
-					switchchannel(channel)
-					send_command('listchan'+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
-					send_command('events'+line['name'], "event get:end=*:limit=100:filter=channel=="+line['name'])
-				else
-					puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
-					return
-				end
-			end
-			
-		end
+		#~ if line['status'] == '+'
+			#~ if line['command'] == 'channel names'
+				#~ puts 'end of user list'
+			#~ end
+		#~ end
 		
-		if line['network'] and line['presence']
-			if !@serverlist[line['network'], line['presence']]
-				puts 'Error, non existant network event caught, ignoring'
-			else
-				network = @serverlist[line['network'], line['presence']]
-			end
+		#~ if line['command'] == 'presence list'
+			#~ if line['network'] and line['presence']
+				#~ createnetworkifnot(line['network'], line['presence'])
+				#~ send_command('channels', "channel list")
+			#~ end
 			
-			if line['channel']
-				if !@serverlist[line['network'], line['presence']][line['channel']]
-					puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
-					return
-				else
-					channel = @serverlist[line['network'], line['presence']][line['channel']]
-				end
-			end
+		#~ elsif line['command'] == 'channel list'
+			#~ if line['network'] and line['presence'] and line['name']
+				#~ if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
+					#~ channel = @serverlist[line['network'], line['presence']].add(line['name'])
+					#~ if line['topic']
+						#~ channel.topic = line['topic']
+					#~ end
+					#~ switchchannel(channel)
+					#~ send_command('listchan'+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
+					#~ send_command('events'+line['name'], "event get:end=*:limit=500:filter=channel=="+line['name'])
+				#~ else
+					#~ puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
+					#~ return
+				#~ end
+			#~ end
+			
+		#~ end
 		
-			if line['command'] == 'channel names'
-				if line['network'] and line['presence'] and line['channel'] and line['name']
-					#@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
-					network.users.create(line['name'])
-					channel.adduser(line['name'])
-				end
-			elsif line['command'] == 'event get'
-				if line['msg']
-					if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
-						network.users[line['name']].hostname = line['address']
-					end
+		#~ if line['network'] and line['presence']
+			#~ if !@serverlist[line['network'], line['presence']]
+				#~ puts 'Error, non existant network event caught, ignoring'
+			#~ else
+				#~ network = @serverlist[line['network'], line['presence']]
+			#~ end
+			
+			#~ if line['channel']
+				#~ if !@serverlist[line['network'], line['presence']][line['channel']]
+					#~ puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
+					#~ return
+				#~ else
+					#~ channel = @serverlist[line['network'], line['presence']][line['channel']]
+				#~ end
+			#~ end
+		
+			#~ if line['command'] == 'channel names'
+				#~ if line['network'] and line['presence'] and line['channel'] and line['name']
+					#~ #@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
+					#~ network.users.create(line['name'])
+					#~ channel.adduser(line['name'])
+				#~ end
+				
+			#~ elsif line['command'] == 'event get'
+				#~ if line['event'] == 'msg'
+					#~ if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
+						#~ network.users[line['name']].hostname = line['address']
+					#~ end
 						
-					if line['own']
-						line['nick'] = line['presence']
-						channel.send_event(line, USERMESSAGE, BUFFER_START)
+					#~ if line['own']
+						#~ line['nick'] = line['presence']
+						#~ channel.send_event(line, USERMESSAGE, BUFFER_START)
+					#~ else
+						#~ channel.send_event(line, MESSAGE, BUFFER_START)
+					#~ end
+					
+				#~ elsif line['event'] == 'channel_changed'
+					#~ if line['topic'] and line['topic_set_by']
+						#~ pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
+					#~ elsif line['topic']
+						#~ pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
+					#~ elsif line['topic_set_by']
+						#~ pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
+					#~ end
+					#~ line['msg'] = pattern
+					
+					#~ if line['topic']
+						#~ channel.topic = line['topic']
+					#~ end
+					
+					#~ if pattern
+						#~ channel.send_event(line, NOTICE, BUFFER_START)
+					#~ end
+					
+					#~ @topic.text = line['topic'] if line['topic']
+					
+				#~ elsif line['event'] == 'channel_presence_removed'
+					#~ return if line['deinit']
+					
+					#~ if line['name'] == network.username
+						#~ channel.send_event(line, USERPART, BUFFER_START)
+					#~ else
+						#~ channel.send_event(line, PART, BUFFER_START)
+					#~ end
+				
+				#~ elsif line['event'] == 'channel_part'
+					#~ channel.send_event(line, USERPART, BUFFER_START)
+					#~ channel.disconnect
+					
+				#~ elsif line['event'] == 'channel_join'
+					#~ channel.reconnect
+					#~ channel.send_event(line, USERJOIN, BUFFER_START)
+					
+					
+				#~ elsif line['event'] == 'channel_presence_added'
+					#~ return if line['init']
+					
+					#~ if line['name'] == network.username
+						#~ channel.send_event(line, USERJOIN, BUFFER_START)
+					#~ else
+						#~ channel.send_event(line, JOIN, BUFFER_START)
+					#~ end
+				#~ end
+			#~ elsif line['status'] == '+'
+				#~ puts 'done'
+				#~ return
+			#~ else
+				#~ #line.each{ |key, value|
+			#~ #		puts key+'='+value+"\n"
+			#~ #		}
+			#~ #	puts "\n"
+			#~ end
+		#~ end
+		#~ @messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+	#~ end
+	
+	def handle_event(event)
+		
+		puts 'handling '+event.name
+		
+		event.lines.each do |line|
+		
+			if event.name == 'raw'
+				output = {}
+				output['msg'] =  line['original']
+				@serverlist.send_event(output, NOTICE)
+				return
+			end
+			
+			if line['status'] == '+'
+				if event.command['command'] == 'channel names'
+					puts 'end of user list'
+					@serverlist[event.command['network'], event.command['presence']][event.command['channel']].drawusers
+				end
+			end
+			
+			if event.command['command'] == 'presence list'
+				if line['network'] and line['presence']
+					createnetworkifnot(line['network'], line['presence'])
+					send_command('channels', "channel list")
+				end
+				
+			elsif event.command['command'] == 'channel list'
+				if line['network'] and line['presence'] and line['name']
+					if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
+						channel = @serverlist[line['network'], line['presence']].add(line['name'])
+						if line['topic']
+							channel.topic = line['topic']
+						end
+						switchchannel(channel)
+						send_command('listchan-'+line['network']+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
+						send_command('events-'+line['network']+line['name'], "event get:end=*:limit=500:filter=channel=="+line['name'])
 					else
-						channel.send_event(line, MESSAGE, BUFFER_START)
-					end
-					
-				elsif line['channel_changed']
-					if line['topic'] and line['topic_set_by']
-						pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
-					elsif line['topic']
-						pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
-					elsif line['topic_set_by']
-						pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
-					end
-					line['msg'] = pattern
-					
-					if line['topic']
-						channel.topic = line['topic']
-					end
-					
-					if pattern
-						channel.send_event(line, NOTICE, BUFFER_START)
-					end
-					
-					@topic.text = line['topic'] if line['topic']
-					
-				elsif line['channel_presence_removed']
-					return if line['deinit']
-					
-					if line['name'] == network.username
-						channel.send_event(line, USERPART, BUFFER_START)
-					else
-						channel.send_event(line, PART, BUFFER_START)
-					end
-					
-				elsif line['channel_presence_added']
-					return if line['init']
-					
-					if line['name'] == network.username
-						channel.send_event(line, USERJOIN, BUFFER_START)
-					else
-						channel.send_event(line, JOIN, BUFFER_START)
+						puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
+						return
 					end
 				end
-			elsif line['status'] == '+'
-				return
-			else
-				#line.each{ |key, value|
-			#		puts key+'='+value+"\n"
-			#		}
-			#	puts "\n"
+				
 			end
+			
+			if line['network'] and line['presence']
+				if !@serverlist[line['network'], line['presence']]
+					puts 'Error, non existant network event caught, ignoring'
+				else
+					network = @serverlist[line['network'], line['presence']]
+				end
+				
+				if line['channel']
+					if !@serverlist[line['network'], line['presence']][line['channel']]
+						puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
+						return
+					else
+						channel = @serverlist[line['network'], line['presence']][line['channel']]
+					end
+				end
+			
+				if event.command['command'] == 'channel names'
+					if line['network'] and line['presence'] and line['channel'] and line['name']
+						#@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
+						network.users.create(line['name'])
+						channel.adduser(line['name'], true)
+					end
+					
+				elsif event.command['command'] == 'event get'
+					if line['event'] == 'msg'
+						if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
+							network.users[line['name']].hostname = line['address']
+						end
+							
+						if line['own']
+							line['nick'] = line['presence']
+							channel.send_event(line, USERMESSAGE, BUFFER_START)
+						else
+							channel.send_event(line, MESSAGE, BUFFER_START)
+						end
+						
+					elsif line['event'] == 'channel_changed'
+						if line['topic'] and line['topic_set_by']
+							pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
+						elsif line['topic']
+							pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
+						elsif line['topic_set_by']
+							pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
+						end
+						line['msg'] = pattern
+						
+						if line['topic']
+							channel.topic = line['topic']
+						end
+						
+						if pattern
+							channel.send_event(line, NOTICE, BUFFER_START)
+						end
+						
+						@topic.text = line['topic'] if line['topic']
+						
+					elsif line['event'] == 'channel_presence_removed'
+						return if line['deinit']
+						
+						if line['name'] == network.username
+							channel.send_event(line, USERPART, BUFFER_START)
+						else
+							channel.send_event(line, PART, BUFFER_START)
+						end
+					
+					elsif line['event'] == 'channel_part'
+						channel.send_event(line, USERPART, BUFFER_START)
+						channel.disconnect
+						
+					elsif line['event'] == 'channel_join'
+						channel.reconnect
+						channel.send_event(line, USERJOIN, BUFFER_START)
+						
+						
+					elsif line['event'] == 'channel_presence_added'
+						return if line['init']
+						
+						if line['name'] == network.username
+							channel.send_event(line, USERJOIN, BUFFER_START)
+						else
+							channel.send_event(line, JOIN, BUFFER_START)
+						end
+					end
+				elsif line['status'] == '+'
+					puts 'done'
+					return
+				else
+					#line.each{ |key, value|
+				#		puts key+'='+value+"\n"
+				#		}
+				#	puts "\n"
+				end
+			end
+			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+			
 		end
-		@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+		@events.delete(event.name)
 	end
 	
 	def parse_line(line)
@@ -599,17 +782,16 @@ class MainWindow
 				network.send_event(line, NOTICE)
 				
 			elsif line['type'] == 'channel_presence_removed'
-				
 				if ! line['deinit']
-				
 					if line['name'] == network.username
 						channel.send_event(line, USERPART)
 					else
 						channel.send_event(line, PART)
 					end
+					channel.deluser(line['name'])
+				else
+					channel.deluser(line['name'], true)
 				end
-				
-				channel.deluser(line['name'])
 				
 			elsif line['type'] == 'channel_part'
 				channel.send_event(line, USERPART)
@@ -620,14 +802,16 @@ class MainWindow
 				channel.send_event(line, USERJOIN)
 				
 			elsif line['type'] == 'channel_presence_added'
-				channel.adduser(line['name'])
-				
+						
 				if !line['init']
+					channel.adduser(line['name'])
 					if line['name'] == network.username
 						channel.send_event(line, USERJOIN)
 					else
 						channel.send_event(line, JOIN)
 					end
+				elsif
+					channel.adduser(line['name'], false)
 				end
 				
 			elsif line['type'] == 'presence_changed'
@@ -671,7 +855,7 @@ class MainWindow
 				end
 				
 			elsif line['type'] == 'presence_init'
-				#puts 'presence init'
+				puts 'presence init '+line['name']
 				network.users.create(line['name'])
 				
 			elsif line['type'] == 'presence_deinit'
@@ -793,6 +977,7 @@ class MainWindow
 			@mainbox.pack_start(@messagebox)
 			@messageinput.grab_focus
 			@topic.hide
+			@topic.text = ''
 		end
 	end
 	
