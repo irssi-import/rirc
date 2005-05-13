@@ -1,0 +1,63 @@
+RIRC README
+
+***INTRO***
+
+RIRC is a Ruby/GTK client for irssi2 (http://main.irssi.org/projects/irssi2.html). It was the first irssi2 client written, and at the time of writing is the most full featured.
+
+***LICENCING***
+GPL - see COPYING FILE
+
+***REQUIREMENTS***
+
+RIRC requires:
+
+Ruby
+ruby-libglade2 (and its dependancies) http://ruby-gnome2.sourceforge.jp
+
+The following are only needed for ssh support:
+Net::SSH http://net-ssh.rubyforge.org/
+Needle http://needle.rubyforge.org/
+
+***SETUP***
+
+Untar the tarball somewhere
+cd into the folder
+edit config.rb.factory to your liking and rename it to config.rb.
+run './main.rb' or 'ruby main.rb'
+
+***USAGE***
+
+This is a list of the supported commands and their parameters:
+
+/server <name>:<address> (you cannot set the port currently)
+/join <channel>
+/part <channel>
+/msg <user> <message> (you can send, but rirc will not handle incoming messages correctly ATM)
+/quit (quit rirc, but leave irssi2 running)
+/shutdown (quit rirc and kill irssi2)
+
+/raw <command> (sends a raw command to irssi2, do NOT specify a tag)
+/ruby <command> (sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces)
+
+***TROUBLESHOOTING***
+
+hahah, you're using pre alpha software, fix it yourself or bug me on #irssi2 on freenode
+
+***SSH HOWTO***
+
+RIRC now supports connecting to irssi2 via ssh. To do this you need to comply with a couple restrictions, as the ssh implementation assumes some things:
+
+You must be using public/private key auth
+Your key must not have a passphrase
+Your key must be in the standard .ssh folder in your ~ folder
+
+To activate support, simply edit the config file and set the method to ssh, and set the ip or address of the host.
+If irssi2 is not in the $PATH on the host, use the ssh_binpath variable to set it
+
+***CONTACT***
+vagabond@cataclysm-software.com
+#irssi2 on irc.freenode.net
+
+***COPYRIGHT***
+Copyright 2005 Andrew Thompson
+

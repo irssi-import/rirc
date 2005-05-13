@@ -86,6 +86,7 @@ module Stuff
 	def recolor
 		label = @button.child
 		label.modify_fg(Gtk::STATE_NORMAL, @config.getstatuscolor(@status))
+		#puts 'recolored '+@name+' to '+@status.to_s
 	end
 	
 	def send_event(line, type, insert_location=BUFFER_END)
@@ -115,11 +116,12 @@ module Stuff
 		elsif type == USERMESSAGE
 			@status = NEWMSG
 			pattern += @config.usermessage.deep_clone
-			if line['nick']
-				pattern['%u'] = line['nick']
-			else
-				pattern['%u'] = line['presence']
-			end
+			#~ if line['nick']
+				#~ pattern['%u'] = line['nick']
+			#~ else
+				#~ pattern['%u'] = line['presence']
+			#~ end
+			pattern['%u'] = username
 			pattern['%m'] = line['msg']
 			
 			
@@ -158,12 +160,12 @@ module Stuff
 			pattern['%c'] = line['channel']
 			
 		elsif type == ERROR
-			@status == NEWDATA
+			@status = NEWDATA
 			pattern += @config.error.deep_clone
 			pattern['%m'] = line['err']
 			
 		elsif type == NOTICE
-			@status == NEWDATA
+			@status = NEWDATA
 			pattern += @config.notice.deep_clone
 			pattern['%m'] = line['msg']
 			
@@ -171,6 +173,7 @@ module Stuff
 		
 		if pattern.length > 0
 			#puts pattern
+			recolor
 			if insert_location == BUFFER_START
 				pattern += "\n"
 			elsif insert.offset != 0
@@ -179,7 +182,6 @@ module Stuff
 			colortext(pattern, insert)
 		end
 		
-		recolor
 		@newlineend = @buffer.end_iter
 		@endmark = @buffer.create_mark('end', @buffer.end_iter, false)
 			
@@ -503,7 +505,7 @@ end
 class Server
 	include Stuff
 	attr_reader :name, :channels, :buffer, :button, :box, :parent, :config, :username, :presence, :connected, :users
-	attr_writer :username, :presence
+	#attr_writer :username, :presence
 	def initialize(name, presence, parent)
 		@presence = presence
 		#puts @presence
@@ -590,6 +592,14 @@ class Server
 	
 	def getparentwindow
 		return @parent.parent
+	end
+	
+	def username
+		return @username
+	end
+	
+	def set_username(name)
+		@username = name.gsub!('_', '__')
 	end
 	
 end

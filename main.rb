@@ -10,7 +10,11 @@ rescue LoadError
 	exit
 end
 
-#useful for debugginga
+if $method == 'ssh'
+	require 'net/ssh'
+end
+
+#useful for debugging
 Thread.abort_on_exception = true
 
  #fuck signals, lets just extend the button class to hold a reference to its parent object
@@ -83,6 +87,7 @@ end
 #load servers.rb
 require 'servers'
 require 'events'
+require 'connections'
 
 class MainWindow
 	attr :config
@@ -141,27 +146,34 @@ class MainWindow
 	def connect
 		Thread.start{
 			begin
-			@client = UNIXSocket.open(@path)
+			#@client = UNIXSocket.open(@path)
 			#puts $!.kind_of?
-			
+			#startlistenthread
+			if $method == 'ssh'
+				puts $ssh_host
+				@connection = SSHConnection.new($ssh_host)
+			elsif $method == 'unixsocket'
+				@connection = UnixSockConnection.new($unixsocket_path)
+			end
 			
 			rescue SystemCallError
-				puts "Error: no irssi2 socket at "+@path
+				puts "Error: no irssi2 socket at "+$unixsocket_path
 				sleep 10
 				retry
-			else
-				puts "Connected to irssi2!"
-				startlistenthread
-				if @serverlist.servers.length > 0
-					#~ @serverlist.servers.each{|server|
-						#~ connectnetwork(server.name, server.address, server.presence
-						#~ server.channels.each {|channel|
-							#~ channel.disconnect
-						#~ }
+			end
+			
+			puts "Connected to irssi2!"
+			@connection.listen(self)
+			if @serverlist.servers.length > 0
+				#~ @serverlist.servers.each{|server|
+					#~ connectnetwork(server.name, server.address, server.presence
+					#~ server.channels.each {|channel|
+						#~ channel.disconnect
 					#~ }
-				else
-					send_command('presences', 'presence list')
-				end
+				#~ }
+			else
+				puts 'requesting presence list'
+				send_command('presences', 'presence list')
 			end
 		}
 	end
@@ -184,27 +196,50 @@ class MainWindow
 	end
 			
 	
-	def startlistenthread
-		@listenthread = Thread.start{
-			input = ''
-			while line = @client.recv(70)
-				if line.length == 0
-					sleep 1
-				end
-				input += line
-				if input.count("\n") > 0
-					pos = input.rindex("\n")
-					string = input[0, pos]
-					input = input[pos, input.length]
-					Thread.start{
-						parse_lines(string)
-					}
-					#puts input[0, pos]+"---"
-					#puts input
-				end
-			end
-		}
-	end
+	#~ def startlistenthread
+		#~ @listenthread = Thread.start{
+			#~ input = ''
+			#~ begin
+			#~ while line = @client.recv(70)
+				#~ if line.length == 0
+					#~ sleep 1
+				#~ end
+				#~ input += line
+				#~ if input.count("\n") > 0
+					#~ pos = input.rindex("\n")
+					#~ string = input[0, pos]
+					#~ input = input[pos, input.length]
+					#~ Thread.start{
+						#~ parse_lines(string)
+					#~ }
+					#~ #puts input[0, pos]+"---"
+					#~ #puts input
+				#~ end
+			#~ end
+			
+			#~ rescue SystemCallError
+			#~ puts 'Broken Pipe to Irssi'
+			#~ @listenthread.kill
+			#~ @client = nil
+			#~ disconnect
+			#~ connect
+		#~ end
+		#~ }
+	#~ end
+	
+	#~ def startlistenthread
+		#~ @listenthread = Thread.start{
+			#~ while true
+				#~ if @output.data_available?
+					#~ #puts 'data'
+					#~ out = @output.read
+					#~ #puts out
+					#~ Thread.start{parse_lines(out)}
+				#~ end
+				#~ sleep 1#sleep a little
+			#~ end
+		#~ }
+	#~ end
 	
 	#~ def createeventcatchthread(tag, command, network = nil, presence = nil)
 		#~ if @events[tag]
@@ -303,39 +338,55 @@ class MainWindow
 		
 		message = widget.text
 
-		if message =~ /^\/([a-z]+)[\s]*(.*)$/
-			command = $1
-			arguments = $2
-			if command == 'join' and network
-				send_command('join', "channel join:network="+network+":channel="+arguments)
-			elsif command == 'server' and  arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z0-9_.\-]+)$/
-				#puts $1, $2, presence
-				connectnetwork($1, $2, presence)
-			elsif command == 'part'
-				arguments = arguments.split(' ')
-				if arguments[0]
-					send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+arguments[0])
-				else
-					line = {}
-					line['err'] = 'Part requires a channel argument'
-					line['time'] = Time.new.to_i
-					@currentchan.send_event(line, ERROR)
-				end
-			elsif command == 'quit'
-				send_command('quit', 'quit')
-				Gtk.main_quit
-			elsif command == 'shutdown'
-				send_command('shutdown', 'shutdown')
-				Gtk.main_quit
-			elsif command == 'ruby'
-				puts 'possibly evil ruby code inputted, blindly executing'
-				eval(arguments)
-			elsif command == 'raw'
-				puts 'sending '+arguments
-				output = {}
-				output['msg'] = 'Sent raw command "'+arguments+'" to irssi2 directly'
-				@serverlist.send_event(output, NOTICE)
-				send_command('raw', arguments)
+		#if message =~ /^\/([a-z]+)[\s]*(.*)$/
+		command, arguments = message.split(' ', 2)
+		
+		arguments = '' if ! arguments
+		
+		#command = foo[0]
+		#arguments = foo[1]
+		if command == '/join' and network
+			send_command('join', "channel join:network="+network+":channel="+arguments)
+		elsif command == '/server' and  arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z0-9_.\-]+)$/
+			#puts $1, $2, presence
+			connectnetwork($1, $2, presence)
+		elsif command == '/part'
+			arguments = arguments.split(' ')
+			if arguments[0]
+				send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+arguments[0])
+			else
+				line = {}
+				line['err'] = 'Part requires a channel argument'
+				line['time'] = Time.new.to_i
+				@currentchan.send_event(line, ERROR)
+			end
+		elsif command == '/quit'
+			send_command('quit', 'quit')
+			Gtk.main_quit
+		elsif command == '/shutdown'
+			send_command('shutdown', 'shutdown')
+			Gtk.main_quit
+		elsif command == '/ruby'
+			puts 'possibly evil ruby code inputted, blindly executing'
+			eval(arguments)
+		elsif command == '/raw'
+			puts 'sending '+arguments
+			output = {}
+			output['msg'] = 'Sent raw command "'+arguments+'" to irssi2 directly'
+			@serverlist.send_event(output, NOTICE)
+			send_command('raw', arguments)
+		elsif command == '/msg'
+			arguments = arguments.split(' ', 2)
+			if arguments[0] and arguments[1]
+				messages = arguments[1].split("\n")
+				messages.each { |message|
+					send_command('msg'+rand(100).to_s, 'msg:network='+network+':target='+arguments[0]+':msg='+message+":presence="+presence)
+				}
+			else
+				line = {}
+				line['err'] = '/msg requires a username and a message'
+				line['time'] = Time.new.to_i
+				@currentchan.send_event(line, ERROR)
 			end
 		elsif network
 			messages = message.split("\n")
@@ -376,18 +427,21 @@ class MainWindow
 	end
 	
 	def send_command(tag, command)
-		return if !@client
+		if !@connection
+			puts 'connection not initialized'
+			return
+		end
 		
 		begin
 		#bleh = command.split(':', 2)
 		#createeventcatchthread(tag, bleh[0])
 		@events[tag] = Event.new(tag, command)
-		@client.send(tag+':'+command+"\n", 0)
+		@connection.send(tag+':'+command+"\n")
 		
 		rescue SystemCallError
 			puts 'Broken Pipe to Irssi'
-			@listenthread.kill
-			@client = nil
+			#@listenthread.kill
+			#@input = nil
 			disconnect
 			connect
 		end
@@ -607,7 +661,9 @@ class MainWindow
 			
 			if event.command['command'] == 'presence list'
 				if line['network'] and line['presence']
-					createnetworkifnot(line['network'], line['presence'])
+					network = createnetworkifnot(line['network'], line['presence'])
+					network.set_username(line['name'] ) if line['name']
+					@usernamebutton.label = @currentchan.username
 					send_command('channels', "channel list")
 				end
 				
@@ -620,7 +676,7 @@ class MainWindow
 						end
 						switchchannel(channel)
 						send_command('listchan-'+line['network']+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
-						send_command('events-'+line['network']+line['name'], "event get:end=*:limit=500:filter=channel=="+line['name'])
+						send_command('events-'+line['network']+line['name'], "event get:end=*:limit=500:filter=(channel="+line['name']+")")
 					else
 						puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
 						return
@@ -816,6 +872,15 @@ class MainWindow
 				
 			elsif line['type'] == 'presence_changed'
 				if line['new_name']
+				
+					if line['name'] == network.username
+						puts 'your nickname changed to '+line['new_name']
+						network.set_username(line['new_name'])
+						puts network, network.username, @currentchan, @currentchan.username
+						@usernamebutton.label = @currentchan.username
+						puts @usernamebutton.label
+						@usernamebutton.show
+					end
 					pattern = @config.notice.deep_clone
 					
 					user = network.users[line['name']]
@@ -855,17 +920,17 @@ class MainWindow
 				end
 				
 			elsif line['type'] == 'presence_init'
-				puts 'presence init '+line['name']
+				#puts 'presence init '+line['name']
 				network.users.create(line['name'])
 				
 			elsif line['type'] == 'presence_deinit'
 				#puts 'presence deinit'
 				network.users.remove(line['name'])
 				
-			elsif line['type'] == 'presence_changed'
-				if network.users[line['name']]
-					network.users[line['name']].hostname = line['address']
-				end	
+			#~ elsif line['type'] == 'presence_changed'
+				#~ if network.users[line['name']]
+					#~ network.users[line['name']].hostname = line['address']
+				#~ end	
 				
 			elsif line['type'] == 'msg'
 				return if !line['channel']
@@ -971,6 +1036,7 @@ class MainWindow
 			@userlist.show_all
 			@topic.show
 			@topic.text =@currentchan.topic
+			@usernamebutton.show
 		else
 			@mainbox.remove(@panel)
 			@panel.remove(@messagebox)
@@ -978,6 +1044,11 @@ class MainWindow
 			@messageinput.grab_focus
 			@topic.hide
 			@topic.text = ''
+			if @currentchan.class == ServerList
+				@usernamebutton.hide
+			else
+				@usernamebutton.show
+			end
 		end
 	end
 	
@@ -1001,6 +1072,8 @@ class MainWindow
 	end
 	
 	def quit
+		@connection.close
+		send_command('quit', 'quit')
 		Gtk.main_quit
 	end
 end

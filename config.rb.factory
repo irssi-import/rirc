@@ -1,4 +1,14 @@
 #rename this file to config.rb after you've filled in the values.
 
-$path = ENV['HOME']+'/.irssi2/client-listener'
-$presence = 'myname'
+$presence = 'username'
+
+#method to connect to irssi2: either 'ssh' or 'unixsocket'
+$method = 'unixsocket'
+
+#path to the unix socket
+$unixsocket_path = ENV['HOME']+'/.irssi2/client-listener'
+
+#ssh host to connect to
+$ssh_host = 'localhost'
+#path to the irssi2 binary, leave commented out if in $PATH
+#$ssh_binpath = '~'
