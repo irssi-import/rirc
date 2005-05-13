@@ -121,7 +121,8 @@ module Stuff
 			#~ else
 				#~ pattern['%u'] = line['presence']
 			#~ end
-			pattern['%u'] = username
+			#puts @username, @server.username
+			pattern['%u'] = @username if @username
 			pattern['%m'] = line['msg']
 			
 			
@@ -509,7 +510,7 @@ class Server
 	def initialize(name, presence, parent)
 		@presence = presence
 		#puts @presence
-		@username = @presence
+		@username = @presence.deep_clone
 		@parent = parent
 		@name = name
 		@channels = Array.new
@@ -594,23 +595,21 @@ class Server
 		return @parent.parent
 	end
 	
-	def username
-		return @username
-	end
-	
 	def set_username(name)
-		@username = name.gsub!('_', '__')
+		@username = name
 	end
 	
 end
 
 class Channel
 	include Stuff
-	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
+	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic, :username
 	attr_writer :topic
 	def initialize(name, server)
 		@server = server
 		@name = name
+		puts @server.username
+		@username = @server.username
 		@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)
@@ -738,11 +737,6 @@ class Channel
 				drawusers
 			end
 		end
-	end
-			
-	
-	def username
-		return @server.username
 	end
 	
 	#~ def changeuser(old, new)

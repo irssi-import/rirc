@@ -663,7 +663,7 @@ class MainWindow
 				if line['network'] and line['presence']
 					network = createnetworkifnot(line['network'], line['presence'])
 					network.set_username(line['name'] ) if line['name']
-					@usernamebutton.label = @currentchan.username
+					@usernamebutton.label = @currentchan.username.gsub('_', '__')
 					send_command('channels', "channel list")
 				end
 				
@@ -877,7 +877,7 @@ class MainWindow
 						puts 'your nickname changed to '+line['new_name']
 						network.set_username(line['new_name'])
 						puts network, network.username, @currentchan, @currentchan.username
-						@usernamebutton.label = @currentchan.username
+						@usernamebutton.label = @currentchan.username.gsub('_', '__')
 						puts @usernamebutton.label
 						@usernamebutton.show
 					end
@@ -1021,7 +1021,7 @@ class MainWindow
 		@currentchan = channel
 		@messages.buffer = @currentchan.activate
 		@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
-		@usernamebutton.label = @currentchan.username if @currentchan.username
+		@usernamebutton.label = @currentchan.username.gsub('_', '__') if @currentchan.username
 		drawuserlist(@currentchan.class == Channel)
 	end
 	
