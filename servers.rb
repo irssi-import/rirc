@@ -109,8 +109,8 @@ module Stuff
 			#line.each {|key, value| print key, " is ", value, "\n" }
 			#puts "\n"
 			pattern += @config.message.deep_clone
-			pattern['%u'] = line['nick']
-			pattern['%m'] = line['msg']
+			pattern['%u'] = line['nick'] if line['nick']
+			pattern['%m'] = line['msg'] if line['msg']
 			
 			
 		elsif type == USERMESSAGE
@@ -123,7 +123,7 @@ module Stuff
 			#~ end
 			#puts @username, @server.username
 			pattern['%u'] = @username if @username
-			pattern['%m'] = line['msg']
+			pattern['%m'] = line['msg'] if line['msg']
 			
 			
 		elsif type == JOIN
