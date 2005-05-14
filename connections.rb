@@ -6,8 +6,18 @@ class SSHConnection
 		@output = nil
 		@error = nil
 		
+		options = {}
+		
+		options[:keys] = $ssh_keys if $ssh_keys
+		
+		options[:compression] = $ssh_compression if $ssh_compression
+		
+		options[:username] = $ssh_username if $ssh_username
+		
+		options[:password] = $ssh_password if $ssh_password
+		
 		begin
-		@session = Net::SSH.start(host)
+		@session = Net::SSH.start(host, options)
 		rescue StandardError
 			puts 'error '+$!
 			return false
@@ -78,8 +88,8 @@ class SSHConnection
 	end
 	
 	def close
-	@session.close
-	@sshthread.kill
+	@session.close if @session
+	@sshthread.kill if @sshthread
 	@input = nil
 	@output = nil
 	@error = nil

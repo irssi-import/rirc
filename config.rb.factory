@@ -10,5 +10,10 @@ $unixsocket_path = ENV['HOME']+'/.irssi2/client-listener'
 
 #ssh host to connect to
 $ssh_host = 'localhost'
-#path to the irssi2 binary, leave commented out if in $PATH
-#$ssh_binpath = '~'
+#path to the irssi2 binary, leave as 'irssi2' if in $PATH
+$ssh_binpath = '~/irssi2/src/server/irssi2'
+
+#if you don't want the following, just comment them out
+#$ssh_keys = ['/path/to/key1', '/path/to/key2']
+#$ssh_compression = 'zlib'
+#$ssh_username = 'username'
