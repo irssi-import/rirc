@@ -5,34 +5,54 @@ class SSHConnection
 		@input = nil
 		@output = nil
 		@error = nil
-		@sshthread = Thread.new{
-			Net::SSH.start( host ) do |session|
-			
-			bin = 'irssi2'
-			
-			if $ssh_binpath
-				bin =$ssh_binpath+'/'+bin
-			end
 		
-			@input, @output, @error = session.process.popen3( bin )
-			Thread.current['up'] = true
-			Thread.current['session'] = session
-			session.loop
+		begin
+		@session = Net::SSH.start(host)
+		rescue StandardError
+			puts 'error '+$!
+			return false
 		end
+		
+		@input, @output, @error = @session.process.popen3( $ssh_binpath )
+		sleep 2
+		if @error.data_available?
+			error = 'ERROR: ' + @error.read
+			raise(IOError, error, caller)
+			#return false
+		end
+		
+		@sshthread = Thread.new{
+			#Net::SSH.start( host ) do |session|
+			#Thread.current['up'] = true
+			#Thread.current['session'] = session
+			@session.loop
+		#end
 		}
-		while !@sshthread['up']
+		#while !@sshthread['up']
 			#stall until thread is up
-		end
+		#end
 		puts 'connected via ssh'
 	end
 	
 	def send(data)
+		begin
 		@input.puts(data)
+		rescue IOError
+			puts 'closed stream, disconnecting '+$!
+			close
+			return false
+		rescue StandardError
+			puts 'closed stream, disconnecting '+$!
+			close
+			return false
+		end
+		return true
 	end
 	
 	def listen(object)
 		@listenthread = Thread.start{
 			while true
+				begin
 				if @output.data_available?
 					#puts 'data'
 					out = @output.read
@@ -40,12 +60,25 @@ class SSHConnection
 					Thread.start{object.parse_lines(out)}
 				end
 				sleep 1#sleep a little
+				rescue IOError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				rescue StandardError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				end
 			end
 		}
 	end
 	
-	def close()
-	@sshthread['session'].close
+	def close
+	@session.close
 	@sshthread.kill
 	@input = nil
 	@output = nil
@@ -57,12 +90,23 @@ end
 
 class UnixSockConnection
 	def initialize(file)
+		begin
 		@socket = UNIXSocket.open(file)
+		rescue
+			raise(IOError, 'Error: Could not connect to socket '+file, caller)
+		end
 		puts 'connected via unix socket'
 	end
 	
 	def send(data)
+		begin
 		@socket.send(data, 0)
+		rescue SystemCallError
+			puts 'Broken Pipe to Irssi, disconnecting '+$!
+			close
+			return false
+		end
+		return true
 	end
 
 	def listen(object)
@@ -81,22 +125,18 @@ class UnixSockConnection
 					Thread.start{
 						object.parse_lines(string)
 					}
-					#puts input[0, pos]+"---"
-					#puts input
 				end
 			end
 			
 			rescue SystemCallError
-			puts 'Broken Pipe to Irssi'
-			@listenthread.kill
-			@client = nil
-			object.disconnect
-			object.connect
+			puts 'Broken Pipe to Irssi, disconnecting '+$!
+			close
 		end
 		}
 	end
 	
-	def close()
+	def close
+		@listenthread.kill
 		@socket.close
 		@client = nil
 	end

@@ -144,26 +144,25 @@ class MainWindow
 	end
 	
 	def connect
+		return if @connection
 		Thread.start{
 			begin
-			#@client = UNIXSocket.open(@path)
-			#puts $!.kind_of?
-			#startlistenthread
 			if $method == 'ssh'
-				puts $ssh_host
 				@connection = SSHConnection.new($ssh_host)
 			elsif $method == 'unixsocket'
 				@connection = UnixSockConnection.new($unixsocket_path)
 			end
 			
-			rescue SystemCallError
-				puts "Error: no irssi2 socket at "+$unixsocket_path
-				sleep 10
+			puts "Connected to irssi2!"
+			@connection.listen(self)
+			
+			rescue IOError
+				puts $!
+				sleep 5
+				puts 'retrying...'
 				retry
 			end
 			
-			puts "Connected to irssi2!"
-			@connection.listen(self)
 			if @serverlist.servers.length > 0
 				#~ @serverlist.servers.each{|server|
 					#~ connectnetwork(server.name, server.address, server.presence
@@ -179,6 +178,7 @@ class MainWindow
 	end
 	
 	def disconnect
+		@connection = nil
 		puts 'doing global disconnect'
 		@serverlist.servers.each{|server|
 			server.disconnect
@@ -186,6 +186,7 @@ class MainWindow
 				channel.disconnect
 			}
 		}
+		sleep 5#prevent flooding the server with reconnect requests
 	end
 	
 	def connectnetwork(name, address, presence)
@@ -431,17 +432,14 @@ class MainWindow
 			puts 'connection not initialized'
 			return
 		end
-		
-		begin
+
 		#bleh = command.split(':', 2)
 		#createeventcatchthread(tag, bleh[0])
 		@events[tag] = Event.new(tag, command)
-		@connection.send(tag+':'+command+"\n")
+		sent = @connection.send(tag+':'+command+"\n")
 		
-		rescue SystemCallError
-			puts 'Broken Pipe to Irssi'
-			#@listenthread.kill
-			#@input = nil
+		if !sent
+			@connection = nil
 			disconnect
 			connect
 		end
@@ -1072,7 +1070,7 @@ class MainWindow
 	end
 	
 	def quit
-		@connection.close
+		@connection.close if @connection
 		send_command('quit', 'quit')
 		Gtk.main_quit
 	end
