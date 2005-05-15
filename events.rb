@@ -56,6 +56,7 @@ class Event
 		@lines.push(temp)
 		
 		if temp['status'] == '+'
+			puts line
 			@complete = true
 		end
 		

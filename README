@@ -54,10 +54,16 @@ Your key must be in the standard .ssh folder in your ~ folder
 To activate support, simply edit the config file and set the method to ssh, and set the ip or address of the host.
 If irssi2 is not in the $PATH on the host, use the ssh_binpath variable to set it
 
+***CONTRIBUTING***
+
+Anyone interested in helping is strongly encouraged to contact me. I could really use a second dev for this project.
+
 ***CONTACT***
+
 vagabond@cataclysm-software.com
 #irssi2 on irc.freenode.net
 
 ***COPYRIGHT***
+
 Copyright 2005 Andrew Thompson
 

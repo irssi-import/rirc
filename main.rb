@@ -38,10 +38,37 @@ module Gtk
 	end
 end
 
+def duration(seconds)
+
+	mins = (seconds / 60).floor
+	secs = seconds % 60
+	hours = (mins/60).floor
+	mins = mins%60
+	days = (hours/24).floor
+	hours = hours%24
+	
+	stuff = []
+	
+	stuff.push(secs.to_s+' Seconds')
+	stuff.push( mins.to_s+' Minutes') if mins > 0
+	stuff.push(hours.to_s+' Hours') if hours > 0
+	stuff.push(days.to_s+' Days') if days > 0
+	
+	if stuff.length > 1
+		return stuff.pop+' '+stuff.pop
+	else
+		return stuff[0]
+	end
+	
+	#return {'seconds'=>secs, 'minutes'=>mins, 'hours'=>hours, 'days'=>days}
+end
+
+	
+
 $counter = 0
 
 class Config
-	attr_reader :tagtable, :color1, :color2, :color3, :color4, :color5, :color6, :timestamp, :usermessage, :action, :notice, :serverbuttons, :commandbuffersize, :error, :message, :join, :userjoin, :part, :userpart, :usetimestamp, :standard
+	attr_reader :tagtable, :color1, :color2, :color3, :color4, :color5, :color6, :timestamp, :usermessage, :action, :notice, :serverbuttons, :commandbuffersize, :error, :message, :join, :userjoin, :part, :userpart, :usetimestamp, :standard, :whois
 	def initialize
 		@color1 = Gdk::Color.new(65535, 0, 0)
 		@color2 = Gdk::Color.new(0, 65535, 0)
@@ -65,6 +92,7 @@ class Config
 		@userjoin = "-%2->%2 You are now talking on %c"
 		@part = "<%2--%2 %u (%2%h%2) has left %c (%r)"
 		@userpart = "<%2--%2 You have left %c"
+		@whois = "%3[%3%n%3]%3 %m"
 		
 		@serverbuttons = true
 		
@@ -195,124 +223,6 @@ class MainWindow
 		send_command('addhost', "gateway add:host="+address+":network="+name+":port=6667")
 		send_command('connect', "presence connect:network="+name+":presence="+presence)
 	end
-			
-	
-	#~ def startlistenthread
-		#~ @listenthread = Thread.start{
-			#~ input = ''
-			#~ begin
-			#~ while line = @client.recv(70)
-				#~ if line.length == 0
-					#~ sleep 1
-				#~ end
-				#~ input += line
-				#~ if input.count("\n") > 0
-					#~ pos = input.rindex("\n")
-					#~ string = input[0, pos]
-					#~ input = input[pos, input.length]
-					#~ Thread.start{
-						#~ parse_lines(string)
-					#~ }
-					#~ #puts input[0, pos]+"---"
-					#~ #puts input
-				#~ end
-			#~ end
-			
-			#~ rescue SystemCallError
-			#~ puts 'Broken Pipe to Irssi'
-			#~ @listenthread.kill
-			#~ @client = nil
-			#~ disconnect
-			#~ connect
-		#~ end
-		#~ }
-	#~ end
-	
-	#~ def startlistenthread
-		#~ @listenthread = Thread.start{
-			#~ while true
-				#~ if @output.data_available?
-					#~ #puts 'data'
-					#~ out = @output.read
-					#~ #puts out
-					#~ Thread.start{parse_lines(out)}
-				#~ end
-				#~ sleep 1#sleep a little
-			#~ end
-		#~ }
-	#~ end
-	
-	#~ def createeventcatchthread(tag, command, network = nil, presence = nil)
-		#~ if @events[tag]
-			#~ #puts 'name currently in use!'
-		#~ end
-		#~ @events[tag] = Thread.new{
-			
-			#~ Thread.current['raw_lines'] = []
-			#~ lines = []
-			#~ temp = {}
-			#~ thiscommand = command.deep_clone
-			#~ while true
-				#~ while Thread.current['raw_lines'].length  >= 1
-					#~ temp = {}
-					#~ line = Thread.current['raw_lines'][0]
-					#~ vars = line.split(":", 3)
-					#~ temp['tagname'] = vars[0]
-					#~ temp['status'] = vars[1]
-					#~ temp['command'] = thiscommand
-					#~ temp['original'] = line
-					
-					#~ if !vars[2]
-						#~ lines.push(temp)
-						#~ puts'no other info'
-						#~ break
-					#~ end
-					
-					#~ items = vars[2].split(':')
-					
-					#~ items.each do |x|
-						#~ vals = x.split('=', 2)
-						#~ if vals[1] and vals[1] != ''
-							#~ vals[1].gsub!('\\\\.', ':')
-							#~ vals[1].gsub!('\\.', ':')
-							#~ temp[vals[0]] = vals[1]
-						#~ elsif x.count('=') == 0
-							#~ temp[x] = true
-						#~ end
-					#~ end
-					
-					#~ Thread.current['raw_lines'].delete_at(0)
-					#~ lines.push(temp)
-					
-					#~ if temp['status'] == '+'
-						#~ #puts' end of command output'
-						#~ break
-					#~ end
-					
-					#~ if temp['status'] == '-'
-						#~ puts line+" error!"
-						#~ output = {}
-						#~ output['err'] = line
-						#~ @serverlist.send_event(output, ERROR)
-						#~ break
-					#~ end
-					
-				#~ end
-				
-				#~ if temp['status'] == '+'
-					#~ break
-				#~ end
-				
-				#~ sleep 1
-			#~ end
-			
-			#~ @events.delete(lines[0]['tag'])
-			#~ #puts "removed listener thread for "+tag
-			
-			#~ lines.each{|l| parse_command_output(l)}
-			#~ }
-		#~ #puts "created listener thread for "+tag
-	#~ end
 		
 	def parse_lines(string)
 		lines = string.split("\n")
@@ -376,6 +286,12 @@ class MainWindow
 			output['msg'] = 'Sent raw command "'+arguments+'" to irssi2 directly'
 			@serverlist.send_event(output, NOTICE)
 			send_command('raw', arguments)
+		elsif command == '/nick'
+			name, bleh = arguments.split(' ', 2)
+			send_command('nick'+name, 'presence change:network='+network+':presence='+presence+':new_name='+name)
+		elsif command == '/whois'
+			name, bleh = arguments.split(' ', 2)
+			send_command('whois'+name, 'presence status:network='+network+':presence='+presence+':name='+name)
 		elsif command == '/msg'
 			arguments = arguments.split(' ', 2)
 			if arguments[0] and arguments[1]
@@ -432,9 +348,7 @@ class MainWindow
 			puts 'connection not initialized'
 			return
 		end
-
-		#bleh = command.split(':', 2)
-		#createeventcatchthread(tag, bleh[0])
+		
 		@events[tag] = Event.new(tag, command)
 		sent = @connection.send(tag+':'+command+"\n")
 		
@@ -495,151 +409,14 @@ class MainWindow
 
 	end
 	
-	#~ def parse_command_output(line)
-		#~ line.each{ |key, value|
-				#~ if value === true
-					#~ value = 'true'
-				#~ end
-				#~ puts key+'='+value+"\n"
-				#~ }
-			#~ puts "\n"
-			
-		#~ if line['tagname'] == 'raw'
-			#~ output = {}
-			#~ output['msg'] =  line['original']
-			#~ @serverlist.send_event(output, NOTICE)
-			#~ return
-		#~ end
-		
-		#~ if line['status'] == '+'
-			#~ if line['command'] == 'channel names'
-				#~ puts 'end of user list'
-			#~ end
-		#~ end
-		
-		#~ if line['command'] == 'presence list'
-			#~ if line['network'] and line['presence']
-				#~ createnetworkifnot(line['network'], line['presence'])
-				#~ send_command('channels', "channel list")
-			#~ end
-			
-		#~ elsif line['command'] == 'channel list'
-			#~ if line['network'] and line['presence'] and line['name']
-				#~ if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
-					#~ channel = @serverlist[line['network'], line['presence']].add(line['name'])
-					#~ if line['topic']
-						#~ channel.topic = line['topic']
-					#~ end
-					#~ switchchannel(channel)
-					#~ send_command('listchan'+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
-					#~ send_command('events'+line['name'], "event get:end=*:limit=500:filter=channel=="+line['name'])
-				#~ else
-					#~ puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
-					#~ return
-				#~ end
-			#~ end
-			
-		#~ end
-		
-		#~ if line['network'] and line['presence']
-			#~ if !@serverlist[line['network'], line['presence']]
-				#~ puts 'Error, non existant network event caught, ignoring'
-			#~ else
-				#~ network = @serverlist[line['network'], line['presence']]
-			#~ end
-			
-			#~ if line['channel']
-				#~ if !@serverlist[line['network'], line['presence']][line['channel']]
-					#~ puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
-					#~ return
-				#~ else
-					#~ channel = @serverlist[line['network'], line['presence']][line['channel']]
-				#~ end
-			#~ end
-		
-			#~ if line['command'] == 'channel names'
-				#~ if line['network'] and line['presence'] and line['channel'] and line['name']
-					#~ #@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
-					#~ network.users.create(line['name'])
-					#~ channel.adduser(line['name'])
-				#~ end
-				
-			#~ elsif line['command'] == 'event get'
-				#~ if line['event'] == 'msg'
-					#~ if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
-						#~ network.users[line['name']].hostname = line['address']
-					#~ end
-						
-					#~ if line['own']
-						#~ line['nick'] = line['presence']
-						#~ channel.send_event(line, USERMESSAGE, BUFFER_START)
-					#~ else
-						#~ channel.send_event(line, MESSAGE, BUFFER_START)
-					#~ end
-					
-				#~ elsif line['event'] == 'channel_changed'
-					#~ if line['topic'] and line['topic_set_by']
-						#~ pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
-					#~ elsif line['topic']
-						#~ pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
-					#~ elsif line['topic_set_by']
-						#~ pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
-					#~ end
-					#~ line['msg'] = pattern
-					
-					#~ if line['topic']
-						#~ channel.topic = line['topic']
-					#~ end
-					
-					#~ if pattern
-						#~ channel.send_event(line, NOTICE, BUFFER_START)
-					#~ end
-					
-					#~ @topic.text = line['topic'] if line['topic']
-					
-				#~ elsif line['event'] == 'channel_presence_removed'
-					#~ return if line['deinit']
-					
-					#~ if line['name'] == network.username
-						#~ channel.send_event(line, USERPART, BUFFER_START)
-					#~ else
-						#~ channel.send_event(line, PART, BUFFER_START)
-					#~ end
-				
-				#~ elsif line['event'] == 'channel_part'
-					#~ channel.send_event(line, USERPART, BUFFER_START)
-					#~ channel.disconnect
-					
-				#~ elsif line['event'] == 'channel_join'
-					#~ channel.reconnect
-					#~ channel.send_event(line, USERJOIN, BUFFER_START)
-					
-					
-				#~ elsif line['event'] == 'channel_presence_added'
-					#~ return if line['init']
-					
-					#~ if line['name'] == network.username
-						#~ channel.send_event(line, USERJOIN, BUFFER_START)
-					#~ else
-						#~ channel.send_event(line, JOIN, BUFFER_START)
-					#~ end
-				#~ end
-			#~ elsif line['status'] == '+'
-				#~ puts 'done'
-				#~ return
-			#~ else
-				#~ #line.each{ |key, value|
-			#~ #		puts key+'='+value+"\n"
-			#~ #		}
-			#~ #	puts "\n"
-			#~ end
-		#~ end
-		#~ @messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
-	#~ end
-	
 	def handle_event(event)
 		
 		puts 'handling '+event.name
+		
+		if event.command['command'] == 'presence status'
+			whois(event)
+			return
+		end
 		
 		event.lines.each do |line|
 		
@@ -647,7 +424,7 @@ class MainWindow
 				output = {}
 				output['msg'] =  line['original']
 				@serverlist.send_event(output, NOTICE)
-				return
+				next
 			end
 			
 			if line['status'] == '+'
@@ -872,11 +649,11 @@ class MainWindow
 				if line['new_name']
 				
 					if line['name'] == network.username
-						puts 'your nickname changed to '+line['new_name']
+						#puts 'your nickname changed to '+line['new_name']
 						network.set_username(line['new_name'])
-						puts network, network.username, @currentchan, @currentchan.username
+						#puts network, network.username, @currentchan, @currentchan.username
 						@usernamebutton.label = @currentchan.username.gsub('_', '__')
-						puts @usernamebutton.label
+						#puts @usernamebutton.label
 						@usernamebutton.show
 					end
 					pattern = @config.notice.deep_clone
@@ -890,7 +667,7 @@ class MainWindow
 						#puts network.users[line['new_name']]
 					end
 					
-					if line['name'] == line['presence']
+					if line['new_name'] == network.username
 						pattern = 'You are now known as '+line['new_name']
 					elsif line['name'] != line['new_name']
 						pattern= line['name']+' is now known as '+line['new_name']
@@ -948,6 +725,11 @@ class MainWindow
 				line['msg'] = msg
 				network.send_event(line, NOTICE)
 				
+			elsif line['type'] == 'gateway_connected'
+				msg = "Connected to "+line['ip']+':'+line['port']
+				line['msg'] = msg
+				network.send_event(line, NOTICE)
+				
 			elsif line['type'] == 'gateway_connect_failed'
 				err = "Connection to "+line['ip']+':'+line['port']+" failed : "+line['error']
 				line['err'] = err
@@ -987,6 +769,73 @@ class MainWindow
 				puts line['type']
 			end
 			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+		end
+	end
+	
+	def whois(event)
+	
+		#~ address = ''
+		#~ real_name = ''
+		#~ channels = ''
+		#~ server_address = ''
+		#~ server_name = ''
+		#~ extra = ''
+		#~ idle = ''
+		#~ login_time = ''
+		
+		#~ event.lines.each do |line|
+			#~ address = line['address'] if line['address']
+			#~ real_name = line['real_name'] if line['real_name']
+			#~ channels = line['channels'] if line['channels']
+			#~ server_address = line['server_address'] if line['server_address']
+			#~ server_name = line['server_name'] if line['server_name']
+			#~ extra = line['extra'] if line['extra']
+			#~ idle = line['idle'] if line['idle']
+			#~ login_time = line['login_time'] if line['login_time']
+		#~ end
+		
+		network = @serverlist[event.command['network'], event.command['presence']]
+		#~ network.send_event('('+address+') : '+real_name, NOTICE)
+		#~ network.send_event(extra, NOTICE)
+		#~ network.send_event(channels, NOTICE)
+		#~ network.send_event(server_name+' '+server_address, NOTICE)
+		#~ network.send_event('Idle: '+idle+' Logon: '+login_time, NOTICE)
+		#~ network.send_event('END of WHOIS', NOTICE)
+		
+		event.lines.each do |line|
+		
+			if line['address'] and line['real_name']
+				msg = '('+line['address']+') : '+line['real_name']
+			elsif line['address']
+				address = line['address']
+				next
+			elsif line['real_name'] and address
+				msg = address+' : '+line['real_name']
+			elsif line['server_address'] and line['server_name']
+				msg = line['server_address']+' : '+line['server_name']
+			elsif line['idle'] and line['login_time']
+				idletime = duration(line['idle'].to_i)
+				#puts idletime
+				logintime = duration(Time.at(line['time'].to_i) - Time.at(line['login_time'].to_i))
+				#puts logintime
+				msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
+			elsif line['channels']
+				msg = line['channels']
+			elsif line['extra']
+				msg = line['extra']
+			elsif line['status'] == '+'
+				msg = 'End of /whois'
+				line['name'] = event.command['name']
+			else
+				next
+			end
+			
+			pattern = @config.whois.deep_clone
+			pattern['%m'] = msg if msg
+			pattern['%n'] = line['name'] if line['name']
+			line['msg'] = pattern
+			network.send_event(line, NOTICE)
+			time = line['time']
 		end
 	end
 	

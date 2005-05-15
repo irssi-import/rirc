@@ -122,7 +122,7 @@ module Stuff
 				#~ pattern['%u'] = line['presence']
 			#~ end
 			#puts @username, @server.username
-			pattern['%u'] = @username if @username
+			pattern['%u'] = username if username
 			pattern['%m'] = line['msg'] if line['msg']
 			
 			
@@ -603,13 +603,12 @@ end
 
 class Channel
 	include Stuff
-	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic, :username
+	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
 	attr_writer :topic
 	def initialize(name, server)
 		@server = server
 		@name = name
 		puts @server.username
-		@username = @server.username
 		@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)
@@ -675,7 +674,7 @@ class Channel
 	def drawusers
 		#I *really* should just sync the list
 		#@userlist.clear
-		#@users.sort
+		@users.sort
 		
 		if @useriters.length == 0
 			@users.users.each{ |user|
@@ -737,6 +736,10 @@ class Channel
 				drawusers
 			end
 		end
+	end
+	
+	def username
+		return @server.username
 	end
 	
 	#~ def changeuser(old, new)
