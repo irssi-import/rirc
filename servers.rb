@@ -56,8 +56,8 @@ module Stuff
 	
 	def setstatus(status)
 		if(status > @status)
+			puts "status set to "+status.to_s+ " from  "+@status.to_s
 			@status = status
-			#puts "status set to "+status.to_s
 			recolor
 		end
 	end
@@ -105,7 +105,7 @@ module Stuff
 		end
 		
 		if type == MESSAGE
-			@status = NEWMSG
+			setstatus(NEWMSG)
 			#line.each {|key, value| print key, " is ", value, "\n" }
 			#puts "\n"
 			pattern += @config.message.deep_clone
@@ -114,7 +114,7 @@ module Stuff
 			
 			
 		elsif type == USERMESSAGE
-			@status = NEWMSG
+			setstatus(NEWMSG)
 			pattern += @config.usermessage.deep_clone
 			#~ if line['nick']
 				#~ pattern['%u'] = line['nick']
@@ -127,7 +127,7 @@ module Stuff
 			
 			
 		elsif type == JOIN
-			@status = NEWDATA
+			setstatus(NEWDATA)
 			pattern += @config.join.deep_clone
 			pattern['%u'] = line['name']
 			pattern['%c'] = line['channel']
@@ -139,12 +139,12 @@ module Stuff
 			
 			
 		elsif type == USERJOIN
-			@status = NEWDATA
+			setstatus(NEWDATA)
 			pattern += @config.userjoin.deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == PART
-			@status = NEWDATA
+			setstatus(NEWDATA)
 			pattern += @config.part.deep_clone
 			pattern['%u'] = line['name']
 			pattern['%r'] = line['reason'] if line['reason']
@@ -156,17 +156,17 @@ module Stuff
 			end
 			
 		elsif type == USERPART
-			@status = NEWDATA
+			setstatus(NEWDATA)
 			pattern += @config.userpart.deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == ERROR
-			@status = NEWDATA
+			setstatus(NEWDATA)
 			pattern += @config.error.deep_clone
 			pattern['%m'] = line['err']
 			
 		elsif type == NOTICE
-			@status = NEWDATA
+			setstatus(NEWDATA)
 			pattern += @config.notice.deep_clone
 			pattern['%m'] = line['msg']
 			

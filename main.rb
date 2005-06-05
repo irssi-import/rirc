@@ -2,6 +2,11 @@
 
 require 'libglade2'
 require 'socket'
+require 'rbconfig'
+include Config
+puts CONFIG['target']
+
+#$:.push('./lib')
 
 begin
 	require 'config'
@@ -10,9 +15,9 @@ rescue LoadError
 	exit
 end
 
-if $method == 'ssh'
-	require 'net/ssh'
-end
+#if $method == 'ssh'
+#	require 'net/ssh'
+#end
 
 #useful for debugging
 Thread.abort_on_exception = true
@@ -67,7 +72,7 @@ end
 
 $counter = 0
 
-class Config
+class Configuration
 	attr_reader :tagtable, :color1, :color2, :color3, :color4, :color5, :color6, :timestamp, :usermessage, :action, :notice, :serverbuttons, :commandbuffersize, :error, :message, :join, :userjoin, :part, :userpart, :usetimestamp, :standard, :whois
 	def initialize
 		@color1 = Gdk::Color.new(65535, 0, 0)
@@ -120,7 +125,7 @@ require 'connections'
 class MainWindow
 	attr :config
 	def initialize
-		@config = Config.new
+		@config = Configuration.new
 		@serverlist = ServerList.new(self)
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		@usernamebutton = @glade["username"]
@@ -157,6 +162,7 @@ class MainWindow
 		drawuserlist(false)
 		@messages.buffer = @serverlist.buffer
 		@serverlist.button.active = true
+		@connection = nil
 		
 		@path= $path
 		
@@ -177,6 +183,8 @@ class MainWindow
 			begin
 			if $method == 'ssh'
 				@connection = SSHConnection.new($ssh_host)
+				print 'this is '
+				puts @connection
 			elsif $method == 'unixsocket'
 				@connection = UnixSockConnection.new($unixsocket_path)
 			end
@@ -353,6 +361,7 @@ class MainWindow
 		sent = @connection.send(tag+':'+command+"\n")
 		
 		if !sent
+			puts 'failed to send'
 			@connection = nil
 			disconnect
 			connect
@@ -919,8 +928,8 @@ class MainWindow
 	end
 	
 	def quit
-		@connection.close if @connection
 		send_command('quit', 'quit')
+		@connection.close if @connection
 		Gtk.main_quit
 	end
 end
