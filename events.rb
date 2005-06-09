@@ -68,7 +68,6 @@ class Event
 			output = {}
 			output['err'] = line
 			#@serverlist.send_event(output, ERROR)
-			break
 		end
 	end
 end

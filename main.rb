@@ -182,6 +182,9 @@ class Main
 				puts @connection
 			elsif $method == 'unixsocket'
 				@connection = UnixSockConnection.new($unixsocket_path)
+			else
+				puts 'invalid connection method, exiting'
+				exit
 			end
 			
 			puts "Connected to irssi2!"
