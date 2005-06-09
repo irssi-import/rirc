@@ -5,7 +5,6 @@ Big things:
 	Store configuration locally (maybe in YAML) and on the server (once it stores persistantly)
 	Dynamic scrollback fetching
 	On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
-	Investigate puggybacking ssh binary rather then using ruby module
 	
 Little things:
 	/msgs from other users should open a new tab at the end of the channel list for that network
@@ -15,7 +14,6 @@ Little things:
 	
 Bugs:
 	Coloring text inserting at the beginning of the buffer b0rks if timestamps are disabled(maybe need to insert the whole line and THEN tag it rather then inserting and tagging pieces)
-	Remove newline after the scrollback buffer
 	You can untoggle the channel buttons without selecting a new channel
-	#SSH connection code lacks exception handling
+	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want)
 	

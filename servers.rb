@@ -21,7 +21,7 @@ NOTICE = 7
 
 module Stuff
 	#nice little mixin for common methods
-	attr_reader :endmark
+	attr_reader :endmark, :oldendmark
 	#spaceship operator
 	def <=>(object)
 		length = @name.length
@@ -42,14 +42,14 @@ module Stuff
 	end
 	
 	def activate
-		@button.active=true
+		@button.active=true if !@button.active?
 		@status = ACTIVE
 		recolor
 		return @buffer
 	end
 	
 	def deactivate
-		@button.active=false
+		@button.active=false if @button.active?
 		@status = INACTIVE
 		recolor
 	end
@@ -85,7 +85,7 @@ module Stuff
 	#set the button color
 	def recolor
 		label = @button.child
-		label.modify_fg(Gtk::STATE_NORMAL, @config.getstatuscolor(@status))
+		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status))
 		#puts 'recolored '+@name+' to '+@status.to_s
 	end
 	
@@ -98,24 +98,27 @@ module Stuff
 			insert = @buffer.start_iter
 		end
 		
-		if @config.usetimestamp
-			pattern = Time.at(line['time'].to_i).strftime(@config.timestamp)
+		if $config.usetimestamp
+			pattern = Time.at(line['time'].to_i).strftime($config.timestamp)
 		else
 			pattern = ''
 		end
+		
+		@oldlineend = @buffer.end_iter
+		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, false)
 		
 		if type == MESSAGE
 			setstatus(NEWMSG)
 			#line.each {|key, value| print key, " is ", value, "\n" }
 			#puts "\n"
-			pattern += @config.message.deep_clone
+			pattern += $config.message.deep_clone
 			pattern['%u'] = line['nick'] if line['nick']
 			pattern['%m'] = line['msg'] if line['msg']
 			
 			
 		elsif type == USERMESSAGE
 			setstatus(NEWMSG)
-			pattern += @config.usermessage.deep_clone
+			pattern += $config.usermessage.deep_clone
 			#~ if line['nick']
 				#~ pattern['%u'] = line['nick']
 			#~ else
@@ -128,7 +131,7 @@ module Stuff
 			
 		elsif type == JOIN
 			setstatus(NEWDATA)
-			pattern += @config.join.deep_clone
+			pattern += $config.join.deep_clone
 			pattern['%u'] = line['name']
 			pattern['%c'] = line['channel']
 			if user = @users[line['name']] and user.hostname
@@ -140,12 +143,12 @@ module Stuff
 			
 		elsif type == USERJOIN
 			setstatus(NEWDATA)
-			pattern += @config.userjoin.deep_clone
+			pattern += $config.userjoin.deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == PART
 			setstatus(NEWDATA)
-			pattern += @config.part.deep_clone
+			pattern += $config.part.deep_clone
 			pattern['%u'] = line['name']
 			pattern['%r'] = line['reason'] if line['reason']
 			pattern['%c'] = line['channel']
@@ -157,17 +160,17 @@ module Stuff
 			
 		elsif type == USERPART
 			setstatus(NEWDATA)
-			pattern += @config.userpart.deep_clone
+			pattern += $config.userpart.deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == ERROR
 			setstatus(NEWDATA)
-			pattern += @config.error.deep_clone
+			pattern += $config.error.deep_clone
 			pattern['%m'] = line['err']
 			
 		elsif type == NOTICE
 			setstatus(NEWDATA)
-			pattern += @config.notice.deep_clone
+			pattern += $config.notice.deep_clone
 			pattern['%m'] = line['msg']
 			
 		end
@@ -176,8 +179,12 @@ module Stuff
 			#puts pattern
 			recolor
 			if insert_location == BUFFER_START
-				pattern += "\n"
+				#puts 'at start'
+				if @buffer.char_count > 0
+					pattern += "\n"
+				end
 			elsif insert.offset != 0
+				#puts 'not at start'
 				pattern = "\n"+pattern
 			end
 			colortext(pattern, insert)
@@ -185,6 +192,8 @@ module Stuff
 		
 		@newlineend = @buffer.end_iter
 		@endmark = @buffer.create_mark('end', @buffer.end_iter, false)
+		
+		$main.scroll_to_end(self)
 			
 	end
 	
@@ -206,7 +215,7 @@ module Stuff
 	def addcommand(string)
 		return if string.length == 0
 		@commandbuffer.push(string)
-		while @commandbuffer.length > @config.commandbuffersize
+		while @commandbuffer.length > $config.commandbuffersize
 			@commandbuffer.delete_at(0)
 		end
 		@commandindex = @commandbuffer.length
@@ -403,15 +412,15 @@ class ServerList
 		@servers = Array.new
 		@box = Gtk::HBox.new
 		@box.show
-		@config = @parent.config
+		#@config = @parent.config
 		@buffer = Gtk::TextBuffer.new
-		@buffer.create_tag('color1', {'foreground_gdk'=>@config.color1})
-		@buffer.create_tag('color2', {'foreground_gdk'=>@config.color2})
-		@buffer.create_tag('color3', {'foreground_gdk'=>@config.color3})
-		@buffer.create_tag('color4', {'foreground_gdk'=>@config.color4})
-		@buffer.create_tag('color5', {'foreground_gdk'=>@config.color5})
-		@buffer.create_tag('color6', {'foreground_gdk'=>@config.color6})
-		@buffer.create_tag('standard', {'foreground_gdk'=>@config.standard})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config.color1})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config.color2})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config.color3})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config.color4})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config.color5})
+		@buffer.create_tag('color6', {'foreground_gdk'=>$config.color6})
+		@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -514,16 +523,16 @@ class Server
 		@parent = parent
 		@name = name
 		@channels = Array.new
-		@config = getparentwindow.config
+		#@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
 		@users = UserList.new
-		@buffer.create_tag('color1', {'foreground_gdk'=>@config.color1})
-		@buffer.create_tag('color2', {'foreground_gdk'=>@config.color2})
-		@buffer.create_tag('color3', {'foreground_gdk'=>@config.color3})
-		@buffer.create_tag('color4', {'foreground_gdk'=>@config.color4})
-		@buffer.create_tag('color5', {'foreground_gdk'=>@config.color5})
-		@buffer.create_tag('color6', {'foreground_gdk'=>@config.color6})
-		@buffer.create_tag('standard', {'foreground_gdk'=>@config.standard})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config.color1})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config.color2})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config.color3})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config.color4})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config.color5})
+		@buffer.create_tag('color6', {'foreground_gdk'=>$config.color6})
+		@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -538,7 +547,7 @@ class Server
 		@box.pack_start(@button, false, false)
 		@box.show
 		@status = INACTIVE
-		if(@config.serverbuttons)
+		if($config.serverbuttons)
 			@button.show
 		end
 		@connected = true
@@ -609,20 +618,20 @@ class Channel
 		@server = server
 		@name = name
 		puts @server.username
-		@config = getparentwindow.config
+		#@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)
 		@renderer = Gtk::CellRendererText.new
 		@column = Gtk::TreeViewColumn.new("Users", @renderer)
 		@column.add_attribute(@renderer, "text",  0)
 		@userlist.clear
-		@buffer.create_tag('color1', {'foreground_gdk'=>@config.color1})
-		@buffer.create_tag('color2', {'foreground_gdk'=>@config.color2})
-		@buffer.create_tag('color3', {'foreground_gdk'=>@config.color3})
-		@buffer.create_tag('color4', {'foreground_gdk'=>@config.color4})
-		@buffer.create_tag('color5', {'foreground_gdk'=>@config.color5})
-		@buffer.create_tag('color6', {'foreground_gdk'=>@config.color6})
-		@buffer.create_tag('standard', {'foreground_gdk'=>@config.standard})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config.color1})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config.color2})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config.color3})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config.color4})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config.color5})
+		@buffer.create_tag('color6', {'foreground_gdk'=>$config.color6})
+		@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0

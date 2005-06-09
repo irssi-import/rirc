@@ -37,24 +37,24 @@ class SSHConnection
 	def listen(object)
 		@listenthread = Thread.new do
 			loop do
-				begin
+				#begin
 					while line = @output.gets
 						object.parse_lines(line)
 					end
 				
-				rescue IOError
-					puts 'listen: closed stream, disconnecting '+$!
-					close
-					object.disconnect
-					object.connect
-					break
-				rescue StandardError
-					puts 'listen: closed stream, disconnecting '+$!
-					close
-					object.disconnect
-					object.connect
-					break
-				end
+				#~ rescue IOError
+					#~ puts 'listen: closed stream, disconnecting '+$!
+					#~ close
+					#~ object.disconnect
+					#~ object.connect
+					#~ break
+				#~ rescue StandardError
+					#~ puts 'listen: closed stream, disconnecting '+$!
+					#~ close
+					#~ object.disconnect
+					#~ object.connect
+					#~ break
+				#~ end
 			end
 		end
 	end

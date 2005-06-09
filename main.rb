@@ -115,66 +115,61 @@ class Configuration
 	def getstatuscolor(status)
 		return @statuscolors[status]
 	end
+	
+	def get_value(value='*')
+	end
+	
+	def set_value(key, value)
+	end
 end
 
 #load servers.rb
 require 'servers'
 require 'events'
 require 'connections'
+require 'gui'
 
-class MainWindow
-	attr :config
+
+class Main
+	attr_reader :serverlist, :window
 	def initialize
-		@config = Configuration.new
+		#@config = Configuration.new
 		@serverlist = ServerList.new(self)
-		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
-		@usernamebutton = @glade["username"]
-		@topic = @glade["topic"]
-		@messages = @glade["message_window"]
-		@messageinput = @glade["message_input"]
-		@messagescroll = @glade['message_scroll']
-		@messagescroll.vadjustment.signal_connect('value-changed') do |w|
-			#~ puts w.value.to_s
-			#~ puts w.page_size.to_s
-			#~ puts w.lower.to_s
-			#~ puts w.upper.to_s
-			#~ puts @messages.buffer.line_count.to_s
-			
-		end
-		@messageinput.grab_focus
-		@messageinput.signal_connect("key_press_event") do |widget, event|
-			if event.keyval == Gdk::Keyval.from_name('Up')
-				getlastcommand
-			elsif event.keyval == Gdk::Keyval.from_name('Down')
-				getnextcommand
-			end
-		end
-		@channellist = @glade['channellist']
-		@userbar = @glade['userbar']
-		@userlist = @glade['userlist']
-		@panel = @glade['hpaned1']
-		@mainbox = @glade['mainbox']
-		@messagebox = @glade['vbox2']
-		@configwindow = @glade['config']
-		@preferencesbar = @glade['preferencesbar']
-		@channellist.pack_start(@serverlist.box, false, false)
-		@currentchan = @serverlist
-		drawuserlist(false)
-		@messages.buffer = @serverlist.buffer
-		@serverlist.button.active = true
 		@connection = nil
-		
-		@path= $path
-		
-		@me = self
-
 		@events = {}
-
+		#puts $main
+		#connect
 		@buffer = []
 		@buffer[0] = true
-		@last = nil
+	end
+	
+	def start
 		connect
-		
+		#Thread.new do
+			Gtk.init
+			@window = MainWindow.new
+			Gtk.main
+		#end
+	end
+	
+	def switchchannel(channel)
+		@window.switchchannel(channel) if @window
+	end
+	
+	def scroll_to_end(channel)
+		@window.scroll_to_end(channel)
+	end
+	
+	def escape(string)
+		result = string.gsub('\\', '\\\\\\')
+		result.gsub!(':', '\\.')
+		return result
+	end
+	
+	def unescape(string)
+		result = string.gsub('\\.', ':')
+		result.gsub!('\\\\', '\\')
+		return result
 	end
 	
 	def connect
@@ -240,22 +235,7 @@ class MainWindow
 		end
 	end
   
-	def message_input(widget)
-		return if widget.text.length == 0
-		
-		@currentchan.addcommand(widget.text)
-		channel = @currentchan.name
-		if @currentchan.class == Channel
-			network = @currentchan.server.name
-			presence = @currentchan.server.presence
-		elsif @currentchan.class == Server
-			network = @currentchan.name
-			presence = @currentchan.presence
-		else
-			presence = $presence
-		end
-		
-		message = widget.text
+	def handle_input(message, channel, network, presence)
 
 		#if message =~ /^\/([a-z]+)[\s]*(.*)$/
 		command, arguments = message.split(' ', 2)
@@ -277,7 +257,7 @@ class MainWindow
 				line = {}
 				line['err'] = 'Part requires a channel argument'
 				line['time'] = Time.new.to_i
-				@currentchan.send_event(line, ERROR)
+				@window.currentchan.send_event(line, ERROR)
 			end
 		elsif command == '/quit'
 			send_command('quit', 'quit')
@@ -311,44 +291,28 @@ class MainWindow
 				line = {}
 				line['err'] = '/msg requires a username and a message'
 				line['time'] = Time.new.to_i
-				@currentchan.send_event(line, ERROR)
+				@window.currentchan.send_event(line, ERROR)
 			end
 		elsif network
 			messages = message.split("\n")
 			messages.each { |message|
-				message.gsub!('\\', '\\\\\\')
-				message.gsub!(':', '\\.')
-				send_command('message'+rand(100).to_s, 'msg:network='+network+':channel='+channel+':msg='+message+":presence="+presence)
+
+				send_command('message'+rand(100).to_s, 'msg:network='+network+':channel='+channel+':msg='+escape(message)+":presence="+presence)
 				line = {}
 				line['nick'] = presence
-				message.gsub!('\\.', ':')
-				message.gsub!('\\\\', '\\')
 				line['msg'] = message
 				line['time'] = Time.new.to_i
-				@currentchan.send_event(line, USERMESSAGE)
-				@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+				@window.currentchan.send_event(line, USERMESSAGE)
+				#@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 			}
 		elsif !network
 			line = {}
 			line['err'] = 'Invalid server command'
 			line['time'] = Time.new.to_i
-			@currentchan.send_event(line, ERROR)
+			@window.currentchan.send_event(line, ERROR)
 		end
 		
-		widget.text = ''
-	end
-	
-	def set_username
-	end
-	
-	def topic_change(widget)
-		#add_message("Topic changed to: "+ widget.text, 'notice')
-	end
-	
-	def handle_input(string)
-		@client.send(string+"\n", 0)
-		@messageinput.text = ""
-		return
+		#widget.text = ''
 	end
 	
 	def send_command(tag, command)
@@ -401,7 +365,7 @@ class MainWindow
 		items.each do |x|
 			vals = x.split('=', 2)
 			if vals[1] and vals[1] != ''
-				line[vals[0]] = vals[1].gsub('\\.', ':')
+				line[vals[0]] = unescape(vals[1])
 			elsif x.count('=') == 0
 				line[x] = true
 			end
@@ -447,7 +411,7 @@ class MainWindow
 				if line['network'] and line['presence']
 					network = createnetworkifnot(line['network'], line['presence'])
 					network.set_username(line['name'] ) if line['name']
-					@usernamebutton.label = @currentchan.username.gsub('_', '__')
+#					@usernamebutton.label = @currentchan.username.gsub('_', '__')
 					send_command('channels', "channel list")
 				end
 				
@@ -562,7 +526,7 @@ class MainWindow
 				#	puts "\n"
 				end
 			end
-			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+#			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 			
 		end
 		@events.delete(event.name)
@@ -772,12 +736,12 @@ class MainWindow
 					channel.send_event(line, NOTICE)
 				end
 				
-				@topic.text = line['topic'] if line['topic']
+				#@topic.text = line['topic'] if line['topic']
 				
 			else
 				puts line['type']
 			end
-			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+			#@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 		end
 	end
 	
@@ -867,74 +831,16 @@ class MainWindow
 		return network[channel]
 	end
 	
-
-	
-	def switchchannel(channel)
-		#make the new channel the current one, and toggle the buttons accordingly
-		return if @currentchan == channel
-		@currentchan.deactivate
-		@userlist.remove_column(@currentchan.column) if @currentchan.class == Channel
-		@currentchan = channel
-		@messages.buffer = @currentchan.activate
-		@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
-		@usernamebutton.label = @currentchan.username.gsub('_', '__') if @currentchan.username
-		drawuserlist(@currentchan.class == Channel)
-	end
-	
-	def drawuserlist(toggle)
-		if toggle
-			@mainbox.remove(@messagebox)
-			@mainbox.pack_start(@panel)
-			@panel.add1(@messagebox)
-			@messageinput.grab_focus
-			@userlist.model = @currentchan.userlist
-			@userlist.append_column(@currentchan.column)
-			@userlist.show_all
-			@topic.show
-			@topic.text =@currentchan.topic
-			@usernamebutton.show
-		else
-			@mainbox.remove(@panel)
-			@panel.remove(@messagebox)
-			@mainbox.pack_start(@messagebox)
-			@messageinput.grab_focus
-			@topic.hide
-			@topic.text = ''
-			if @currentchan.class == ServerList
-				@usernamebutton.hide
-			else
-				@usernamebutton.show
-			end
-		end
-	end
-	
-	def getlastcommand
-		@messageinput.text = @currentchan.getlastcommand
-		@messageinput.grab_focus
-	end
-	
-	def getnextcommand
-		@messageinput.text = @currentchan.getnextcommand
-		@messageinput.grab_focus
-	end
-	
-	def on_preferences1_activate
-		
-		#puts 'decorated' if @configwindow.decorated?
-		@cells = Gtk::CellRendererText.new
-		@cells.text = "bleh"
-		#puts @preferencesbar.insert_column(1, 'Preferences', @cells, {}).to_s 
-		@configwindow.show_all
-	end
-	
 	def quit
 		send_command('quit', 'quit')
 		@connection.close if @connection
-		Gtk.main_quit
+		puts 'bye byeeeeee...'
+		exit
 	end
 end
-
-Gtk.init
-MainWindow.new
-Gtk.main
+#Gtk.init
+$config = Configuration.new
+$main = Main.new
+$main.start
+#Gtk.main
 
