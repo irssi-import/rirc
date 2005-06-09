@@ -150,6 +150,14 @@ class MainWindow
 		widget.text = ''
 	end
 	
+	def get_username
+		@usernamebutton.label = @currentchan.username.gsub('_', '__')
+	end
+	
+	def show_username
+		@usernamebutton.show
+	end
+	
 	def getlastcommand
 		@messageinput.text = @currentchan.getlastcommand
 		@messageinput.grab_focus

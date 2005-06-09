@@ -29,7 +29,7 @@ run './main.rb' or 'ruby main.rb'
 
 This is a list of the supported commands and their parameters:
 
-/server <name>:<address> (you cannot set the port currently)
+/server <name>:<protocol>:<address>[:<port>] (port is optional, irssi2 will use the defaults if its not specified)
 /join <channel>
 /part <channel>
 /msg <user> <message> (you can send, but rirc will not handle incoming messages correctly ATM)

@@ -108,7 +108,6 @@ class Configuration
 		@tagtable.add(@colortag1)
 		@colortag1.foreground_gdk=@color1
 		@colortag1.background_gdk=@color1
-		
 	end
 	
 	#converts status into a color
@@ -121,6 +120,7 @@ class Configuration
 	
 	def set_value(key, value)
 	end
+		
 end
 
 #load servers.rb
@@ -223,10 +223,13 @@ class Main
 		sleep 5#prevent flooding the server with reconnect requests
 	end
 	
-	def connectnetwork(name, address, presence)
-		send_command('addnet', "network add:name="+name+":protocol=irc")
+	def connectnetwork(name, protocol, address, port,  presence)
+		send_command('addnet', "network add:name="+name+":protocol="+protocol)
 		send_command('addpres', "presence add:name="+presence+":network="+name)
-		send_command('addhost', "gateway add:host="+address+":network="+name+":port=6667")
+		temp = "gateway add:host="+address+":network="+name
+		temp += ":port="+port if port != '' and port
+		puts temp
+		send_command('addhost', temp)
 		send_command('connect', "presence connect:network="+name+":presence="+presence)
 	end
 		
@@ -249,9 +252,9 @@ class Main
 		#arguments = foo[1]
 		if command == '/join' and network
 			send_command('join', "channel join:network="+network+":channel="+arguments)
-		elsif command == '/server' and  arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z0-9_.\-]+)$/
-			#puts $1, $2, presence
-			connectnetwork($1, $2, presence)
+		elsif command == '/server' and  arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
+			puts $1, $2, $3, $4, presence
+			connectnetwork($1, $2, $3, $4, presence)
 		elsif command == '/part'
 			arguments = arguments.split(' ')
 			if arguments[0]
@@ -628,11 +631,13 @@ class Main
 						#puts 'your nickname changed to '+line['new_name']
 						network.set_username(line['new_name'])
 						#puts network, network.username, @currentchan, @currentchan.username
-						@usernamebutton.label = @currentchan.username.gsub('_', '__')
+						#@usernamebutton.label = @currentchan.username.gsub('_', '__')
 						#puts @usernamebutton.label
-						@usernamebutton.show
+						#@usernamebutton.show
+						@window.get_username
+						@window.show_username
 					end
-					pattern = @config.notice.deep_clone
+					pattern = $config.notice.deep_clone
 					
 					user = network.users[line['name']]
 					
@@ -697,7 +702,8 @@ class Main
 				end
 				
 			elsif line['type'] == 'gateway_connecting'
-				msg = "Connecting to "+line['ip']+':'+line['port']
+				msg = "Connecting to "+line['ip']
+				msg += ":"+line['port'] if line['port']
 				line['msg'] = msg
 				network.send_event(line, NOTICE)
 				
@@ -806,7 +812,7 @@ class Main
 				next
 			end
 			
-			pattern = @config.whois.deep_clone
+			pattern = $config.whois.deep_clone
 			pattern['%m'] = msg if msg
 			pattern['%n'] = line['name'] if line['name']
 			line['msg'] = pattern
