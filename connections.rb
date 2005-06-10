@@ -12,7 +12,7 @@ class SSHConnection
 		#sleep 5
 		#loop { puts @output.gets }
 		begin
-			@output.expect(/^\*:preauth:time=\d*$/) do
+			@output.expect(/^\*;preauth;time=\d*$/) do
 				puts 'logged in'
 			end
 		
@@ -22,6 +22,7 @@ class SSHConnection
 	end
 	
 	def send(data)
+		#puts data
 		begin
 			@input.puts(data)
 		rescue SystemCallError
@@ -39,6 +40,7 @@ class SSHConnection
 			loop do
 				#begin
 					while line = @output.gets
+						puts 'o:'+line
 						object.parse_lines(line)
 					end
 				

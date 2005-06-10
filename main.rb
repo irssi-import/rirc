@@ -141,6 +141,8 @@ class Main
 		#connect
 		@buffer = []
 		@buffer[0] = true
+		@filehandles = []
+		@filedescriptors = {}
 	end
 	
 	def start
@@ -162,12 +164,12 @@ class Main
 	
 	def escape(string)
 		result = string.gsub('\\', '\\\\\\')
-		result.gsub!(':', '\\.')
+		result.gsub!(';', '\\.')
 		return result
 	end
 	
 	def unescape(string)
-		result = string.gsub('\\.', ':')
+		result = string.gsub('\\.', ';')
 		result.gsub!('\\\\', '\\')
 		return result
 	end
@@ -178,8 +180,8 @@ class Main
 			begin
 			if $method == 'ssh'
 				@connection = SSHConnection.new($ssh_host)
-				print 'this is '
-				puts @connection
+				#print 'this is '
+				#puts @connection
 			elsif $method == 'unixsocket'
 				@connection = UnixSockConnection.new($unixsocket_path)
 			else
@@ -224,13 +226,13 @@ class Main
 	end
 	
 	def connectnetwork(name, protocol, address, port,  presence)
-		send_command('addnet', "network add:name="+name+":protocol="+protocol)
-		send_command('addpres', "presence add:name="+presence+":network="+name)
-		temp = "gateway add:host="+address+":network="+name
-		temp += ":port="+port if port != '' and port
-		puts temp
+		send_command('addnet', "network add;name="+name+";protocol="+protocol)
+		send_command('addpres', "presence add;name="+presence+";network="+name)
+		temp = "gateway add;host="+address+";network="+name
+		temp += ";port="+port if port != '' and port
+		#puts temp
 		send_command('addhost', temp)
-		send_command('connect', "presence connect:network="+name+":presence="+presence)
+		send_command('connect', "presence connect;network="+name+";presence="+presence)
 	end
 		
 	def parse_lines(string)
@@ -242,23 +244,19 @@ class Main
 	end
   
 	def handle_input(message, channel, network, presence)
-
-		#if message =~ /^\/([a-z]+)[\s]*(.*)$/
 		command, arguments = message.split(' ', 2)
 		
 		arguments = '' if ! arguments
-		
-		#command = foo[0]
-		#arguments = foo[1]
+
 		if command == '/join' and network
-			send_command('join', "channel join:network="+network+":channel="+arguments)
+			send_command('join', "channel join;network="+network+";channel="+arguments)
 		elsif command == '/server' and  arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
-			puts $1, $2, $3, $4, presence
+			#puts $1, $2, $3, $4, presence
 			connectnetwork($1, $2, $3, $4, presence)
 		elsif command == '/part'
 			arguments = arguments.split(' ')
 			if arguments[0]
-				send_command('part', "channel part:network="+network+":presence="+$presence+":channel="+arguments[0])
+				send_command('part', "channel part;network="+network+";presence="+$presence+";channel="+arguments[0])
 			else
 				line = {}
 				line['err'] = 'Part requires a channel argument'
@@ -271,6 +269,18 @@ class Main
 		elsif command == '/shutdown'
 			send_command('shutdown', 'shutdown')
 			Gtk.main_quit
+		elsif command == '/send'
+			if arguments[0] == '~'[0]
+				arguments.sub!('~', ENV['HOME'])#expand ~
+			end
+			puts arguments +' exists' if File.file?(arguments)
+			name, path = arguments.reverse.split('/', 2)
+			name.reverse!
+			path = '' if !path
+			path.reverse!
+			@filedescriptors[name] = File.open(arguments, 'r') # create a file descriptor with a key the same as the filename sent to server
+			puts @filedescriptors[name]
+			send_command('file send '+name, 'file send;resume;name='+name+';size='+File.size(arguments).to_s)
 		elsif command == '/ruby'
 			puts 'possibly evil ruby code inputted, blindly executing'
 			eval(arguments)
@@ -282,16 +292,16 @@ class Main
 			send_command('raw', arguments)
 		elsif command == '/nick'
 			name, bleh = arguments.split(' ', 2)
-			send_command('nick'+name, 'presence change:network='+network+':presence='+presence+':new_name='+name)
+			send_command('nick'+name, 'presence change;network='+network+';presence='+presence+';new_name='+name)
 		elsif command == '/whois'
 			name, bleh = arguments.split(' ', 2)
-			send_command('whois'+name, 'presence status:network='+network+':presence='+presence+':name='+name)
+			send_command('whois'+name, 'presence status;network='+network+';presence='+presence+';name='+name)
 		elsif command == '/msg'
 			arguments = arguments.split(' ', 2)
 			if arguments[0] and arguments[1]
 				messages = arguments[1].split("\n")
 				messages.each { |message|
-					send_command('msg'+rand(100).to_s, 'msg:network='+network+':target='+arguments[0]+':msg='+message+":presence="+presence)
+					send_command('msg'+rand(100).to_s, 'msg;network='+network+';target='+arguments[0]+';msg='+message+";presence="+presence)
 				}
 			else
 				line = {}
@@ -303,32 +313,37 @@ class Main
 			messages = message.split("\n")
 			messages.each { |message|
 
-				send_command('message'+rand(100).to_s, 'msg:network='+network+':channel='+channel+':msg='+escape(message)+":presence="+presence)
+				send_command('message'+rand(100).to_s, 'msg;network='+network+';channel='+channel+';msg='+escape(message)+";presence="+presence)
 				line = {}
 				line['nick'] = presence
 				line['msg'] = message
 				line['time'] = Time.new.to_i
-				@window.currentchan.send_event(line, USERMESSAGE)
-				#@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
-			}
+				@window.currentchan.send_event(line, USERMESSAGE)			}
 		elsif !network
 			line = {}
 			line['err'] = 'Invalid server command'
 			line['time'] = Time.new.to_i
 			@window.currentchan.send_event(line, ERROR)
 		end
-		
-		#widget.text = ''
 	end
 	
-	def send_command(tag, command)
+	def send_command(tag, command, length=nil)
 		if !@connection
 			puts 'connection not initialized'
 			return
 		end
 		
+		puts 'added event for' + tag.to_s
 		@events[tag] = Event.new(tag, command)
-		sent = @connection.send(tag+':'+command+"\n")
+		
+		if length
+			cmdstr = '+'+length.to_s+';'+tag+';'+command+"\n"
+		else
+			cmdstr = tag+';'+command+"\n"
+		end
+		
+		puts 'sent '+cmdstr
+		sent = @connection.send(cmdstr)
 		
 		if !sent
 			puts 'failed to send'
@@ -342,8 +357,8 @@ class Main
 		return if string.length == 0
 		#puts string
 		line= {}
-		re = /(^[^\*]+):([+\->]+)(.*)$/
-		re2 = /^[*]+:([a-zA-Z_]+):(.+)$/
+		re = /(^[^\*]+);([+\->]+)(.*)$/
+		re2 = /^[*]+;([a-zA-Z_]+);(.+)$/
 		
 		if md = re.match(string)
 			if @events[$1]
@@ -366,7 +381,7 @@ class Main
 		end
 		line['type'] = $1
 		
-		items = $2.split(':')
+		items = $2.split(';')
 		
 		items.each do |x|
 			vals = x.split('=', 2)
@@ -391,6 +406,7 @@ class Main
 	def handle_event(event)
 		
 		puts 'handling '+event.name
+			
 		
 		if event.command['command'] == 'presence status'
 			whois(event)
@@ -398,12 +414,18 @@ class Main
 		end
 		
 		event.lines.each do |line|
-		
+			
 			if event.name == 'raw'
 				output = {}
 				output['msg'] =  line['original']
 				@serverlist.send_event(output, NOTICE)
 				next
+			end
+			
+			if line['status'] == '-'
+				line['err'] = 'Error: '+line['error']+' encountered when sending command '+event.origcommand
+				@serverlist.send_event(line, ERROR)
+				return
 			end
 			
 			if line['status'] == '+'
@@ -413,11 +435,34 @@ class Main
 				end
 			end
 			
+			if event.command['command'] == 'file send'
+				if line['closed']
+					puts 'file sent'
+					@filehandles[line['handle'].to_i].close
+					@filehandles.delete_at(line['handle'].to_i)
+					return
+				end
+				puts line['original']
+				if event.command['name']
+					@filehandles[line['handle'].to_i] = @filedescriptors[event.command['name']]
+				end
+				
+				file = @filehandles[line['handle'].to_i]
+
+				length = line['end'].to_i - line['start'].to_i
+				send_command('2', 'file send;handle='+line['handle'], length)
+				file.seek(line['start'].to_i)
+				data = file.read(length)
+				puts data.length, length
+				puts data.dump
+				@connection.send(data)
+				return
+			end
+			
 			if event.command['command'] == 'presence list'
 				if line['network'] and line['presence']
 					network = createnetworkifnot(line['network'], line['presence'])
 					network.set_username(line['name'] ) if line['name']
-#					@usernamebutton.label = @currentchan.username.gsub('_', '__')
 					send_command('channels', "channel list")
 				end
 				
@@ -425,14 +470,15 @@ class Main
 				if line['network'] and line['presence'] and line['name']
 					if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
 						channel = @serverlist[line['network'], line['presence']].add(line['name'])
+						puts 'adding channel '+line['name']+' to server '+line['network']
 						if line['topic']
 							channel.topic = line['topic']
 						end
 						switchchannel(channel)
-						send_command('listchan-'+line['network']+line['name'], "channel names:network="+line['network']+":channel="+line['name']+":presence="+line['presence'])
-						send_command('events-'+line['network']+line['name'], "event get:end=*:limit=500:filter=(channel="+line['name']+")")
+						send_command('listchan-'+line['network']+line['name'], "channel names;network="+line['network']+";channel="+line['name']+";presence="+line['presence'])
+						send_command('events-'+line['network']+line['name'], "event get;end=*;limit=500;filter=(channel="+line['name']+")")
 					else
-						puts 'channel call for non existant network, ignoring'+line['network']+' '+line['presence']+' '+line['name']
+						puts 'channel call for existing network, ignoring '+line['network']+' '+line['presence']+' '+line['name']
 						return
 					end
 				end
@@ -448,7 +494,7 @@ class Main
 				
 				if line['channel']
 					if !@serverlist[line['network'], line['presence']][line['channel']]
-						puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
+						puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']+' '+event.origcommand
 						return
 					else
 						channel = @serverlist[line['network'], line['presence']][line['channel']]
@@ -457,7 +503,6 @@ class Main
 			
 				if event.command['command'] == 'channel names'
 					if line['network'] and line['presence'] and line['channel'] and line['name']
-						#@serverlist[line['network'], line['presence']][line['channel']].adduser(line['name'])
 						network.users.create(line['name'])
 						channel.adduser(line['name'], true)
 					end
@@ -628,12 +673,7 @@ class Main
 				if line['new_name']
 				
 					if line['name'] == network.username
-						#puts 'your nickname changed to '+line['new_name']
 						network.set_username(line['new_name'])
-						#puts network, network.username, @currentchan, @currentchan.username
-						#@usernamebutton.label = @currentchan.username.gsub('_', '__')
-						#puts @usernamebutton.label
-						#@usernamebutton.show
 						@window.get_username
 						@window.show_username
 					end
@@ -642,10 +682,7 @@ class Main
 					user = network.users[line['name']]
 					
 					if user
-						#puts 'matched uswer'+user.name
 						user.rename(line['new_name'])
-						#puts 'matched uswer'+user.name
-						#puts network.users[line['new_name']]
 					end
 					
 					if line['new_name'] == network.username
@@ -708,7 +745,8 @@ class Main
 				network.send_event(line, NOTICE)
 				
 			elsif line['type'] == 'gateway_connected'
-				msg = "Connected to "+line['ip']+':'+line['port']
+				msg = "Connected to "+line['ip']
+				msg += ":"+line['port'] if line['port']
 				line['msg'] = msg
 				network.send_event(line, NOTICE)
 				
@@ -750,39 +788,12 @@ class Main
 			else
 				puts line['type']
 			end
-			#@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 		end
 	end
 	
 	def whois(event)
-	
-		#~ address = ''
-		#~ real_name = ''
-		#~ channels = ''
-		#~ server_address = ''
-		#~ server_name = ''
-		#~ extra = ''
-		#~ idle = ''
-		#~ login_time = ''
-		
-		#~ event.lines.each do |line|
-			#~ address = line['address'] if line['address']
-			#~ real_name = line['real_name'] if line['real_name']
-			#~ channels = line['channels'] if line['channels']
-			#~ server_address = line['server_address'] if line['server_address']
-			#~ server_name = line['server_name'] if line['server_name']
-			#~ extra = line['extra'] if line['extra']
-			#~ idle = line['idle'] if line['idle']
-			#~ login_time = line['login_time'] if line['login_time']
-		#~ end
 		
 		network = @serverlist[event.command['network'], event.command['presence']]
-		#~ network.send_event('('+address+') : '+real_name, NOTICE)
-		#~ network.send_event(extra, NOTICE)
-		#~ network.send_event(channels, NOTICE)
-		#~ network.send_event(server_name+' '+server_address, NOTICE)
-		#~ network.send_event('Idle: '+idle+' Logon: '+login_time, NOTICE)
-		#~ network.send_event('END of WHOIS', NOTICE)
 		
 		event.lines.each do |line|
 		
