@@ -34,6 +34,7 @@ class MainWindow
 		@messagebox = @glade['vbox2']
 		@configwindow = @glade['config']
 		@preferencesbar = @glade['preferencesbar']
+		@usercount = @glade['usercount']
 		@channellist.pack_start(@serverlist.box, false, false)
 		@currentchan = @serverlist
 		drawuserlist(false)
@@ -63,6 +64,9 @@ class MainWindow
 		return
 	end
 	
+	#def on_message_window_button_release_event
+#		@messageinput.focus=true
+	#end
 
 	def scroll_to_end(channel)
 		return if @currentchan != channel
@@ -103,6 +107,10 @@ class MainWindow
 		drawuserlist(@currentchan.class == Channel)
 	end
 	
+	def updateusercount
+		@usercount.text = @currentchan.users.users.length.to_s+" users"
+	end
+	
 	def drawuserlist(toggle)
 		if toggle
 			@mainbox.remove(@messagebox)
@@ -115,6 +123,7 @@ class MainWindow
 			@topic.show
 			@topic.text =@currentchan.topic
 			@usernamebutton.show
+			updateusercount
 		else
 			@mainbox.remove(@panel)
 			@panel.remove(@messagebox)

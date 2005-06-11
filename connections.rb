@@ -6,6 +6,7 @@ class SSHConnection
 		@output = nil
 		@error = nil
 		puts 'connecting'
+		#@input, @output, @error = Open3.popen3("setsid ssh "+host+' \'recordio '+$ssh_binpath+' \' 2>log2')
 		@input, @output, @error = Open3.popen3("setsid ssh "+host+' '+$ssh_binpath)
 		#puts 'connected'
 		#puts @output.gets
@@ -19,6 +20,8 @@ class SSHConnection
 		rescue NoMethodError
 			puts 'Something is borked, make sure sshd is running on selected host'
 		end
+		
+		#listenerror
 	end
 	
 	def send(data)
@@ -40,8 +43,34 @@ class SSHConnection
 			loop do
 				#begin
 					while line = @output.gets
-						puts 'o:'+line
+						#puts 'o:'+line
 						object.parse_lines(line)
+					end
+				
+				#~ rescue IOError
+					#~ puts 'listen: closed stream, disconnecting '+$!
+					#~ close
+					#~ object.disconnect
+					#~ object.connect
+					#~ break
+				#~ rescue StandardError
+					#~ puts 'listen: closed stream, disconnecting '+$!
+					#~ close
+					#~ object.disconnect
+					#~ object.connect
+					#~ break
+				#~ end
+			end
+		end
+	end
+	
+	def listenerror
+		@listenthread = Thread.new do
+			f = File.new('log', 'w+')
+			loop do
+				#begin
+					while line = @error.gets
+						f.puts(line)
 					end
 				
 				#~ rescue IOError

@@ -333,7 +333,9 @@ class Main
 			return
 		end
 		
-		puts 'added event for' + tag.to_s
+		puts tag, command
+		
+		#puts 'added event for' + tag.to_s
 		@events[tag] = Event.new(tag, command)
 		
 		if length
@@ -432,6 +434,7 @@ class Main
 				if event.command['command'] == 'channel names'
 					puts 'end of user list'
 					@serverlist[event.command['network'], event.command['presence']][event.command['channel']].drawusers
+					@window.updateusercount
 				end
 			end
 			
@@ -450,11 +453,11 @@ class Main
 				file = @filehandles[line['handle'].to_i]
 
 				length = line['end'].to_i - line['start'].to_i
-				send_command('2', 'file send;handle='+line['handle'], length)
+				send_command('1', 'file send;handle='+line['handle'], length)
 				file.seek(line['start'].to_i)
 				data = file.read(length)
 				puts data.length, length
-				puts data.dump
+				#puts data.dump
 				@connection.send(data)
 				return
 			end
@@ -505,6 +508,7 @@ class Main
 					if line['network'] and line['presence'] and line['channel'] and line['name']
 						network.users.create(line['name'])
 						channel.adduser(line['name'], true)
+						@window.updateusercount
 					end
 					
 				elsif event.command['command'] == 'event get'
@@ -644,6 +648,7 @@ class Main
 						channel.send_event(line, PART)
 					end
 					channel.deluser(line['name'])
+					@window.updateusercount
 				else
 					channel.deluser(line['name'], true)
 				end
@@ -664,6 +669,7 @@ class Main
 						channel.send_event(line, USERJOIN)
 					else
 						channel.send_event(line, JOIN)
+						@window.updateusercount
 					end
 				elsif
 					channel.adduser(line['name'], false)
