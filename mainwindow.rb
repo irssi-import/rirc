@@ -32,7 +32,6 @@ class MainWindow
 		@panel = @glade['hpaned1']
 		@mainbox = @glade['mainbox']
 		@messagebox = @glade['vbox2']
-		@configwindow = @glade['config']
 		@preferencesbar = @glade['preferencesbar']
 		@usercount = @glade['usercount']
 		@channellist.pack_start(@serverlist.box, false, false)
@@ -47,6 +46,8 @@ class MainWindow
 		@me = self
 		
 		@last = nil
+		@configwindow = ConfigWindow.new
+		puts @configwindow
 		#connect
 		
 	end
@@ -178,11 +179,6 @@ class MainWindow
 	end
 	
 	def on_preferences1_activate
-		
-		#puts 'decorated' if @configwindow.decorated?
-		@cells = Gtk::CellRendererText.new
-		@cells.text = "bleh"
-		#puts @preferencesbar.insert_column(1, 'Preferences', @cells, {}).to_s 
 		@configwindow.show_all
 	end
 	

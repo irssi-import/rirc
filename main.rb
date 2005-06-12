@@ -123,11 +123,12 @@ class Configuration
 		
 end
 
-#load servers.rb
+#load all my home rolled ruby files here
 require 'servers'
 require 'events'
 require 'connections'
-require 'gui'
+require 'mainwindow'
+require 'configwindow'
 
 
 class Main
@@ -439,13 +440,14 @@ class Main
 			end
 			
 			if event.command['command'] == 'file send'
-				if line['closed']
+				#puts line['original']
+				if line['closed'] and @filehandles[line['handle'].to_i]
 					puts 'file sent'
 					@filehandles[line['handle'].to_i].close
 					@filehandles.delete_at(line['handle'].to_i)
 					return
 				end
-				puts line['original']
+				#puts line['original']
 				if event.command['name']
 					@filehandles[line['handle'].to_i] = @filedescriptors[event.command['name']]
 				end
@@ -457,7 +459,7 @@ class Main
 				file.seek(line['start'].to_i)
 				data = file.read(length)
 				puts data.length, length
-				#puts data.dump
+				puts data.dump
 				@connection.send(data)
 				return
 			end
