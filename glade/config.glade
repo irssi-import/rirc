@@ -52,7 +52,7 @@
       </child>
 
       <child>
-	<widget class="GtkVBox" id="vbox3">
+	<widget class="GtkVBox" id="categorybox">
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
 	  <property name="spacing">0</property>

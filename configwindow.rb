@@ -45,7 +45,9 @@ class ConfigWindow
 		col = Gtk::TreeViewColumn.new("First Name", renderer, :text => 0)
 		@preferencesbar.append_column(col)
 		@preferencesbar.expand_all
-		@treeselection.select_path(Gtk::TreePath.new("0:0"))
+		#@treeselection.select_path(Gtk::TreePath.new("0:0"))
+		@treeselection.select_iter(child2)
+		@currentcategory = @glade['colorconfig']
 	end
 	
 	def switch_category(selection)
@@ -53,6 +55,9 @@ class ConfigWindow
 	end
 	
 	def draw_category(category)
+		@glade['categorybox'].remove(@currentcategory)
+		@glade['categorybox'].pack_start(category)
+		@currentcategory = category
 		#todo - oh this is gonna be fun.....
 	end
 	
