@@ -46,8 +46,6 @@ class MainWindow
 		@me = self
 		
 		@last = nil
-		@configwindow = ConfigWindow.new
-		puts @configwindow
 		#connect
 		
 	end
@@ -179,7 +177,8 @@ class MainWindow
 	end
 	
 	def on_preferences1_activate
-		@configwindow.show_all
+		configwindow = ConfigWindow.new
+		configwindow.show_all
 	end
 	
 	def quit

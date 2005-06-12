@@ -73,41 +73,43 @@ end
 $counter = 0
 
 class Configuration
-	attr_reader :tagtable, :color1, :color2, :color3, :color4, :color5, :color6, :timestamp, :usermessage, :action, :notice, :serverbuttons, :commandbuffersize, :error, :message, :join, :userjoin, :part, :userpart, :usetimestamp, :standard, :whois
 	def initialize
-		@color1 = Gdk::Color.new(65535, 0, 0)
-		@color2 = Gdk::Color.new(0, 65535, 0)
-		@color3 = Gdk::Color.new(0, 0, 65535)
-		@color4 = Gdk::Color.new(65535, 65535, 0)
-		@color5 = Gdk::Color.new(65535, 0, 65535)
-		@color6 = Gdk::Color.new(0, 65535, 65535)
+		#set some defaults... probably too soon be overriden by the user's config, but you gotta start somewhere :P
+		@values = {}
+		@values['color0'] = Gdk::Color.new(62168, 16051, 16051)
+		@values['color1'] = Gdk::Color.new(0, 47254, 11392)
+		@values['color2'] = Gdk::Color.new(0, 28332, 65535)
+		@values['color3'] = Gdk::Color.new(65535, 65535, 0)
+		@values['color4'] = Gdk::Color.new(65535, 0, 65535)
+		@values['color5'] = Gdk::Color.new(0, 65535, 65535)
 		
-		@standard = Gdk::Color.new(0, 0, 0)
+		@values['backgroundcolor'] = Gdk::Color.new(65535, 65535, 65535)
+		@values['foregroundcolor'] = Gdk::Color.new(0, 0, 0)
+		@values['selectedbackgroundcolor'] = Gdk::Color.new(13208, 44565, 62638)
+		@values['selectedforegroundcolor'] = Gdk::Color.new(65535, 65535, 65535)
+
+		@values['neweventcolor'] = Gdk::Color.new(45535, 1000, 1000)
+		@values['newmessagecolor'] = Gdk::Color.new(65535, 0, 0)
+		@values['highlightcolor'] = Gdk::Color.new(0, 0, 65535)
 		
-		@statuscolors = [Gdk::Color.new(0, 0, 0), Gdk::Color.new(1000, 1000, 1000), Gdk::Color.new(45535, 1000, 1000), Gdk::Color.new(65535, 0, 0), Gdk::Color.new(0, 0, 65535)]
+		@statuscolors = [Gdk::Color.new(0, 0, 0), @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
 		
-		@usetimestamp = true
-		@timestamp = "[%H:%M]"
-		@message = "%3<%3%u%3>%3 %m"
-		@usermessage = "%5<%5%u%5>%5 %m"
-		@action = "%1*%1%u %m"
-		@notice = "-%2--%2 %m"
-		@error = "%1***%1 %m"
-		@join = "-%2->%2 %u (%2%h%2) has joined %c"
-		@userjoin = "-%2->%2 You are now talking on %c"
-		@part = "<%2--%2 %u (%2%h%2) has left %c (%r)"
-		@userpart = "<%2--%2 You have left %c"
-		@whois = "%3[%3%n%3]%3 %m"
+		@values['usetimestamp'] = true
+		@values['timestamp'] = "[%H:%M]"
+		@values['message'] = "%2<%2%u%2>%2 %m"
+		@values['usermessage'] = "%4<%4%u%4>%4 %m"
+		@values['action'] = "%1*%1%u %m"
+		@values['notice'] = "-%1--%1 %m"
+		@values['error'] = "%0***%0 %m"
+		@values['join'] = "-%1->%1 %u (%1%h%1) has joined %c"
+		@values['userjoin'] = "-%1->%1 You are now talking on %c"
+		@values['part'] = "<%1--%1 %u (%1%h%1) has left %c (%r)"
+		@values['userpart'] = "<%1--%1 You have left %c"
+		@values['whois'] = "%2[%2%n%2]%2 %m"
 		
 		@serverbuttons = true
 		
-		@commandbuffersize = 10
-		
-		@tagtable = Gtk::TextTagTable.new
-		@colortag1= Gtk::TextTag.new('color1')
-		@tagtable.add(@colortag1)
-		@colortag1.foreground_gdk=@color1
-		@colortag1.background_gdk=@color1
+		@values['commandbuffersize'] = 10
 	end
 	
 	#converts status into a color
@@ -115,10 +117,72 @@ class Configuration
 		return @statuscolors[status]
 	end
 	
-	def get_value(value='*')
+	def [](value)
+		return get_value(value)
+	end
+	
+	def get_all_values
+		return @values
+	end
+	
+	def get_value(value)
+		if @values.values
+			return @values[value]
+		else
+			return false
+		end
 	end
 	
 	def set_value(key, value)
+		@values[key] = value
+	end
+	
+	def send_config
+		cmdstring = 'config set'
+		@values.each do |k, v|
+			if v.class == Gdk::Color
+				colors = v.to_a
+				value = 'color:'+colors[0].to_s+':'+colors[1].to_s+':'+colors[2].to_s
+			elsif v.class == String
+				puts v
+				value = v
+			elsif value == true
+				value = 'true'
+			else
+				value = nil
+			end
+			puts k, v
+			cmdstring += ';rirc_'+k+'='+value if k and value
+		end
+		
+		#puts cmdstring
+		$main.send_command('sendconfig', cmdstring)
+	end
+	
+	def get_config
+		$main.send_command('getconfig', 'config get;*')
+	end
+	
+	def parse_value(value)
+		puts value
+		if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
+			puts value+' is a color'
+			return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
+		elsif value == 'true'
+			return true
+		else
+			return value
+		end
+	end
+	
+	def parse_config(event)
+		event.lines.each do |line| 
+			if line['key'] and line['value']
+				#puts line['key']+'='+line['value']
+				value = parse_value(line['value'])
+				@values[line['key'].sub('rirc_', '')] = value
+			end
+		end
 	end
 		
 end
@@ -148,6 +212,7 @@ class Main
 	
 	def start
 		connect
+		$config.get_config
 		#Thread.new do
 			Gtk.init
 			@window = MainWindow.new
@@ -177,7 +242,7 @@ class Main
 	
 	def connect
 		return if @connection
-		Thread.start{
+		#Thread.start{
 			begin
 			if $method == 'ssh'
 				@connection = SSHConnection.new($ssh_host)
@@ -211,7 +276,7 @@ class Main
 				puts 'requesting presence list'
 				send_command('presences', 'presence list')
 			end
-		}
+		#}
 	end
 	
 	def disconnect
@@ -414,6 +479,9 @@ class Main
 		if event.command['command'] == 'presence status'
 			whois(event)
 			return
+		elsif event.command['command'] == 'config get'
+			$config.parse_config(event)
+			return
 		end
 		
 		event.lines.each do |line|
@@ -527,7 +595,9 @@ class Main
 						end
 						
 					elsif line['event'] == 'channel_changed'
-						if line['topic'] and line['topic_set_by']
+						if line['initial_presences_added']
+							@window.updateusercount
+						elsif line['topic'] and line['topic_set_by']
 							pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
 						elsif line['topic']
 							pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
@@ -685,7 +755,7 @@ class Main
 						@window.get_username
 						@window.show_username
 					end
-					pattern = $config.notice.deep_clone
+					pattern = $config['notice'].deep_clone
 					
 					user = network.users[line['name']]
 					
@@ -831,7 +901,7 @@ class Main
 				next
 			end
 			
-			pattern = $config.whois.deep_clone
+			pattern = $config['whois'].deep_clone
 			pattern['%m'] = msg if msg
 			pattern['%n'] = line['name'] if line['name']
 			line['msg'] = pattern
@@ -869,6 +939,7 @@ end
 #Gtk.init
 $config = Configuration.new
 $main = Main.new
+#$config.get_config
 $main.start
 #Gtk.main
 

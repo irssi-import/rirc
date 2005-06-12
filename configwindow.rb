@@ -48,6 +48,34 @@ class ConfigWindow
 		#@treeselection.select_path(Gtk::TreePath.new("0:0"))
 		@treeselection.select_iter(child2)
 		@currentcategory = @glade['colorconfig']
+		@configarray = {}
+		
+		#puts @glade['message'].class
+		fill_values
+	end
+	
+	def fill_values
+		values = $config.get_all_values
+		
+		values.each do | key, value|
+			if @glade[key]
+				if @glade[key].class == Gtk::Entry
+					@glade[key].text = value
+					@glade[key].signal_connect('changed') do |widget|
+						change_setting(widget, widget.text)
+					end
+					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+				elsif @glade[key].class == Gtk::Button and value.class == Gdk::Color
+					color_button(@glade[key], value)
+					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+				end
+			end
+		end
+		#@glade['message'].text = @config['message']
+	end
+	
+	def color_button(button, color)
+		button.modify_bg(Gtk::STATE_NORMAL, color)
 	end
 	
 	def switch_category(selection)
@@ -58,14 +86,58 @@ class ConfigWindow
 		@glade['categorybox'].remove(@currentcategory)
 		@glade['categorybox'].pack_start(category)
 		@currentcategory = category
-		#todo - oh this is gonna be fun.....
+	end
+
+	def change_setting(widget, setting)
+		puts 'changed setting of '+widget.name
+		@configarray[widget] = {'name' => widget.name, 'value' => setting}
+	end
+	
+	def change_color(widget, color)
+		color_button(widget, color)
+		change_setting(widget, color)
+		#$config.set_value(widget.name, color)
+	end
+	
+	def select_color(widget)
+		button = widget
+		@configarray[widget] = {'name' => widget.name} unless @configarray[widget]
+		color = nil
+		color = @configarray[widget]['value'] if @configarray[widget]['value']
+
+		selectordialog = Gtk::ColorSelectionDialog.new
+		selectordialog.modal = true
+		selector = selectordialog.colorsel
+		if color
+			selector.current_color = color
+			selector.previous_color = color
+		end
+		selectordialog.run do |response|
+		case response
+			when Gtk::Dialog::RESPONSE_OK
+				change_color(button, selector.current_color)
+			#else
+				#do_nothing_since_dialog_was_cancelled()
+			end
+			selectordialog.destroy
+		end
+	end
+	
+	def update_config
+		#pass all the values back to $config
+		@configarray.each do |k, v|
+			$config.set_value(v['name'], v['value'])
+		end
+		destroy
+		$config.send_config
 	end
 	
 	def show_all
 		@window.show_all
 	end
 	
-	def hide
-		@window.hide
+	def destroy
+		@window.destroy
 	end
+	
 end

@@ -1,10 +1,9 @@
 
 #define some status constants
 INACTIVE = 0
-AWAYUSER = 1
-NEWDATA = 2
-NEWMSG = 3
-ACTIVE = 4
+NEWDATA = 1
+NEWMSG = 2
+ACTIVE = 3
 
 BUFFER_START = 0
 BUFFER_END = 1
@@ -98,8 +97,8 @@ module Stuff
 			insert = @buffer.start_iter
 		end
 		
-		if $config.usetimestamp
-			pattern = Time.at(line['time'].to_i).strftime($config.timestamp)
+		if $config['usetimestamp']
+			pattern = Time.at(line['time'].to_i).strftime($config['timestamp'])
 		else
 			pattern = ''
 		end
@@ -111,14 +110,14 @@ module Stuff
 			setstatus(NEWMSG)
 			#line.each {|key, value| print key, " is ", value, "\n" }
 			#puts "\n"
-			pattern += $config.message.deep_clone
+			pattern += $config['message'].deep_clone
 			pattern['%u'] = line['nick'] if line['nick']
 			pattern['%m'] = line['msg'] if line['msg']
 			
 			
 		elsif type == USERMESSAGE
 			setstatus(NEWMSG)
-			pattern += $config.usermessage.deep_clone
+			pattern += $config['usermessage'].deep_clone
 			#~ if line['nick']
 				#~ pattern['%u'] = line['nick']
 			#~ else
@@ -131,7 +130,7 @@ module Stuff
 			
 		elsif type == JOIN
 			setstatus(NEWDATA)
-			pattern += $config.join.deep_clone
+			pattern += $config['join'].deep_clone
 			pattern['%u'] = line['name']
 			pattern['%c'] = line['channel']
 			if user = @users[line['name']] and user.hostname
@@ -143,12 +142,12 @@ module Stuff
 			
 		elsif type == USERJOIN
 			setstatus(NEWDATA)
-			pattern += $config.userjoin.deep_clone
+			pattern += $config['userjoin'].deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == PART
 			setstatus(NEWDATA)
-			pattern += $config.part.deep_clone
+			pattern += $config['part'].deep_clone
 			pattern['%u'] = line['name']
 			pattern['%r'] = line['reason'] if line['reason']
 			pattern['%c'] = line['channel']
@@ -160,17 +159,17 @@ module Stuff
 			
 		elsif type == USERPART
 			setstatus(NEWDATA)
-			pattern += $config.userpart.deep_clone
+			pattern += $config['userpart'].deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == ERROR
 			setstatus(NEWDATA)
-			pattern += $config.error.deep_clone
+			pattern += $config['error'].deep_clone
 			pattern['%m'] = line['err']
 			
 		elsif type == NOTICE
 			setstatus(NEWDATA)
-			pattern += $config.notice.deep_clone
+			pattern += $config['notice'].deep_clone
 			pattern['%m'] = line['msg']
 			
 		end
@@ -215,7 +214,7 @@ module Stuff
 	def addcommand(string)
 		return if string.length == 0
 		@commandbuffer.push(string)
-		while @commandbuffer.length > $config.commandbuffersize
+		while @commandbuffer.length > $config['commandbuffersize']
 			@commandbuffer.delete_at(0)
 		end
 		@commandindex = @commandbuffer.length
@@ -414,13 +413,13 @@ class ServerList
 		@box.show
 		#@config = @parent.config
 		@buffer = Gtk::TextBuffer.new
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config.color1})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config.color2})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config.color3})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config.color4})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config.color5})
-		@buffer.create_tag('color6', {'foreground_gdk'=>$config.color6})
-		@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
+		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -526,13 +525,13 @@ class Server
 		#@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
 		@users = UserList.new
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config.color1})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config.color2})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config.color3})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config.color4})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config.color5})
-		@buffer.create_tag('color6', {'foreground_gdk'=>$config.color6})
-		@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
+		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -547,9 +546,9 @@ class Server
 		@box.pack_start(@button, false, false)
 		@box.show
 		@status = INACTIVE
-		if($config.serverbuttons)
+		#if($config.serverbuttons)
 			@button.show
-		end
+		#end
 		@connected = true
 	end
 	
@@ -625,13 +624,13 @@ class Channel
 		@column = Gtk::TreeViewColumn.new("Users", @renderer)
 		@column.add_attribute(@renderer, "text",  0)
 		@userlist.clear
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config.color1})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config.color2})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config.color3})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config.color4})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config.color5})
-		@buffer.create_tag('color6', {'foreground_gdk'=>$config.color6})
-		@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
+		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
