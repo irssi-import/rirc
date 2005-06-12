@@ -64,8 +64,6 @@ def duration(seconds)
 	else
 		return stuff[0]
 	end
-	
-	#return {'seconds'=>secs, 'minutes'=>mins, 'hours'=>hours, 'days'=>days}
 end
 
 	
@@ -154,8 +152,7 @@ class Configuration
 			puts k, v
 			cmdstring += ';rirc_'+k+'='+value if k and value
 		end
-		
-		#puts cmdstring
+
 		$main.send_command('sendconfig', cmdstring)
 	end
 	
@@ -198,12 +195,9 @@ require 'configwindow'
 class Main
 	attr_reader :serverlist, :window
 	def initialize
-		#@config = Configuration.new
 		@serverlist = ServerList.new(self)
 		@connection = nil
 		@events = {}
-		#puts $main
-		#connect
 		@buffer = []
 		@buffer[0] = true
 		@filehandles = []
@@ -246,8 +240,6 @@ class Main
 			begin
 			if $method == 'ssh'
 				@connection = SSHConnection.new($ssh_host)
-				#print 'this is '
-				#puts @connection
 			elsif $method == 'unixsocket'
 				@connection = UnixSockConnection.new($unixsocket_path)
 			else
