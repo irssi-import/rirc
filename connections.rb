@@ -43,7 +43,7 @@ class SSHConnection
 			loop do
 				#begin
 					while line = @output.gets
-						puts 'o:'+line
+						#puts 'o: '+line
 						object.parse_lines(line)
 					end
 				

@@ -2,8 +2,17 @@
 class MainWindow
 	attr_reader :currentchan
 	def initialize
-		@serverlist = $main.serverlist
+		puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
+		
+		#~ @glade['window1'].signal_connect('configure_event') do |widget, event|
+			#~ $config.set_value('windowwidth', event.width)
+			#~ $config.set_value('windowheight', event.height)
+			#~ #for some reason we need a nil here or the window contents don't resize
+			#~ nil
+		#~ end
+		
+		@serverlist = $main.serverlist
 		@usernamebutton = @glade["username"]
 		@topic = @glade["topic"]
 		@messages = @glade["message_window"]
@@ -26,7 +35,14 @@ class MainWindow
 				getnextcommand
 			end
 		end
-		@channellist = @glade['channellist']
+		#~ if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
+			#~ @channellist = @glade['channellist_side']
+		#~ else
+			#~ @channellist = @glade['channellist_top']
+		#~ end
+		
+		puts $config['channellistposition']
+
 		@userbar = @glade['userbar']
 		@userlist = @glade['userlist']
 		@panel = @glade['hpaned1']
@@ -34,7 +50,6 @@ class MainWindow
 		@messagebox = @glade['vbox2']
 		@preferencesbar = @glade['preferencesbar']
 		@usercount = @glade['usercount']
-		@channellist.pack_start(@serverlist.box, false, false)
 		@currentchan = @serverlist
 		drawuserlist(false)
 		@messages.buffer = @serverlist.buffer
@@ -46,8 +61,68 @@ class MainWindow
 		@me = self
 		
 		@last = nil
+		
+		puts @messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		puts @messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		puts @messages.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		puts @messages.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+		
+		@messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		@messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		@messages.modify_bg(Gtk::STATE_PRELIGHT, $config['backgroundcolor'])
+		@messages.modify_fg(Gtk::STATE_PRELIGHT, $config['foregroundcolor'])
+		@messages.modify_bg(Gtk::STATE_ACTIVE, $config['backgroundcolor'])
+		@messages.modify_fg(Gtk::STATE_ACTIVE, $config['foregroundcolor'])
+		
+		style = @messages.modifier_style
+		puts style.bg(Gtk::STATE_NORMAL)
+		#style.set_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#style.set_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		
+		@messages.modify_style(style)
+		
 		#connect
 		
+	end
+	
+	def draw_from_config
+		@serverlist.redraw
+		redraw_channellist
+		@panel.position = $config['panelposition'].to_i if $config['panelposition']
+		#resize the window if we have some saved sizes...
+		x = -1
+		y = -1
+		
+		x = $config['windowwidth'].to_i if $config['windowwidth']
+		y = $config['windowheight'].to_i if $config['windowheight']
+		
+		@glade['window1'].resize(x, y)
+		@glade['window1'].show
+	end
+	
+	def redraw_channellist
+		 if @channellist
+			@channellist.remove(@serverlist.box)
+			@channellist.destroy
+		end
+		
+		if $config['channellistposition'] == 'right'
+			@channellist = Gtk::VBox.new
+			@glade['h_top'].pack_start(@channellist, false, false, 5)
+		elsif $config['channellistposition'] == 'left'
+			@channellist = Gtk::VBox.new
+			@glade['h_top'].pack_start(@channellist, false, false, 5)
+			@glade['h_top'].reorder_child(@channellist, 0)
+		elsif $config['channellistposition'] == 'top'
+			@channellist = Gtk::HBox.new
+			@glade['v_top'].pack_start(@channellist, false, false, 5)
+			@glade['v_top'].reorder_child(@channellist, 0)
+		elsif $config['channellistposition'] == 'bottom'
+			@channellist = Gtk::HBox.new
+			@glade['v_top'].pack_start(@channellist, false, false, 5)
+		end
+		@channellist.show
+		@channellist.pack_start(@serverlist.box, false, false)
 	end
 	
 	def set_username
@@ -107,6 +182,7 @@ class MainWindow
 	end
 	
 	def updateusercount
+		#puts 'updating user count'
 		@usercount.text = @currentchan.users.users.length.to_s+" users"
 	end
 	
@@ -181,9 +257,23 @@ class MainWindow
 		configwindow.show_all
 	end
 	
+	def updatetopic
+		if @currentchan.class == Channel
+			@topic.text =@currentchan.topic
+		end
+	end
+	
+	def window_resized(window, event)
+		$config.set_value('windowwidth', event.width)
+		$config.set_value('windowheight', event.height)
+		#for some reason we need to return a nil here or the window contents won't resize
+		nil
+	end
+	
 	def quit
 		#$main.send_command('quit', 'quit')
 		#@connection.close if @connection
+		$config.set_value('panelposition', @panel.position)
 		Gtk.main_quit
 		$main.quit
 	end

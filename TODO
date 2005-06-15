@@ -3,6 +3,8 @@ TODO
 Big things:
 	Dynamic scrollback fetching
 	On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
+	Fixup the Net::SSH connection method for windows lusers
+	Finish porting rirc to windows (if I can be bothered)
 	
 Little things:
 	/msgs from other users should open a new tab at the end of the channel list for that network
@@ -14,4 +16,5 @@ Bugs:
 	Coloring text inserting at the beginning of the buffer b0rks if timestamps are disabled(maybe need to insert the whole line and THEN tag it rather then inserting and tagging pieces)
 	You can untoggle the channel buttons without selecting a new channel
 	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want)
+	Disappearing nick bug (change nick from vag to vag2 for example)
 	

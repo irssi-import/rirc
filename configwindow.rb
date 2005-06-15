@@ -4,6 +4,7 @@ class ConfigWindow
 		@glade = GladeXML.new("glade/config.glade") {|handler| method(handler)}
 		@window = @glade['config']
 		@preferencesbar = @glade['preferencesbar']
+		@configarea = @glade['configarea']
 		@treestore = Gtk::TreeStore.new(String)
 		@preferencesbar.model = @treestore
 		@treeselection = @preferencesbar.selection
@@ -11,14 +12,29 @@ class ConfigWindow
 			switch_category(widget.selected)
 		end
 		
+		@channellistposition = @glade['channellistposition']
+		@options = {}
+		@options['channellistposition'] = ['Top', 'Bottom', 'Left', 'Right']
+		#~ i = 0
+		#~ #fill the combobox
+		#~ @positions.each do |value|
+			#~ @channellistposition.append_text(value)
+			#~ if $config['channellistposition'] == value.downcase
+				#~ @channellistposition.active = i
+			#~ end
+			#~ i += 1
+		#~ end
+		
 		parent = @treestore.append(nil)
 		parent[0] = "Interface"
-		child1 = @treestore.append(parent)
-		child1[0] = "Prompts"
 		child2 = @treestore.append(parent)
-		child2[0] = "Colors"
+		child2[0] = "Layout"
+		child = @treestore.append(parent)
+		child[0] = "Prompts"
+		child = @treestore.append(parent)
+		child[0] = "Colors"
 		
-		@categories = {'Prompts'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
+		@categories = {'Layout' => @glade['layoutconfig'], 'Prompts'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
 		
 		#~ @treeselection.set_select_function do
 		#~ |selection, model, path, path_currently_selected|
@@ -42,12 +58,14 @@ class ConfigWindow
 
 		renderer = Gtk::CellRendererText.new
 		
-		col = Gtk::TreeViewColumn.new("First Name", renderer, :text => 0)
+		col = Gtk::TreeViewColumn.new("", renderer, :text => 0)
 		@preferencesbar.append_column(col)
 		@preferencesbar.expand_all
 		#@treeselection.select_path(Gtk::TreePath.new("0:0"))
 		@treeselection.select_iter(child2)
-		@currentcategory = @glade['colorconfig']
+		@currentcategory = @configarea.child
+		puts @currentcategory
+		draw_category(@categories['Layout'])
 		@configarray = {}
 		
 		#puts @glade['message'].class
@@ -65,6 +83,20 @@ class ConfigWindow
 						change_setting(widget, widget.text)
 					end
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+				elsif @glade[key].class == Gtk::ComboBox
+					i = 0
+					#fill the combobox
+					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+					@options[key].each do |v|
+						@channellistposition.append_text(v)
+						if value == v.downcase
+							@channellistposition.active = i
+						end
+						i += 1
+					end
+					#if @glade[key].active == 0
+					#	@glade[key].active = 1
+					#end
 				elsif @glade[key].class == Gtk::Button and value.class == Gdk::Color
 					color_button(@glade[key], value)
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
@@ -83,8 +115,9 @@ class ConfigWindow
 	end
 	
 	def draw_category(category)
-		@glade['categorybox'].remove(@currentcategory)
-		@glade['categorybox'].pack_start(category)
+		puts category, @currentcategory
+		@configarea.remove(@currentcategory)
+		@configarea.add(category)
 		@currentcategory = category
 	end
 
@@ -123,12 +156,19 @@ class ConfigWindow
 		end
 	end
 	
+	def combobox_changed(widget)
+		puts @options[widget.name][widget.active]
+		change_setting(widget, @options[widget.name][widget.active].downcase)
+		#@configarray[widget] = {'name' => widget.name, 'value' => @options[widget.name][widget.active]}
+	end
+	
 	def update_config
 		#pass all the values back to $config
 		@configarray.each do |k, v|
 			$config.set_value(v['name'], v['value'])
 		end
 		destroy
+		$main.window.draw_from_config
 		$config.send_config
 	end
 	

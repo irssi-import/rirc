@@ -107,7 +107,11 @@ class Configuration
 		
 		@serverbuttons = true
 		
+		@values['channellistposition'] = 'bottom'
+		
 		@values['commandbuffersize'] = 10
+		
+		@oldvalues = {}
 	end
 	
 	#converts status into a color
@@ -136,34 +140,51 @@ class Configuration
 	end
 	
 	def send_config
-		cmdstring = 'config set'
+		cmdstring = ''
+		
 		@values.each do |k, v|
-			if v.class == Gdk::Color
-				colors = v.to_a
-				value = 'color:'+colors[0].to_s+':'+colors[1].to_s+':'+colors[2].to_s
-			elsif v.class == String
-				puts v
-				value = v
-			elsif value == true
-				value = 'true'
+			value = encode_value(v)
+			if @oldvalues[k] != value or  !@oldvalues[k]
+				cmdstring += ';rirc_'+k+'='+value if k and value
+				puts k+" HAS changed"
 			else
-				value = nil
+				#puts k+' has not changed'
 			end
-			puts k, v
-			cmdstring += ';rirc_'+k+'='+value if k and value
 		end
-
+		
+		if cmdstring == ''
+			puts 'no changes'
+		else
+			cmdstring = 'config set'+cmdstring
+		end
+		
 		$main.send_command('sendconfig', cmdstring)
 	end
 	
 	def get_config
 		$main.send_command('getconfig', 'config get;*')
+		while $main.events['getconfig']
+			sleep 1
+		end
 	end
 	
-	def parse_value(value)
-		puts value
+	def encode_value(value)
+		if value.class == Gdk::Color
+			colors = value.to_a
+			return 'color:'+colors[0].to_s+':'+colors[1].to_s+':'+colors[2].to_s
+		elsif value.class == String
+			return value
+		elsif value == true
+			return 'true'
+		else
+			return value.to_s
+		end
+	end
+	
+	def decode_value(value)
+		#puts value
 		if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
-			puts value+' is a color'
+			#puts value+' is a color'
 			return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
 		elsif value == 'true'
 			return true
@@ -175,10 +196,18 @@ class Configuration
 	def parse_config(event)
 		event.lines.each do |line| 
 			if line['key'] and line['value']
-				#puts line['key']+'='+line['value']
-				value = parse_value(line['value'])
+				puts line['key']+' is '+line['value']
+				value = decode_value(line['value'])
 				@values[line['key'].sub('rirc_', '')] = value
 			end
+		end
+		
+		create_config_snapshot
+	end
+	
+	def create_config_snapshot
+		@values.each do |k, v|
+			@oldvalues[k.deep_clone] = encode_value(v)
 		end
 	end
 		
@@ -193,7 +222,7 @@ require 'configwindow'
 
 
 class Main
-	attr_reader :serverlist, :window
+	attr_reader :serverlist, :window, :events
 	def initialize
 		@serverlist = ServerList.new(self)
 		@connection = nil
@@ -206,12 +235,13 @@ class Main
 	
 	def start
 		connect
-		$config.get_config
 		#Thread.new do
-			Gtk.init
+				Gtk.init
 			@window = MainWindow.new
-			Gtk.main
 		#end
+		$config.get_config
+		@window.draw_from_config
+		Gtk.main
 	end
 	
 	def switchchannel(channel)
@@ -265,7 +295,7 @@ class Main
 					#~ }
 				#~ }
 			else
-				puts 'requesting presence list'
+				#puts 'requesting presence list'
 				send_command('presences', 'presence list')
 			end
 		#}
@@ -288,7 +318,6 @@ class Main
 		send_command('addpres', "presence add;name="+presence+";network="+name)
 		temp = "gateway add;host="+address+";network="+name
 		temp += ";port="+port if port != '' and port
-		#puts temp
 		send_command('addhost', temp)
 		send_command('connect', "presence connect;network="+name+";presence="+presence)
 	end
@@ -391,7 +420,7 @@ class Main
 			return
 		end
 		
-		puts tag, command
+		#puts tag, command
 		
 		#puts 'added event for' + tag.to_s
 		@events[tag] = Event.new(tag, command)
@@ -402,7 +431,7 @@ class Main
 			cmdstr = tag+';'+command+"\n"
 		end
 		
-		puts 'sent '+cmdstr
+		#puts 'sent '+cmdstr
 		sent = @connection.send(cmdstr)
 		
 		if !sent
@@ -428,11 +457,14 @@ class Main
 				event = @events[$1]
 				Thread.new{event.addline(string)}
 				if @events[$1].complete
-					puts 'event '+$1+ ' complete'
-					Thread.new{handle_event(event)}
+					#puts 'event '+$1+ ' complete'
+					Thread.new do
+						handle_event(event)
+						@events.delete(event.name)
+					end
 				end
 			else
-				puts "Event for dead or unregistered handler recieved " + string
+				#puts "Event for dead or unregistered handler recieved " + string
 			end
 			return
 		elsif !md = re2.match(string)
@@ -465,7 +497,7 @@ class Main
 	
 	def handle_event(event)
 		
-		puts 'handling '+event.name
+		#puts 'handling '+event.name
 			
 		
 		if event.command['command'] == 'presence status'
@@ -535,7 +567,7 @@ class Main
 				if line['network'] and line['presence'] and line['name']
 					if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
 						channel = @serverlist[line['network'], line['presence']].add(line['name'])
-						puts 'adding channel '+line['name']+' to server '+line['network']
+						#puts 'adding channel '+line['name']+' to server '+line['network']
 						if line['topic']
 							channel.topic = line['topic']
 						end
@@ -587,9 +619,7 @@ class Main
 						end
 						
 					elsif line['event'] == 'channel_changed'
-						if line['initial_presences_added']
-							@window.updateusercount
-						elsif line['topic'] and line['topic_set_by']
+						if line['topic'] and line['topic_set_by']
 							pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
 						elsif line['topic']
 							pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
@@ -606,7 +636,8 @@ class Main
 							channel.send_event(line, NOTICE, BUFFER_START)
 						end
 						
-						@topic.text = line['topic'] if line['topic']
+						#@window.topic.text = line['topic'] if line['topic']
+						@window.updatetopic
 						
 					elsif line['event'] == 'channel_presence_removed'
 						return if line['deinit']
@@ -648,7 +679,7 @@ class Main
 #			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
 			
 		end
-		@events.delete(event.name)
+		#@events.delete(event.name)
 	end
 	
 	def parse_line(line)
@@ -835,7 +866,10 @@ class Main
 				network.send_event(line, NOTICE)
 			
 			elsif line['type'] == 'channel_changed'
-				if line['topic'] and line['topic_set_by']
+				if line['initial_presences_added']
+					puts 'initial presences added'
+					@window.updateusercount
+				elsif line['topic'] and line['topic_set_by']
 					#pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
 					pattern = "%6"+line['topic_set_by']+'%6 has changed the topic to: %6'+line['topic']+'%6'
 				elsif line['topic']
@@ -847,6 +881,7 @@ class Main
 				
 				if line['topic']
 					channel.topic = line['topic']
+					@window.updatetopic
 				end
 				
 				if pattern
@@ -922,16 +957,20 @@ class Main
 	end
 	
 	def quit
+		$config.send_config
 		send_command('quit', 'quit')
 		@connection.close if @connection
 		puts 'bye byeeeeee...'
 		exit
 	end
 end
-#Gtk.init
-$config = Configuration.new
-$main = Main.new
-#$config.get_config
-$main.start
-#Gtk.main
+begin
+	$config = Configuration.new
+	$main = Main.new
+	$main.start
+rescue Interrupt
+	puts 'got keyboard interrupt'
+	$main.window.quit
+	$main.quit
+end
 

@@ -214,7 +214,7 @@ module Stuff
 	def addcommand(string)
 		return if string.length == 0
 		@commandbuffer.push(string)
-		while @commandbuffer.length > $config['commandbuffersize']
+		while @commandbuffer.length > $config['commandbuffersize'].to_i
 			@commandbuffer.delete_at(0)
 		end
 		@commandindex = @commandbuffer.length
@@ -409,7 +409,11 @@ class ServerList
 		@username = ''
 		@parent = parent
 		@servers = Array.new
-		@box = Gtk::HBox.new
+		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
+			@box = Gtk::VBox.new
+		else
+			@box = Gtk::HBox.new
+		end
 		@box.show
 		#@config = @parent.config
 		@buffer = Gtk::TextBuffer.new
@@ -419,6 +423,10 @@ class ServerList
 		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
 		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
 		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		#~ @buffer.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#~ @buffer.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		#~ @buffer.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		#~ @buffer.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
 		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
@@ -432,9 +440,39 @@ class ServerList
 			@parent.switchchannel(w.channel)
 			#puts 'switched'
 		end
-		box.pack_start(@button)
+		@box.pack_start(@button)
 		@status = INACTIVE
 		@connected = true
+	end
+	
+	def redraw
+		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
+			empty_box
+			@box = Gtk::VBox.new
+		elsif @box != Gtk::HBox and ($config['channellistposition'] == 'top' or $config['channellistposition'] == 'bottom')
+			empty_box
+			@box = Gtk::HBox.new
+		end
+		
+		@box.pack_start(@button)
+		
+		@servers.sort
+		
+		@servers.each do |server|
+			server.redraw
+			insertintobox(server)
+		end
+		
+		@box.show_all
+		return @box
+	end
+	
+	def empty_box
+		@box.remove(@button)
+		@servers.each do |server|
+			@box.remove(server.box)
+		end
+		@box.destroy
 	end
 	
 	def add(name, presence)
@@ -461,22 +499,30 @@ class ServerList
 		for i in 0...(@servers.length)
 			#puts @servers[i].name
 			if @servers[i] == newserver
-				if i !=0 and i == @servers.length-1
+				#pick the right seperator to be using...
+				if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
+					puts 'horizontal seperator'
+					seperator = Gtk::HSeparator.new
+				else
+					puts 'vertical seperator'
 					seperator = Gtk::VSeparator.new
+				end
+				
+				if i !=0 and i == @servers.length-1
 					@box.pack_start(seperator, false, false, 5)
 					seperator.show
 					@box.reorder_child(seperator, @servers.length*2)
 					@box.reorder_child(newserver.box, @servers.length*2)
 					#puts 'a '+ @servers.length.to_s
 				elsif i > 0
-					seperator = Gtk::VSeparator.new
+					#seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
 					seperator.show
 					@box.reorder_child(seperator, (i*2)+1)
 					@box.reorder_child(newserver.box, (i*2)+2)
 					#puts 'b'+i.to_s
 				elsif i == 0 and @servers.length > 1
-					seperator = Gtk::VSeparator.new
+					#seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
 					seperator.show
 					
@@ -485,7 +531,7 @@ class ServerList
 					#puts 'c'
 				else
 					#puts 'd'
-					seperator = Gtk::VSeparator.new
+					#seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
 					seperator.show
 					@box.reorder_child(seperator, @servers.length+1)
@@ -531,6 +577,10 @@ class Server
 		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
 		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
 		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		#~ @buffer.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#~ @buffer.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		#~ @buffer.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		#~ @buffer.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
 		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
@@ -542,7 +592,11 @@ class Server
 			#puts 'switched '+ @name+" "+@presence
 		end
 		@button.active = false
-		@box = Gtk::HBox.new
+		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
+			@box = Gtk::VBox.new
+		else
+			@box = Gtk::HBox.new
+		end
 		@box.pack_start(@button, false, false)
 		@box.show
 		@status = INACTIVE
@@ -550,6 +604,34 @@ class Server
 			@button.show
 		#end
 		@connected = true
+	end
+	
+	def redraw
+		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
+			empty_box
+			@box = Gtk::VBox.new
+		elsif @box != Gtk::HBox and ($config['channellistposition'] == 'top' or $config['channellistposition'] == 'bottom')
+			empty_box
+			@box = Gtk::HBox.new
+		end
+		@box.show
+		
+		@box.pack_start(@button)
+		
+		@channels.sort
+		
+		@channels.each do |channel|
+			insertintobox(channel)
+		end
+	end
+		
+		
+	def empty_box
+		@box.remove(@button)
+		@channels.each do |channel|
+			@box.remove(channel.button)
+		end
+		@box.destroy
 	end
 	
 	def add(name)
@@ -630,6 +712,10 @@ class Channel
 		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
 		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
 		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		#~ @buffer.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#~ @buffer.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		#~ @buffer.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		#~ @buffer.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
 		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
