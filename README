@@ -14,7 +14,7 @@ RIRC requires:
 Ruby
 ruby-libglade2 (and its dependancies) http://ruby-gnome2.sourceforge.jp
 
-The following are only needed for ssh support:
+The following are only needed for ssh support where the native ssh binary is not available or on windows (currently broken anyway):
 Net::SSH http://net-ssh.rubyforge.org/
 Needle http://needle.rubyforge.org/
 
@@ -22,7 +22,6 @@ Needle http://needle.rubyforge.org/
 
 Untar the tarball somewhere
 cd into the folder
-edit config.rb.factory to your liking and rename it to config.rb.
 run './main.rb' or 'ruby main.rb'
 
 ***USAGE***
@@ -35,6 +34,8 @@ This is a list of the supported commands and their parameters:
 /msg <user> <message> (you can send, but rirc will not handle incoming messages correctly ATM)
 /quit (quit rirc, but leave irssi2 running)
 /shutdown (quit rirc and kill irssi2)
+/send <file> (sends a file to irssi2 - buggy)
+/whois
 
 /raw <command> (sends a raw command to irssi2, do NOT specify a tag)
 /ruby <command> (sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces)
@@ -43,16 +44,15 @@ This is a list of the supported commands and their parameters:
 
 hahah, you're using pre alpha software, fix it yourself or bug me on #irssi2 on freenode
 
-***SSH HOWTO***
+***SSH***
 
-RIRC now supports connecting to irssi2 via ssh. To do this you need to comply with a couple restrictions, as the ssh implementation assumes some things:
+If you have ssh installed and you're not on windows you can connect using ssh. You must however, either be using a key with no passphrase OR setup ssh_askpass.
 
-You must be using public/private key auth
-Your key must not have a passphrase
-Your key must be in the standard .ssh folder in your ~ folder
+***WIN32***
 
-To activate support, simply edit the config file and set the method to ssh, and set the ip or address of the host.
-If irssi2 is not in the $PATH on the host, use the ssh_binpath variable to set it
+Currently RIRC will not run on windows, however the amount of work to make it do so is not very large, I just haven't gotten around to it yet,
+
+However, the ONLY method you'll be able to use to connect to irssi2 is the ruby net::ssh method, which is a bit restictive IMO. Bug me if you really want me to finish porting it...
 
 ***CONTRIBUTING***
 
@@ -60,7 +60,7 @@ Anyone interested in helping is strongly encouraged to contact me. I could reall
 
 ***CONTACT***
 
-vagabond@cataclysm-software.com
+vagabond@cataclysm-software.net
 #irssi2 on irc.freenode.net
 
 ***COPYRIGHT***
