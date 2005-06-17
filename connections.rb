@@ -1,24 +1,31 @@
 class SSHConnection
-	def initialize(host)
+	#attr_reader :connected
+	def initialize(settings, connectionwindow)
 		require 'open3'
 		require 'expect'
+		#@connected = false
 		@input = nil
 		@output = nil
 		@error = nil
-		puts 'connecting'
+		cmdstring = 'setsid ssh '
+		cmdstring += '-l '+settings['username']+' ' if settings['username']
+		cmdstring += settings['host']+' '+settings['binpath']
 		#@input, @output, @error = Open3.popen3("setsid ssh "+host+' \'recordio '+$ssh_binpath+' \' 2>log2')
-		@input, @output, @error = Open3.popen3("setsid ssh "+host+' '+$ssh_binpath)
+		puts cmdstring
+		@input, @output, @error = Open3.popen3(cmdstring)
 		#puts 'connected'
 		#puts @output.gets
 		#sleep 5
 		#loop { puts @output.gets }
 		begin
 			@output.expect(/^\*;preauth;time=\d*$/) do
-				puts 'logged in'
+				connectionwindow.send_text('logged in')
+				#@connected = true
 			end
 		
 		rescue NoMethodError
-			puts 'Something is borked, make sure sshd is running on selected host'
+			connectionwindow.send_text('Something is borked, make sure sshd is running on selected host')
+			raise IOError, "one of the many things that could go wrong, has"
 		end
 		
 		#listenerror
@@ -199,13 +206,17 @@ end
 
 
 class UnixSockConnection
-	def initialize(file)
-		begin
-		@socket = UNIXSocket.open(file)
-		rescue
-			raise(IOError, 'Error: Could not connect to socket '+file, caller)
+	def initialize(settings, connectionwindow)
+		if File.exist?(settings['location'])
+			begin
+			@socket = UNIXSocket.open(settings['location'])
+			rescue
+				raise(IOError, 'Error: Could not connect to socket')
+			end
+			connectionwindow.send_text('Connected via unix socket')
+		else
+			raise(IOError, 'Socket File does not exist')
 		end
-		puts 'connected via unix socket'
 	end
 	
 	def send(data)

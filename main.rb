@@ -8,12 +8,12 @@ puts CONFIG['target']
 
 #$:.push('./lib')
 
-begin
-	require 'config'
-rescue LoadError
-	puts "Cannot load config.rb, please rename and edit config.rb.factory"
-	exit
-end
+#~ begin
+	#~ require 'config'
+#~ rescue LoadError
+	#~ puts "Cannot load config.rb, please rename and edit config.rb.factory"
+	#~ exit
+#~ end
 
 #if $method == 'ssh'
 #	require 'net/ssh'
@@ -219,10 +219,11 @@ require 'events'
 require 'connections'
 require 'mainwindow'
 require 'configwindow'
+require 'connectionwindow'
 
 
 class Main
-	attr_reader :serverlist, :window, :events
+	attr_reader :serverlist, :window, :events, :connectionwindow
 	def initialize
 		@serverlist = ServerList.new(self)
 		@connection = nil
@@ -234,13 +235,9 @@ class Main
 	end
 	
 	def start
-		connect
-		#Thread.new do
-				Gtk.init
-			@window = MainWindow.new
-		#end
-		$config.get_config
-		@window.draw_from_config
+		Gtk.init
+		@connectionwindow = ConnectionWindow.new
+		@window = MainWindow.new
 		Gtk.main
 	end
 	
@@ -264,28 +261,31 @@ class Main
 		return result
 	end
 	
-	def connect
+	def connect(method, settings)
 		return if @connection
 		#Thread.start{
+			@connectionwindow.send_text('Connecting...')
 			begin
-			if $method == 'ssh'
-				@connection = SSHConnection.new($ssh_host)
-			elsif $method == 'unixsocket'
-				@connection = UnixSockConnection.new($unixsocket_path)
+			if method == 'ssh'
+				@connection = SSHConnection.new(settings, @connectionwindow)
+			elsif method == 'socket'
+				@connection = UnixSockConnection.new(settings, @connectionwindow)
 			else
-				puts 'invalid connection method, exiting'
-				exit
+				@connectionwindow.send_text('invalid connection method')
+				return
 			end
-			
-			puts "Connected to irssi2!"
-			@connection.listen(self)
 			
 			rescue IOError
-				puts $!
-				sleep 5
-				puts 'retrying...'
-				retry
+				@connectionwindow.send_text("Error: "+$!)
+				return
 			end
+			
+			@connectionwindow.send_text("Connected to irssi2!")
+			@connection.listen(self)
+			
+			$config.get_config
+			@window.draw_from_config
+			@connectionwindow.destroy
 			
 			if @serverlist.servers.length > 0
 				#~ @serverlist.servers.each{|server|
@@ -303,14 +303,14 @@ class Main
 	
 	def disconnect
 		@connection = nil
-		puts 'doing global disconnect'
+		#puts 'doing global disconnect'
 		@serverlist.servers.each{|server|
 			server.disconnect
 			server.channels.each {|channel|
 				channel.disconnect
 			}
 		}
-		sleep 5#prevent flooding the server with reconnect requests
+		#sleep 5#prevent flooding the server with reconnect requests
 	end
 	
 	def connectnetwork(name, protocol, address, port,  presence)
@@ -416,7 +416,7 @@ class Main
 	
 	def send_command(tag, command, length=nil)
 		if !@connection
-			puts 'connection not initialized'
+			#puts 'connection not initialized'
 			return
 		end
 		
@@ -435,10 +435,10 @@ class Main
 		sent = @connection.send(cmdstr)
 		
 		if !sent
-			puts 'failed to send'
+			#puts 'failed to send'
 			@connection = nil
 			disconnect
-			connect
+			@connectionwindow = ConnectionWindow.new
 		end
 	end
 	
