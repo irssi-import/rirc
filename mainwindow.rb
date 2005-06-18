@@ -62,24 +62,23 @@ class MainWindow
 		
 		@last = nil
 		
-		puts @messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		puts @messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		puts @messages.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		puts @messages.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+		#~ puts @messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#~ puts @messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		#~ puts @messages.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		#~ puts @messages.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
 		
-		@messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		@messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		@messages.modify_bg(Gtk::STATE_PRELIGHT, $config['backgroundcolor'])
-		@messages.modify_fg(Gtk::STATE_PRELIGHT, $config['foregroundcolor'])
-		@messages.modify_bg(Gtk::STATE_ACTIVE, $config['backgroundcolor'])
-		@messages.modify_fg(Gtk::STATE_ACTIVE, $config['foregroundcolor'])
+		#~ @messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#~ @messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		#~ @messages.modify_bg(Gtk::STATE_PRELIGHT, $config['backgroundcolor'])
+		#~ @messages.modify_fg(Gtk::STATE_PRELIGHT, $config['foregroundcolor'])
+		#~ @messages.modify_bg(Gtk::STATE_ACTIVE, $config['backgroundcolor'])
+		#~ @messages.modify_fg(Gtk::STATE_ACTIVE, $config['foregroundcolor'])
 		
-		style = @messages.modifier_style
-		puts style.bg(Gtk::STATE_NORMAL)
+		#~ style = @messages.modifier_style
+		#~ puts style.bg(Gtk::STATE_NORMAL)
 		#style.set_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		#style.set_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		
-		@messages.modify_style(style)
+		#@messages.modify_style(style)
 		
 		#connect
 		
@@ -96,8 +95,16 @@ class MainWindow
 		x = $config['windowwidth'].to_i if $config['windowwidth']
 		y = $config['windowheight'].to_i if $config['windowheight']
 		
+		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		
+		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+		
+		
 		@glade['window1'].resize(x, y)
 		@glade['window1'].show
+		@messageinput.grab_focus
 	end
 	
 	def redraw_channellist
@@ -226,7 +233,7 @@ class MainWindow
 			network = @currentchan.name
 			presence = @currentchan.presence
 		else
-			presence = $presence
+			presence = $config['presence']
 		end
 		
 		message = widget.text
@@ -268,6 +275,10 @@ class MainWindow
 		$config.set_value('windowheight', event.height)
 		#for some reason we need to return a nil here or the window contents won't resize
 		nil
+	end
+	
+	def focus_input
+		@messageinput.grab_focus
 	end
 	
 	def quit

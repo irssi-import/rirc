@@ -157,6 +157,8 @@
 				  <property name="right_margin">0</property>
 				  <property name="indent">0</property>
 				  <property name="text" translatable="yes"></property>
+				  <signal name="focus" handler="focus_input" last_modification_time="Sat, 18 Jun 2005 15:29:08 GMT"/>
+				  <signal name="focus_in_event" handler="focus_input" last_modification_time="Sat, 18 Jun 2005 15:30:06 GMT"/>
 				</widget>
 			      </child>
 			    </widget>

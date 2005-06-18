@@ -111,6 +111,8 @@ class Configuration
 		
 		@values['commandbuffersize'] = 10
 		
+		@values['presence'] = 'vag'
+		
 		@oldvalues = {}
 	end
 	
