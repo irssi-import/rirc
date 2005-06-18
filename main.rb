@@ -238,6 +238,9 @@ class Main
 		Gtk.init
 		@connectionwindow = ConnectionWindow.new
 		@window = MainWindow.new
+		if @connectionwindow.autoconnect == true
+			@connectionwindow.start_connect
+		end
 		Gtk.main
 	end
 	
@@ -961,6 +964,7 @@ class Main
 		send_command('quit', 'quit')
 		@connection.close if @connection
 		puts 'bye byeeeeee...'
+		Gtk.main_quit
 		exit
 	end
 end
