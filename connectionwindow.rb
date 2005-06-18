@@ -156,6 +156,7 @@ class ConnectionWindow
 	def quit
 		destroy
 		$main.quit
+		false
 	end
 		
 	
