@@ -1,5 +1,5 @@
 class ConnectionWindow
-	attr_reader :autoconnect
+	attr_reader :autoconnect, :presence
 	def initialize
 		require 'yaml'
 		@glade = GladeXML.new("glade/connect.glade") {|handler| method(handler)}
@@ -34,6 +34,8 @@ class ConnectionWindow
 		@option[@socket_button] = @glade['socket_table']
 		@option[@net_ssh_button] = @glade['net_ssh_table']
 		
+		@glade['presence'].text = 'irssi2'
+		
 		#puts get_active
 		redraw_options
 		#@window.show
@@ -41,12 +43,15 @@ class ConnectionWindow
 		@glade[@config['default_method']].active = true
 		fill_entries
 		@autoconnect = @config['autoconnect']
+		@presence = @config['presence']
+		
 	end
 	
 	def save_settings
 		get_config
 		settings = { 'default_method' => get_active.name, 
-					'autoconnect' => @glade['autoconnect'].active?}
+					'autoconnect' => @glade['autoconnect'].active?,
+					'presence' => @glade['presence'].text}
 					#~ 'ssh' => {},
 					#~ 'socket' => {},
 					#~ 'net_ssh' => {}
@@ -111,6 +116,8 @@ class ConnectionWindow
 		end
 		
 		@glade['autoconnect'].active = @config['autoconnect']
+		
+		@glade['presence'].text = @config['presence']
 	end
 	
 	def get_active

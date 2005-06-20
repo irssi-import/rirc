@@ -17,6 +17,14 @@ USERPART = 5
 ERROR = 6
 NOTICE = 7
 	
+#~ module Gtk
+	#~ class TextTag
+		#~ def data
+			#~ @data = {} if !@data
+			#~ return @data
+		#~ end
+	#~ end
+#~ end
 
 module Stuff
 	#nice little mixin for common methods
@@ -98,10 +106,14 @@ module Stuff
 		end
 		
 		if $config['usetimestamp']
+			puts 'using timestamp'
 			pattern = Time.at(line['time'].to_i).strftime($config['timestamp'])
 		else
 			pattern = ''
 		end
+		
+		links = []
+		users = []
 		
 		@oldlineend = @buffer.end_iter
 		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, false)
@@ -111,7 +123,10 @@ module Stuff
 			#line.each {|key, value| print key, " is ", value, "\n" }
 			#puts "\n"
 			pattern += $config['message'].deep_clone
-			pattern['%u'] = line['nick'] if line['nick']
+			if line['nick']
+				pattern['%u'] = line['nick']
+				users.push(line['nick'])
+			end
 			pattern['%m'] = line['msg'] if line['msg']
 			
 			
@@ -124,7 +139,10 @@ module Stuff
 				#~ pattern['%u'] = line['presence']
 			#~ end
 			#puts @username, @server.username
-			pattern['%u'] = username if username
+			if username
+				pattern['%u'] = username
+				users.push(username)
+			end
 			pattern['%m'] = line['msg'] if line['msg']
 			
 			
@@ -132,6 +150,7 @@ module Stuff
 			setstatus(NEWDATA)
 			pattern += $config['join'].deep_clone
 			pattern['%u'] = line['name']
+			users.push(line['name'])
 			pattern['%c'] = line['channel']
 			if user = @users[line['name']] and user.hostname
 				pattern['%h'] = user.hostname
@@ -149,6 +168,7 @@ module Stuff
 			setstatus(NEWDATA)
 			pattern += $config['part'].deep_clone
 			pattern['%u'] = line['name']
+			users.push(line['name'])
 			pattern['%r'] = line['reason'] if line['reason']
 			pattern['%c'] = line['channel']
 			if user = @users[line['name']] and user.hostname
@@ -174,6 +194,8 @@ module Stuff
 			
 		end
 		
+		#users.push(line['name']) if line['name']
+		
 		if pattern.length > 0
 			#puts pattern
 			recolor
@@ -186,7 +208,7 @@ module Stuff
 				#puts 'not at start'
 				pattern = "\n"+pattern
 			end
-			colortext(pattern, insert)
+			colortext(pattern, insert, users)
 		end
 		
 		@newlineend = @buffer.end_iter
@@ -237,169 +259,160 @@ module Stuff
 	end
 	
 	#parse the colors in the text
-	def colortext(string, insert, origcolor = nil)
+	def colortext(string, insert, users)
 		re = /((%\d).+?\2)/
 		md = re.match(string)
-		i = 0
+		
+		tags = {}
+		
 		while md.class == MatchData
-			insert = sendtobuffer(md.pre_match, insert, origcolor) if !md.pre_match.empty?
+			#get the color
 			color = md[2].gsub!('%', 'color')
 			colorid = md[2].gsub!('%', '')
+			#remove the color tags from the text
 			text = md[0].gsub('%'+colorid, '')
-			#pass the text back to the function to look for any nested colors.
-			insert = colortext(text, insert, color)
-			#insert = sendtobuffer(text, insert, color)
-			tail = md.post_match
-			md = re.match(tail)
-			i+=1
+	
+			#strip the color tags for this tag from the string
+			string[md[0]] = text
+			
+			#create a tag with a range
+			start, stop = md.offset(1)
+			stop -= (md[2].length)*2
+			tags[Range.new(start, stop)] = color
+			
+			#go around again
+			md = re.match(string)
 		end
-		if i == 0
-			insert = sendtobuffer(string, insert, origcolor)
+		
+		links = []
+		
+		re = /(([a-zA-Z]+\:\/\/|[a-zA-Z0-9]+\.)[a-zA-Z0-9.-]+\.[a-zA-Z.]+([^\s\n\(\)\[\]\r]+|))/
+		md = re.match(string)
+		
+		while md.class == MatchData
+			links.push(md[0])
+			#puts md[0]
+			md = re.match(md.post_match)
 		end
-		if tail
-			insert = sendtobuffer(tail, insert, origcolor)
+		
+		user_tags = {}
+		link_tags = {}
+		
+		users.each do |user|
+			puts 'user: '+user
+			if index = string.index(user)
+				user_tags[Range.new(index, index+user.length)] = user
+			end
 		end
-		return insert
+		
+		links.each do |link|
+			puts 'link: '+link
+			if index = string.index(link)
+				link_tags[Range.new(index, index+link.length)] = link
+			end
+		end
+		
+		puts 'sending line'
+		
+		sendtobuffer(string, tags, insert, user_tags, link_tags)
 	end
 	
 	#send the text to the buffer
-	def sendtobuffer(string, insert, color)
-		enditer = @buffer.end_iter
-		if color != nil
-			#puts "Colored: "+color+' '+string
-			@buffer.insert(insert, string, color)
-		else
-			#puts "Uncolored: "+string
-			@buffer.insert(insert, string)
+	def sendtobuffer(string, tags, insert, user_tags, link_tags)
+		offset = insert.offset
+		#mark = buffer.create_mark(nil, insert, false)
+		@buffer.insert(insert, string)
+		iter = @buffer.get_iter_at_offset(offset)
+		start = iter.offset
+		tags.each do |k, v|
+			if @buffer.tag_table.lookup(v)
+				tag_start = @buffer.get_iter_at_offset(k.begin+start)
+				tag_end = @buffer.get_iter_at_offset(k.end+start)
+				#puts tag_start.offset, tag_end.offset, '<>'
+				@buffer.apply_tag(v, tag_start, tag_end)
+				#puts offset, tag_start.offset, tag_end.offset, v.class
+				#puts @buffer.get_text(tag_start, tag_end)
+			else
+				puts 'invalid tag '+v
+			end
 		end
-		return insert
-	end
-end
-
-
-class User
-	attr_reader :hostname, :name, :lastspoke
-	attr_writer :hostname, :lastspoke
-	def initialize(name)
-		@hostname = nil
-		@name = name
-		@lastspoke = Time.new
-	end
-	
-	def rename(name)
-		@name = name
-	end
-	
-	def <=>(object)
-		a = @name.downcase
-		b = object.name.downcase
 		
-		return a <=> b
-		#~ length = @name.length
-		#~ retval =-1
-		#~ if object.name.length < @name.length
-			#~ length = object.name.length
-			#~ retval = 1
-		#~ end
-		
-		#~ for i in 0...(length)
-			#~ if @name[i] > object.name[i]
-				#~ #puts @name+' > '+object.name
-				#~ return 1
-			#~ elsif @name[i] < object.name[i]
-				#~ #puts @name+' < '+object.name
-				#~ return -1
-			#~ end
-		#~ end
-		#~ return retval
-	end
-	
-	def comparetostring(string)
-	
-		a = @name.downcase
-		b = string.downcase
-		
-		return a <=> b
-		#~ orig = @name.deep_clone
-		
-		#~ if string == orig
-			#~ return 0
-		#~ end
-		
-		#~ length = orig.length
-		#~ retval =-1
-		#~ if string.length < orig.length
-			#~ length = string.length
-			#~ retval = 1
-		#~ end
-		
-		#~ for i in 0...(length)
-			#~ if orig[i] > string[i]
-				#~ #puts @name+' > '+object.name
-				#~ return 1
-			#~ elsif orig[i] < string[i]
-				#~ #puts @name+' < '+object.name
-				#~ return -1
-			#~ end
-		#~ end
-		#~ return retval
-	end
-	
-end
-
-class UserList
-	attr_reader :users
-	def initialize
-		@users = []
-	end
-	
-	def create(name)
-		return if self[name]
-		new = User.new(name)
-		@users.push(new)
-		@users.sort!
-		#puts 'creating user: ' +name
-		#puts @users.length
-		return new
-	end
-	
-	def add(user)
-		@users.push(user)
-		@users.sort!
-	end
-	def remove(name)
-		i = 0
-		@users.each{ |user|
-			if user.name == name
-				#puts @users.length.to_s
-				@users.delete_at(i)
-				#puts 'removed at ' +i.to_s
-				#puts @users.length.to_s
-				@users.sort!
-				return
+		link_tags.each do |k, v|
+			puts k
+			#tag = @buffer.create_tag(v, {})
+			name = 'link_'+rand(1000).to_s+'_'+v
+			while @buffer.tag_table.lookup(name)#
+				name = 'link_'+rand(1000).to_s+'_'+v
 			end
-			i += 1
-		}
-	end
-	
-	def[](name)
-		result = nil
-		@users.each{ |user|
-			if user.name == name
-				#puts 'matched ' +name
-				result = user
+			tag = Gtk::TextTag.new(name)
+			@buffer.tag_table.add(tag)
+			#tag.foreground = 'blue'
+			tag_start = @buffer.get_iter_at_offset(k.begin+start)
+			tag_end = @buffer.get_iter_at_offset(k.end+start)
+			#puts tag_start.offset, tag_end.offset, '<>'
+			@buffer.apply_tag(tag, tag_start, tag_end)
+			#tag.data['type'] = 'link'
+			#tag.data['link'] = v
+		end
+		
+		user_tags.each do |k, v|
+			puts k
+			#tag = @buffer.create_tag(v, {})
+			name = 'user_'+rand(1000).to_s+'_'+v
+			while @buffer.tag_table.lookup(name)#
+				name = 'user_'+rand(1000).to_s+'_'+v
 			end
-		}
-		return result
+			tag = Gtk::TextTag.new(name)
+			#tag.foreground = 'blue'
+			@buffer.tag_table.add(tag)
+			tag_start = @buffer.get_iter_at_offset(k.begin+start)
+			tag_end = @buffer.get_iter_at_offset(k.end+start)
+			#puts tag_start.offset, tag_end.offset, '<>'
+			@buffer.apply_tag(tag, tag_start, tag_end)
+			#tag.data['type'] = 'user'
+			#tag.data['user'] = v
+		end
+		
 	end
 	
-	def sort
-		@users.sort!
-	end
+	#parse the colors in the text
+	#~ def colortext(string, insert, origcolor = nil)
+		#~ re = /((%\d).+?\2)/
+		#~ md = re.match(string)
+		#~ i = 0
+		#~ while md.class == MatchData
+			#~ insert = sendtobuffer(md.pre_match, insert, origcolor) if !md.pre_match.empty?
+			#~ color = md[2].gsub!('%', 'color')
+			#~ colorid = md[2].gsub!('%', '')
+			#~ text = md[0].gsub('%'+colorid, '')
+			#~ #pass the text back to the function to look for any nested colors.
+			#~ insert = colortext(text, insert, color)
+			#~ #insert = sendtobuffer(text, insert, color)
+			#~ tail = md.post_match
+			#~ md = re.match(tail)
+			#~ i+=1
+		#~ end
+		#~ if i == 0
+			#~ insert = sendtobuffer(string, insert, origcolor)
+		#~ end
+		#~ if tail
+			#~ insert = sendtobuffer(tail, insert, origcolor)
+		#~ end
+		#~ return insert
+	#~ end
 	
-	def length
-		return @users.length
-	end
+	#~ #send the text to the buffer
+	#~ def sendtobuffer(string, insert, color)
+		#~ enditer = @buffer.end_iter
+		#~ if color != nil
+			#~ #puts "Colored: "+color+' '+string
+			#~ @buffer.insert(insert, string, color)
+		#~ else
+			#~ #puts "Uncolored: "+string
+			#~ @buffer.insert(insert, string)
+		#~ end
+		#~ return insert
+	#~ end
 end
 
 class ServerList
@@ -423,11 +436,6 @@ class ServerList
 		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
 		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
 		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
-		#~ @buffer.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#~ @buffer.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		#~ @buffer.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		#~ @buffer.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -577,11 +585,6 @@ class Server
 		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
 		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
 		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
-		#~ @buffer.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#~ @buffer.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		#~ @buffer.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		#~ @buffer.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0

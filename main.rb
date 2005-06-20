@@ -92,7 +92,7 @@ class Configuration
 		
 		@statuscolors = [Gdk::Color.new(0, 0, 0), @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
 		
-		@values['usetimestamp'] = true
+		@values['usetimestamp'] = false
 		@values['timestamp'] = "[%H:%M]"
 		@values['message'] = "%2<%2%u%2>%2 %m"
 		@values['usermessage'] = "%4<%4%u%4>%4 %m"
@@ -104,6 +104,8 @@ class Configuration
 		@values['part'] = "<%1--%1 %u (%1%h%1) has left %c (%r)"
 		@values['userpart'] = "<%1--%1 You have left %c"
 		@values['whois'] = "%2[%2%n%2]%2 %m"
+		
+		@values['linkclickaction'] = 'firefox %s'
 		
 		@serverbuttons = true
 		
@@ -178,6 +180,8 @@ class Configuration
 			return value
 		elsif value == true
 			return 'true'
+		elsif value == false
+			return 'false'
 		else
 			return value.to_s
 		end
@@ -190,6 +194,8 @@ class Configuration
 			return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
 		elsif value == 'true'
 			return true
+		elsif value == 'false'
+			return false
 		else
 			return value
 		end
@@ -216,6 +222,7 @@ class Configuration
 end
 
 #load all my home rolled ruby files here
+require 'users'
 require 'servers'
 require 'events'
 require 'connections'
@@ -290,6 +297,7 @@ class Main
 			
 			$config.get_config
 			@window.draw_from_config
+			$config.set_value('presence', @connectionwindow.presence)
 			@connectionwindow.destroy
 			
 			if @serverlist.servers.length > 0
@@ -348,7 +356,7 @@ class Main
 		elsif command == '/part'
 			arguments = arguments.split(' ')
 			if arguments[0]
-				send_command('part', "channel part;network="+network+";presence="+$presence+";channel="+arguments[0])
+				send_command('part', "channel part;network="+network+";presence="+$config['presence']+";channel="+arguments[0])
 			else
 				line = {}
 				line['err'] = 'Part requires a channel argument'

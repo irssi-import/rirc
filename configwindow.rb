@@ -64,7 +64,7 @@ class ConfigWindow
 		#@treeselection.select_path(Gtk::TreePath.new("0:0"))
 		@treeselection.select_iter(child2)
 		@currentcategory = @configarea.child
-		puts @currentcategory
+		#puts @currentcategory
 		draw_category(@categories['Layout'])
 		@configarray = {}
 		
@@ -100,6 +100,14 @@ class ConfigWindow
 				elsif @glade[key].class == Gtk::Button and value.class == Gdk::Color
 					color_button(@glade[key], value)
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+				elsif @glade[key].class == Gtk::CheckButton
+					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+					#puts key, value
+					if value
+						@glade[key].active = true
+					else
+						@glade[key].active = false
+					end
 				end
 			end
 		end
@@ -115,7 +123,7 @@ class ConfigWindow
 	end
 	
 	def draw_category(category)
-		puts category, @currentcategory
+		#puts category, @currentcategory
 		@configarea.remove(@currentcategory)
 		@configarea.add(category)
 		@currentcategory = category
@@ -157,9 +165,13 @@ class ConfigWindow
 	end
 	
 	def combobox_changed(widget)
-		puts @options[widget.name][widget.active]
+		#puts @options[widget.name][widget.active]
 		change_setting(widget, @options[widget.name][widget.active].downcase)
 		#@configarray[widget] = {'name' => widget.name, 'value' => @options[widget.name][widget.active]}
+	end
+	
+	def tickbox_changed(widget)
+		change_setting(widget, widget.active?)
 	end
 	
 	def update_config

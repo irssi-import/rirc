@@ -5,13 +5,6 @@ class MainWindow
 		puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
-		#~ @glade['window1'].signal_connect('configure_event') do |widget, event|
-			#~ $config.set_value('windowwidth', event.width)
-			#~ $config.set_value('windowheight', event.height)
-			#~ #for some reason we need a nil here or the window contents don't resize
-			#~ nil
-		#~ end
-		
 		@serverlist = $main.serverlist
 		@usernamebutton = @glade["username"]
 		@topic = @glade["topic"]
@@ -56,31 +49,20 @@ class MainWindow
 		@serverlist.button.active = true
 		@connection = nil
 		
+		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
+		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
+		
 		@path= $path
 		
 		@me = self
 		
 		@last = nil
 		
-		#~ puts @messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#~ puts @messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		#~ puts @messages.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		#~ puts @messages.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+		@highlighted = []
 		
-		#~ @messages.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#~ @messages.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		#~ @messages.modify_bg(Gtk::STATE_PRELIGHT, $config['backgroundcolor'])
-		#~ @messages.modify_fg(Gtk::STATE_PRELIGHT, $config['foregroundcolor'])
-		#~ @messages.modify_bg(Gtk::STATE_ACTIVE, $config['backgroundcolor'])
-		#~ @messages.modify_fg(Gtk::STATE_ACTIVE, $config['foregroundcolor'])
-		
-		#~ style = @messages.modifier_style
-		#~ puts style.bg(Gtk::STATE_NORMAL)
-		#style.set_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#style.set_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		#@messages.modify_style(style)
-		
-		#connect
+		@defaultmenu = Gtk::Menu.new
+		@defaultmenu.append(Gtk::MenuItem.new("thing1"))
+		@defaultmenu.append(Gtk::MenuItem.new("thing2"))
 		
 	end
 	
@@ -275,6 +257,113 @@ class MainWindow
 		$config.set_value('windowheight', event.height)
 		#for some reason we need to return a nil here or the window contents won't resize
 		nil
+	end
+	
+	def textview_on_click(widget, event)
+		x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
+		if event.button == 1
+			textview_go_link(widget, x, y)
+		elsif event.button == 3
+			textview_popup_menu(widget, event, x, y)
+		end
+		true
+	end
+	
+	def textview_motion_notify(widget, event)
+		x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
+		textview_set_cursor(widget, x, y)
+		@x = event.x
+		@y = event.y
+	end
+	
+	def textview_go_link(widget, x, y)
+		iter = widget.get_iter_at_location(x, y)
+		
+		iter.tags.each do |tag|
+			name = tag.name.split('_', 3)
+			if name[0]  == 'link'
+				puts 'clicked tag linking to '+name[2]
+				system($config['linkclickaction'].sub('%s', name[2]))
+				break
+			#elsif tag.data['type']  == 'user'
+			#	puts 'clicked tag linking to '+tag.data['user'].to_s
+			#	break
+			end
+		end
+		
+	end
+	
+	def textview_popup_menu(widget, event, x, y)
+		iter = widget.get_iter_at_location(x, y)
+		menu = @defaultmenu
+		
+		iter.tags.each do |tag| 
+			puts tag
+			name = tag.name.split('_', 3)
+			if name[0]  == 'link'
+				menu = create_link_popup(name[2])
+				break
+			elsif name[0] == 'user'
+				menu = create_user_popup(name[2])
+				break
+			end
+		end
+		
+		menu.show_all
+		menu.popup(nil, nil, event.button, event.time)
+	end
+	
+	def textview_set_cursor(textview, x, y)
+		hovering = false
+		
+		iter = textview.get_iter_at_location(x, y)
+		
+		@highlighted.each do |tag|
+			tag.foreground = 'black'
+			tag.underline = Pango::AttrUnderline::NONE
+		end
+		
+		@highlighted = []
+		
+		iter.tags.each do |tag| 
+			name = tag.name.split('_', 3)
+			if name[0]  == 'link'
+				@highlighted.push(tag)
+				tag.underline = Pango::AttrUnderline::SINGLE
+				hovering = true
+				break
+			elsif name[0]  == 'user'
+				@highlighted.push(tag)
+				tag.underline = Pango::AttrUnderline::SINGLE
+				hovering = true
+				break
+			end
+			textview.signal_emit('populate_popup', @defaultmenu)
+		end
+		
+		#need to set the GdkWindowAttributesType for the gdk::window so the cursor change works
+		#~ if hovering != @hoveringoverlink
+			#~ @hoveringoverlink = hovering.deep_clone
+			#~ if @hoveringoverlink
+				#~ @textview.parent_window.cursor = @linkcursor
+			#~ else
+				#~ @textview.parent_window.cursor = @normalcursor
+			#~ end
+		#~ end
+		@glade['window1'].pointer
+		#I should probably change the GdkEventMask instead of this....
+	end
+	
+	def create_link_popup(link)
+		menu = Gtk::Menu.new
+		menu.append(Gtk::MenuItem.new("Open link in browser"))
+		menu.append(Gtk::MenuItem.new("Copy link location"))
+	end
+	
+	def create_user_popup(user)
+		menu = Gtk::Menu.new
+		menu.append(Gtk::MenuItem.new("User"))
+		menu.append(Gtk::MenuItem.new("Whois user"))
 	end
 	
 	def focus_input
