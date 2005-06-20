@@ -68,7 +68,7 @@ class ConnectionWindow
 			end
 		end
 		
-		puts settings['ssh'].length, 'Items'
+		#puts settings['ssh'].length, 'Items'
 		
 		File.open('settings.yaml', "w") {|f| YAML.dump(settings, f)}
 	end
@@ -86,7 +86,7 @@ class ConnectionWindow
 		
 		settings.each do |k, v|
 			if v.class != Hash
-				puts k, v
+				#puts k, v
 				@config[k] = v
 			end
 		end
@@ -150,7 +150,7 @@ class ConnectionWindow
 		end
 		
 		method = button.name
-		puts method, settings.length
+		#puts method, settings.length
 		save_settings
 		Thread.new{$main.connect(method, settings)}
 		#destroy

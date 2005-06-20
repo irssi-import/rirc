@@ -63,7 +63,7 @@ module Stuff
 	
 	def setstatus(status)
 		if(status > @status)
-			puts "status set to "+status.to_s+ " from  "+@status.to_s
+			#puts "status set to "+status.to_s+ " from  "+@status.to_s
 			@status = status
 			recolor
 		end
@@ -106,7 +106,7 @@ module Stuff
 		end
 		
 		if $config['usetimestamp']
-			puts 'using timestamp'
+			#puts 'using timestamp'
 			pattern = Time.at(line['time'].to_i).strftime($config['timestamp'])
 		else
 			pattern = ''
@@ -299,20 +299,20 @@ module Stuff
 		link_tags = {}
 		
 		users.each do |user|
-			puts 'user: '+user
+			#puts 'user: '+user
 			if index = string.index(user)
 				user_tags[Range.new(index, index+user.length)] = user
 			end
 		end
 		
 		links.each do |link|
-			puts 'link: '+link
+			#puts 'link: '+link
 			if index = string.index(link)
 				link_tags[Range.new(index, index+link.length)] = link
 			end
 		end
 		
-		puts 'sending line'
+		#puts 'sending line'
 		
 		sendtobuffer(string, tags, insert, user_tags, link_tags)
 	end
@@ -338,9 +338,9 @@ module Stuff
 		end
 		
 		link_tags.each do |k, v|
-			puts k
+			#puts k
 			#tag = @buffer.create_tag(v, {})
-			name = 'link_'+rand(1000).to_s+'_'+v
+			#name = 'link_'+rand(1000).to_s+'_'+v
 			while @buffer.tag_table.lookup(name)#
 				name = 'link_'+rand(1000).to_s+'_'+v
 			end
@@ -356,9 +356,9 @@ module Stuff
 		end
 		
 		user_tags.each do |k, v|
-			puts k
+			#puts k
 			#tag = @buffer.create_tag(v, {})
-			name = 'user_'+rand(1000).to_s+'_'+v
+			#name = 'user_'+rand(1000).to_s+'_'+v
 			while @buffer.tag_table.lookup(name)#
 				name = 'user_'+rand(1000).to_s+'_'+v
 			end
@@ -509,10 +509,10 @@ class ServerList
 			if @servers[i] == newserver
 				#pick the right seperator to be using...
 				if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
-					puts 'horizontal seperator'
+					#puts 'horizontal seperator'
 					seperator = Gtk::HSeparator.new
 				else
-					puts 'vertical seperator'
+					#puts 'vertical seperator'
 					seperator = Gtk::VSeparator.new
 				end
 				
@@ -701,7 +701,7 @@ class Channel
 	def initialize(name, server)
 		@server = server
 		@name = name
-		puts @server.username
+		#puts @server.username
 		#@config = getparentwindow.config
 		@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)

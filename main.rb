@@ -150,14 +150,14 @@ class Configuration
 			value = encode_value(v)
 			if @oldvalues[k] != value or  !@oldvalues[k]
 				cmdstring += ';rirc_'+k+'='+value if k and value
-				puts k+" HAS changed"
+				#puts k+" HAS changed"
 			else
 				#puts k+' has not changed'
 			end
 		end
 		
 		if cmdstring == ''
-			puts 'no changes'
+			#puts 'no changes'
 		else
 			cmdstring = 'config set'+cmdstring
 		end
@@ -204,7 +204,7 @@ class Configuration
 	def parse_config(event)
 		event.lines.each do |line| 
 			if line['key'] and line['value']
-				puts line['key']+' is '+line['value']
+				#puts line['key']+' is '+line['value']
 				value = decode_value(line['value'])
 				@values[line['key'].sub('rirc_', '')] = value
 			end
@@ -373,19 +373,19 @@ class Main
 			if arguments[0] == '~'[0]
 				arguments.sub!('~', ENV['HOME'])#expand ~
 			end
-			puts arguments +' exists' if File.file?(arguments)
+			#puts arguments +' exists' if File.file?(arguments)
 			name, path = arguments.reverse.split('/', 2)
 			name.reverse!
 			path = '' if !path
 			path.reverse!
 			@filedescriptors[name] = File.open(arguments, 'r') # create a file descriptor with a key the same as the filename sent to server
-			puts @filedescriptors[name]
+			#puts @filedescriptors[name]
 			send_command('file send '+name, 'file send;resume;name='+name+';size='+File.size(arguments).to_s)
 		elsif command == '/ruby'
 			puts 'possibly evil ruby code inputted, blindly executing'
 			eval(arguments)
 		elsif command == '/raw'
-			puts 'sending '+arguments
+			#puts 'sending '+arguments
 			output = {}
 			output['msg'] = 'Sent raw command "'+arguments+'" to irssi2 directly'
 			@serverlist.send_event(output, NOTICE)
@@ -563,8 +563,8 @@ class Main
 				send_command('1', 'file send;handle='+line['handle'], length)
 				file.seek(line['start'].to_i)
 				data = file.read(length)
-				puts data.length, length
-				puts data.dump
+				#puts data.length, length
+				#puts data.dump
 				@connection.send(data)
 				return
 			end
@@ -680,7 +680,7 @@ class Main
 						end
 					end
 				elsif line['status'] == '+'
-					puts 'done'
+					#puts 'done'
 					return
 				else
 					#line.each{ |key, value|

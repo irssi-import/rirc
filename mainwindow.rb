@@ -34,7 +34,7 @@ class MainWindow
 			#~ @channellist = @glade['channellist_top']
 		#~ end
 		
-		puts $config['channellistposition']
+		#puts $config['channellistposition']
 
 		@userbar = @glade['userbar']
 		@userlist = @glade['userlist']
@@ -298,7 +298,7 @@ class MainWindow
 		menu = @defaultmenu
 		
 		iter.tags.each do |tag| 
-			puts tag
+			#puts tag
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				menu = create_link_popup(name[2])
