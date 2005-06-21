@@ -3,6 +3,7 @@
 require 'libglade2'
 require 'socket'
 require 'rbconfig'
+require 'base64'
 include Config
 puts CONFIG['target']
 
@@ -241,6 +242,7 @@ class Main
 		@buffer[0] = true
 		@filehandles = []
 		@filedescriptors = {}
+		@keys = {}
 	end
 	
 	def start
@@ -328,7 +330,15 @@ class Main
 	
 	def connectnetwork(name, protocol, address, port,  presence)
 		send_command('addnet', "network add;name="+name+";protocol="+protocol)
-		send_command('addpres', "presence add;name="+presence+";network="+name)
+		cmdstring = "presence add;name="+presence+";network="+name
+		if protocol.downcase == 'silc' and @keys[presence]['silc_pub']
+			cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
+			cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
+		end
+		#send_command('addpres', "presence add;name="+presence+";network="+name)
+		cmdstring.gsub!("\n", "\\n")
+		puts cmdstring
+		send_command('addpres', cmdstring)
 		temp = "gateway add;host="+address+";network="+name
 		temp += ";port="+port if port != '' and port
 		send_command('addhost', temp)
@@ -369,6 +379,28 @@ class Main
 		elsif command == '/shutdown'
 			send_command('shutdown', 'shutdown')
 			Gtk.main_quit
+		elsif command == '/silckey' and arguments =~ /^(.+) (.+)( (.+)|)$/
+			#puts $1, $2, $3
+			pub = $1
+			priv = $2
+			pass = $3
+			if pub and priv
+				key_pub = pub.to_s.sub('~', ENV['HOME'])
+				key_priv = priv.to_s.sub('~', ENV['HOME'])
+				
+				if File.file?(key_pub) and File.file?(key_priv)
+					@keys[$config['presence']] = {'silc_pub' => IO.read(key_pub),
+												'silc_priv' => Base64.encode64(IO.read(key_priv))}
+					@keys[$config['presence']]['silc_pass'] = pass if pass.length > 0
+					
+					#@keys[$config['presence']].each do |k, v|
+					#	puts k+' '+v
+					#end
+				else
+					puts 'file not found'
+				end
+			end
+			
 		elsif command == '/send'
 			if arguments[0] == '~'[0]
 				arguments.sub!('~', ENV['HOME'])#expand ~
