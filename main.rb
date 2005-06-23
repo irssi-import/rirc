@@ -9,12 +9,6 @@ puts CONFIG['target']
 
 #$:.push('./lib')
 
-#~ begin
-	#~ require 'config'
-#~ rescue LoadError
-	#~ puts "Cannot load config.rb, please rename and edit config.rb.factory"
-	#~ exit
-#~ end
 
 #if $method == 'ssh'
 #	require 'net/ssh'
@@ -23,25 +17,10 @@ puts CONFIG['target']
 #useful for debugging
 Thread.abort_on_exception = true
 
- #fuck signals, lets just extend the button class to hold a reference to its parent object
- module Parent
-	attr :channel;
-	def setchannel(channel)
-		@channel = channel
-	end
-end
-
 class Object
     def deep_clone
         Marshal.load(Marshal.dump(self))
     end
-end
-
-module Gtk
-	class ToggleButton
-		#load the mixin
-		include Parent
-	end
 end
 
 def duration(seconds)

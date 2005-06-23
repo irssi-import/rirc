@@ -15,7 +15,6 @@ Little things:
 	Disable tab for input line
 	
 Bugs:
-	You can untoggle the channel buttons without selecting a new channel
 	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)
 	Disappearing nick bug (change nick from vag to vag2 for example)
 	

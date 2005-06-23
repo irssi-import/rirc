@@ -5,6 +5,9 @@ class MainWindow
 		puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
+		
+		@channelbuttonlock = false
+		
 		@serverlist = $main.serverlist
 		@usernamebutton = @glade["username"]
 		@topic = @glade["topic"]
@@ -163,7 +166,15 @@ class MainWindow
 	
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
-		return if @currentbuffer == channel
+		return if @channelbuttonlock
+		if !channel.button.active? or channel == @currentbuffer
+			if @currentbuffer == channel and @currentbuffer.button.active? == false
+				@currentbuffer.button.active = true
+				return
+			end
+		end
+		@channelbuttonlock = true
+		#puts 'yes way', @currentbuffer, channel, channel.button.active?
 		@currentbuffer.currentcommand = @messageinput.text
 		@currentbuffer.deactivate
 		@userlist.remove_column(@currentbuffer.column) if @currentbuffer.class == ChannelBuffer
@@ -176,9 +187,11 @@ class MainWindow
 		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
+		@channelbuttonlock = false
 	end
 	
 	def updateusercount
+		return if @currentbuffer.class == RootBuffer
 		#puts 'updating user count'
 		@usercount.text = @currentbuffer.users.users.length.to_s+" users"
 	end
@@ -375,8 +388,19 @@ class MainWindow
 	
 	def create_user_popup(user)
 		menu = Gtk::Menu.new
-		menu.append(Gtk::MenuItem.new("User"))
-		menu.append(Gtk::MenuItem.new("Whois user"))
+		menu.append(Gtk::MenuItem.new(user))
+		whois = Gtk::MenuItem.new("Whois "+ user)
+		whois.signal_connect('activate') do |w|
+			puts 'requested whois for '+user
+			whois(user)
+		end
+		menu.append(whois)
+	end
+	
+	def whois(user)
+		return if @currentbuffer.class == RootBuffer
+		network, presence = @currentbuffer.getnetworkpresencepair
+		$main.send_command('whois'+user, 'presence status;network='+network+';presence='+presence+';name='+user)
 	end
 	
 	def focus_input

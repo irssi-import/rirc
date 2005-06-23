@@ -20,7 +20,7 @@ class Buffer
 	attr_reader :endmark, :oldendmark, :currentcommand, :buffer
 	attr_writer :currentcommand
 	#spaceship operator
-	def initialize
+	def initialize(name)
 		@buffer = Gtk::TextBuffer.new
 		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
 		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
@@ -31,6 +31,19 @@ class Buffer
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
+		@button = Gtk::ToggleButton.new(name)
+		@button.show
+		@button.active = false
+		@button.signal_connect('toggled')do |w|
+			switchchannel(self)
+		end
+	end
+	
+	def switchchannel(channel)
+		#puts @button.toplevel 
+		return if @button.toplevel.class != Gtk::Window
+		#puts channel
+		$main.window.switchchannel(channel)
 	end
 	
 	def <=>(object)
@@ -52,14 +65,16 @@ class Buffer
 	end
 	
 	def activate
-		@button.active=true if !@button.active?
+		@button.active=true #if !@button.active?
+		#@button.signal_emit_stop('toggled')
 		@status = ACTIVE
 		recolor
 		return @buffer
 	end
 	
 	def deactivate
-		@button.active=false if @button.active?
+		@button.active=false #if @button.active?
+		#@button.signal_emit_stop('toggled')
 		@status = INACTIVE
 		recolor
 	end
@@ -347,7 +362,7 @@ end
 class RootBuffer < Buffer
 	attr_reader :servers, :box, :button, :name, :parent, :config, :username, :connected
 	def initialize(parent)
-		super()
+		super('Servers')
 		@username = ''
 		@parent = parent
 		@servers = Array.new
@@ -358,15 +373,7 @@ class RootBuffer < Buffer
 		end
 		@box.show
 		#@config = @parent.config
-		@button = Gtk::ToggleButton.new('servers')
 		@name = 'servers'
-		@button.show
-		@button.active = false
-		@button.setchannel(self)
-		@button.signal_connect('clicked')do |w|
-			@parent.switchchannel(w.channel)
-			#puts 'switched'
-		end
 		@box.pack_start(@button)
 		@status = INACTIVE
 		@connected = true
@@ -488,7 +495,7 @@ class ServerBuffer < Buffer
 	attr_reader :name, :channels, :button, :box, :parent, :config, :username, :presence, :connected, :users
 	#attr_writer :username, :presence
 	def initialize(name, presence, parent)
-		super()
+		super(name)
 		@presence = presence
 		#puts @presence
 		@username = @presence.deep_clone
@@ -498,12 +505,6 @@ class ServerBuffer < Buffer
 		#@config = getparentwindow.config
 		#@buffer = Gtk::TextBuffer.new
 		@users = UserList.new
-		@button = Gtk::ToggleButton.new(@name)
-		@button.setchannel(self)
-		@button.signal_connect('clicked')do |w|
-			getparentwindow.switchchannel(w.channel)
-			#puts 'switched '+ @name+" "+@presence
-		end
 		@button.active = false
 		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
 			@box = Gtk::VBox.new
@@ -602,13 +603,17 @@ class ServerBuffer < Buffer
 		@username = name
 	end
 	
+	def getnetworkpresencepair
+		return @name, @presence
+	end
+	
 end
 
 class ChannelBuffer < Buffer
 	attr_reader :name, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
 	attr_writer :topic
 	def initialize(name, server)
-		super()
+		super(name)
 		@server = server
 		@name = name
 		#puts @server.username
@@ -621,12 +626,6 @@ class ChannelBuffer < Buffer
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
-		@button = Gtk::ToggleButton.new(name)
-		@button.setchannel(self)
-		@button.signal_connect('clicked')do |w|
-			getparentwindow.switchchannel(w.channel)
-			#puts 'switched '+ @name
-		end
 		@button.label= @name
 		@button.active = false
 		@button.show
@@ -638,10 +637,6 @@ class ChannelBuffer < Buffer
 	
 	def add(name)
 		@server.add(name)
-	end
-	
-	def getparentwindow
-		return @server.parent.parent
 	end
 	
 	def adduser(name, init = false)
@@ -742,5 +737,7 @@ class ChannelBuffer < Buffer
 			#~ @users.delete(old)
 		#~ end
 	#~ end
-
+	def getnetworkpresencepair
+		return @server.getnetworkpresencepair
+	end
 end
