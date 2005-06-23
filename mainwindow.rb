@@ -1,6 +1,6 @@
 
 class MainWindow
-	attr_reader :currentchan
+	attr_reader :currentbuffer
 	def initialize
 		puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
@@ -20,6 +20,9 @@ class MainWindow
 			#~ puts '---'
 			
 		end
+		
+		#@messageinput.signal_connect("selection_received") { |x, y, z| puts 'selection changed'}
+		
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
 			if event.keyval == Gdk::Keyval.from_name('Up')
@@ -43,7 +46,7 @@ class MainWindow
 		@messagebox = @glade['vbox2']
 		@preferencesbar = @glade['preferencesbar']
 		@usercount = @glade['usercount']
-		@currentchan = @serverlist
+		@currentbuffer = @serverlist
 		drawuserlist(false)
 		@messages.buffer = @serverlist.buffer
 		@serverlist.button.active = true
@@ -132,18 +135,18 @@ class MainWindow
 	#end
 
 	def scroll_to_end(channel)
-		return if @currentchan != channel
+		return if @currentbuffer != channel
 		#check if we were at the end before the message was sent, if so, move down again
-		if mark_onscreen?(@currentchan.oldendmark)
+		if mark_onscreen?(@currentbuffer.oldendmark)
 			#puts 'onscreen'
-			@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
+			@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		else
 			#puts 'not onscreen'
 		end
 	end
 	
 	def mark_onscreen?(mark)
-		return iter_onscreen?(@currentchan.buffer.get_iter_at_mark(mark))
+		return iter_onscreen?(@currentbuffer.buffer.get_iter_at_mark(mark))
 	end
 	
 	def iter_onscreen?(iter)
@@ -160,19 +163,24 @@ class MainWindow
 	
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
-		return if @currentchan == channel
-		@currentchan.deactivate
-		@userlist.remove_column(@currentchan.column) if @currentchan.class == Channel
-		@currentchan = channel
-		@messages.buffer = @currentchan.activate
-		@messages.scroll_to_mark(@currentchan.endmark, 0.0, false,  0, 0)
-		@usernamebutton.label = @currentchan.username.gsub('_', '__') if @currentchan.username
-		drawuserlist(@currentchan.class == Channel)
+		return if @currentbuffer == channel
+		@currentbuffer.currentcommand = @messageinput.text
+		@currentbuffer.deactivate
+		@userlist.remove_column(@currentbuffer.column) if @currentbuffer.class == ChannelBuffer
+		@currentbuffer = channel
+		@messageinput.text = @currentbuffer.currentcommand
+		#~ selection = Gdk::EventSelection.new(Gdk::Event::SELECTION_CLEAR)
+		#~ @messageinput.signal_emit('selection_clear_event', selection)
+		#~ @messageinput.signal_emit('selection_notify_event', selection)
+		@messages.buffer = @currentbuffer.activate
+		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
+		drawuserlist(@currentbuffer.class == ChannelBuffer)
 	end
 	
 	def updateusercount
 		#puts 'updating user count'
-		@usercount.text = @currentchan.users.users.length.to_s+" users"
+		@usercount.text = @currentbuffer.users.users.length.to_s+" users"
 	end
 	
 	def drawuserlist(toggle)
@@ -181,11 +189,11 @@ class MainWindow
 			@mainbox.pack_start(@panel)
 			@panel.add1(@messagebox)
 			@messageinput.grab_focus
-			@userlist.model = @currentchan.userlist
-			@userlist.append_column(@currentchan.column)
+			@userlist.model = @currentbuffer.userlist
+			@userlist.append_column(@currentbuffer.column)
 			@userlist.show_all
 			@topic.show
-			@topic.text =@currentchan.topic
+			@topic.text =@currentbuffer.topic
 			@usernamebutton.show
 			updateusercount
 		else
@@ -195,7 +203,7 @@ class MainWindow
 			@messageinput.grab_focus
 			@topic.hide
 			@topic.text = ''
-			if @currentchan.class == ServerList
+			if @currentbuffer.class == RootBuffer
 				@usernamebutton.hide
 			else
 				@usernamebutton.show
@@ -205,15 +213,15 @@ class MainWindow
 	
 	def message_input(widget)
 		return if widget.text.length == 0
-		@currentchan.addcommand(widget.text)
+		@currentbuffer.addcommand(widget.text)
 		
-		channel = @currentchan.name
-		if @currentchan.class == Channel
-			network = @currentchan.server.name
-			presence = @currentchan.server.presence
-		elsif @currentchan.class == Server
-			network = @currentchan.name
-			presence = @currentchan.presence
+		channel = @currentbuffer.name
+		if @currentbuffer.class == ChannelBuffer
+			network = @currentbuffer.server.name
+			presence = @currentbuffer.server.presence
+		elsif @currentbuffer.class == ServerBuffer
+			network = @currentbuffer.name
+			presence = @currentbuffer.presence
 		else
 			presence = $config['presence']
 		end
@@ -224,7 +232,7 @@ class MainWindow
 	end
 	
 	def get_username
-		@usernamebutton.label = @currentchan.username.gsub('_', '__')
+		@usernamebutton.label = @currentbuffer.username.gsub('_', '__')
 	end
 	
 	def show_username
@@ -232,12 +240,12 @@ class MainWindow
 	end
 	
 	def getlastcommand
-		@messageinput.text = @currentchan.getlastcommand
+		@messageinput.text = @currentbuffer.getlastcommand
 		@messageinput.grab_focus
 	end
 	
 	def getnextcommand
-		@messageinput.text = @currentchan.getnextcommand
+		@messageinput.text = @currentbuffer.getnextcommand
 		@messageinput.grab_focus
 	end
 	
@@ -247,8 +255,8 @@ class MainWindow
 	end
 	
 	def updatetopic
-		if @currentchan.class == Channel
-			@topic.text =@currentchan.topic
+		if @currentbuffer.class == ChannelBuffer
+			@topic.text =@currentbuffer.topic
 		end
 	end
 	
@@ -280,6 +288,8 @@ class MainWindow
 		iter = widget.get_iter_at_location(x, y)
 		
 		iter.tags.each do |tag|
+			next unless tag.name
+			#puts tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				puts 'clicked tag linking to '+name[2]
@@ -298,7 +308,8 @@ class MainWindow
 		menu = @defaultmenu
 		
 		iter.tags.each do |tag| 
-			#puts tag
+			next unless tag.name
+			#puts tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				menu = create_link_popup(name[2])
@@ -325,7 +336,9 @@ class MainWindow
 		
 		@highlighted = []
 		
-		iter.tags.each do |tag| 
+		iter.tags.each do |tag|
+			next unless tag.name
+			#puts tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				@highlighted.push(tag)

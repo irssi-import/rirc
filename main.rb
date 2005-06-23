@@ -224,7 +224,7 @@ end
 
 #load all my home rolled ruby files here
 require 'users'
-require 'servers'
+require 'buffers'
 require 'events'
 require 'connections'
 require 'mainwindow'
@@ -235,7 +235,7 @@ require 'connectionwindow'
 class Main
 	attr_reader :serverlist, :window, :events, :connectionwindow
 	def initialize
-		@serverlist = ServerList.new(self)
+		@serverlist = RootBuffer.new(self)
 		@connection = nil
 		@events = {}
 		@buffer = []
@@ -331,7 +331,7 @@ class Main
 	def connectnetwork(name, protocol, address, port,  presence)
 		send_command('addnet', "network add;name="+name+";protocol="+protocol)
 		cmdstring = "presence add;name="+presence+";network="+name
-		if protocol.downcase == 'silc' and @keys[presence]['silc_pub']
+		if protocol.downcase == 'silc' and @keys[presence] and @keys[presence]['silc_pub']
 			cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
 			cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
 		end
@@ -371,7 +371,7 @@ class Main
 				line = {}
 				line['err'] = 'Part requires a channel argument'
 				line['time'] = Time.new.to_i
-				@window.currentchan.send_event(line, ERROR)
+				@window.currentbuffer.send_event(line, ERROR)
 			end
 		elsif command == '/quit'
 			send_command('quit', 'quit')
@@ -433,13 +433,13 @@ class Main
 			if arguments[0] and arguments[1]
 				messages = arguments[1].split("\n")
 				messages.each { |message|
-					send_command('msg'+rand(100).to_s, 'msg;network='+network+';target='+arguments[0]+';msg='+message+";presence="+presence)
+					send_command('msg'+rand(100).to_s, 'msg;network='+network+';nick='+arguments[0]+';msg='+message+";presence="+presence)
 				}
 			else
 				line = {}
 				line['err'] = '/msg requires a username and a message'
 				line['time'] = Time.new.to_i
-				@window.currentchan.send_event(line, ERROR)
+				@window.currentbuffer.send_event(line, ERROR)
 			end
 		elsif network
 			messages = message.split("\n")
@@ -450,12 +450,12 @@ class Main
 				line['nick'] = presence
 				line['msg'] = message
 				line['time'] = Time.new.to_i
-				@window.currentchan.send_event(line, USERMESSAGE)			}
+				@window.currentbuffer.send_event(line, USERMESSAGE)			}
 		elsif !network
 			line = {}
 			line['err'] = 'Invalid server command'
 			line['time'] = Time.new.to_i
-			@window.currentchan.send_event(line, ERROR)
+			@window.currentbuffer.send_event(line, ERROR)
 		end
 	end
 	
@@ -617,6 +617,7 @@ class Main
 							channel.topic = line['topic']
 						end
 						switchchannel(channel)
+						puts 'getting channel info'
 						send_command('listchan-'+line['network']+line['name'], "channel names;network="+line['network']+";channel="+line['name']+";presence="+line['presence'])
 						send_command('events-'+line['network']+line['name'], "event get;end=*;limit=500;filter=(channel="+line['name']+")")
 					else

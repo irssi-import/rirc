@@ -1,4 +1,3 @@
-
 #define some status constants
 INACTIVE = 0
 NEWDATA = 1
@@ -16,20 +15,24 @@ PART = 4
 USERPART = 5
 ERROR = 6
 NOTICE = 7
-	
-#~ module Gtk
-	#~ class TextTag
-		#~ def data
-			#~ @data = {} if !@data
-			#~ return @data
-		#~ end
-	#~ end
-#~ end
 
-module Stuff
-	#nice little mixin for common methods
-	attr_reader :endmark, :oldendmark
+class Buffer
+	attr_reader :endmark, :oldendmark, :currentcommand, :buffer
+	attr_writer :currentcommand
 	#spaceship operator
+	def initialize
+		@buffer = Gtk::TextBuffer.new
+		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
+		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
+		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
+		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
+		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
+		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+		@commandbuffer = []
+		@currentcommand = ''
+		@commandindex = 0
+	end
+	
 	def <=>(object)
 		length = @name.length
 		retval =-1
@@ -63,7 +66,6 @@ module Stuff
 	
 	def setstatus(status)
 		if(status > @status)
-			#puts "status set to "+status.to_s+ " from  "+@status.to_s
 			@status = status
 			recolor
 		end
@@ -71,29 +73,17 @@ module Stuff
 	
 	def disconnect
 		@button.label = '('+@name+')'
-		#line = {}
-		#line['err'] = 'Disconnected'
-		#line['time'] = Time.new.to_i
-		#send_event(line, ERROR)
-		@connected = false
-		#puts 'disconnecting ' +@name
 	end
 	
 	def reconnect
 		@button.label = @name
 		@connected = true
-		#line = {}
-		#line['msg'] = 'Reconnected'
-		#line['time'] = Time.new.to_i
-		#send_event(line, NOTICE)
-		#puts 'disconnecting ' +@name
 	end
 	
 	#set the button color
 	def recolor
 		label = @button.child
 		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status))
-		#puts 'recolored '+@name+' to '+@status.to_s
 	end
 	
 	def send_event(line, type, insert_location=BUFFER_END)
@@ -106,7 +96,6 @@ module Stuff
 		end
 		
 		if $config['usetimestamp']
-			#puts 'using timestamp'
 			pattern = Time.at(line['time'].to_i).strftime($config['timestamp'])
 		else
 			pattern = ''
@@ -120,8 +109,6 @@ module Stuff
 		
 		if type == MESSAGE
 			setstatus(NEWMSG)
-			#line.each {|key, value| print key, " is ", value, "\n" }
-			#puts "\n"
 			pattern += $config['message'].deep_clone
 			if line['nick']
 				pattern['%u'] = line['nick']
@@ -133,12 +120,6 @@ module Stuff
 		elsif type == USERMESSAGE
 			setstatus(NEWMSG)
 			pattern += $config['usermessage'].deep_clone
-			#~ if line['nick']
-				#~ pattern['%u'] = line['nick']
-			#~ else
-				#~ pattern['%u'] = line['presence']
-			#~ end
-			#puts @username, @server.username
 			if username
 				pattern['%u'] = username
 				users.push(username)
@@ -217,20 +198,6 @@ module Stuff
 		$main.scroll_to_end(self)
 			
 	end
-	
-	#add some text to the message buffer
-	#def addtext(string)
-	#	@status = NEWDATA
-	#	recolor
-	#	@newlinestart = @buffer.end_iter
-	#	#ensure we don't have a new line at the beginning of the buffer
-	#	if(@newlinestart.offset > 0)
-	#		sendtobuffer("\n", nil)
-	#	end
-	#	colortext(string)
-	#	@newlineend = @buffer.end_iter
-	#	@endmark = @buffer.create_mark('end', @buffer.end_iter, false)
-	#end
 	
 	#add a command to the buffer
 	def addcommand(string)
@@ -340,12 +307,13 @@ module Stuff
 		link_tags.each do |k, v|
 			#puts k
 			#tag = @buffer.create_tag(v, {})
-			#name = 'link_'+rand(1000).to_s+'_'+v
+			name = 'link_'+rand(1000).to_s+'_'+v
 			while @buffer.tag_table.lookup(name)#
 				name = 'link_'+rand(1000).to_s+'_'+v
 			end
 			tag = Gtk::TextTag.new(name)
 			@buffer.tag_table.add(tag)
+			#puts @buffer.tag_table.lookup(name)
 			#tag.foreground = 'blue'
 			tag_start = @buffer.get_iter_at_offset(k.begin+start)
 			tag_end = @buffer.get_iter_at_offset(k.end+start)
@@ -358,13 +326,14 @@ module Stuff
 		user_tags.each do |k, v|
 			#puts k
 			#tag = @buffer.create_tag(v, {})
-			#name = 'user_'+rand(1000).to_s+'_'+v
+			name = 'user_'+rand(1000).to_s+'_'+v
 			while @buffer.tag_table.lookup(name)#
 				name = 'user_'+rand(1000).to_s+'_'+v
 			end
 			tag = Gtk::TextTag.new(name)
 			#tag.foreground = 'blue'
 			@buffer.tag_table.add(tag)
+			#puts @buffer.tag_table.lookup(name)
 			tag_start = @buffer.get_iter_at_offset(k.begin+start)
 			tag_end = @buffer.get_iter_at_offset(k.end+start)
 			#puts tag_start.offset, tag_end.offset, '<>'
@@ -372,53 +341,13 @@ module Stuff
 			#tag.data['type'] = 'user'
 			#tag.data['user'] = v
 		end
-		
 	end
-	
-	#parse the colors in the text
-	#~ def colortext(string, insert, origcolor = nil)
-		#~ re = /((%\d).+?\2)/
-		#~ md = re.match(string)
-		#~ i = 0
-		#~ while md.class == MatchData
-			#~ insert = sendtobuffer(md.pre_match, insert, origcolor) if !md.pre_match.empty?
-			#~ color = md[2].gsub!('%', 'color')
-			#~ colorid = md[2].gsub!('%', '')
-			#~ text = md[0].gsub('%'+colorid, '')
-			#~ #pass the text back to the function to look for any nested colors.
-			#~ insert = colortext(text, insert, color)
-			#~ #insert = sendtobuffer(text, insert, color)
-			#~ tail = md.post_match
-			#~ md = re.match(tail)
-			#~ i+=1
-		#~ end
-		#~ if i == 0
-			#~ insert = sendtobuffer(string, insert, origcolor)
-		#~ end
-		#~ if tail
-			#~ insert = sendtobuffer(tail, insert, origcolor)
-		#~ end
-		#~ return insert
-	#~ end
-	
-	#~ #send the text to the buffer
-	#~ def sendtobuffer(string, insert, color)
-		#~ enditer = @buffer.end_iter
-		#~ if color != nil
-			#~ #puts "Colored: "+color+' '+string
-			#~ @buffer.insert(insert, string, color)
-		#~ else
-			#~ #puts "Uncolored: "+string
-			#~ @buffer.insert(insert, string)
-		#~ end
-		#~ return insert
-	#~ end
 end
 
-class ServerList
-	include Stuff
-	attr_reader :servers, :box, :buffer, :button, :name, :parent, :config, :username, :connected
+class RootBuffer < Buffer
+	attr_reader :servers, :box, :button, :name, :parent, :config, :username, :connected
 	def initialize(parent)
+		super()
 		@username = ''
 		@parent = parent
 		@servers = Array.new
@@ -429,16 +358,6 @@ class ServerList
 		end
 		@box.show
 		#@config = @parent.config
-		@buffer = Gtk::TextBuffer.new
-		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
-		@commandbuffer = []
-		@currentcommand = ''
-		@commandindex = 0
 		@button = Gtk::ToggleButton.new('servers')
 		@name = 'servers'
 		@button.show
@@ -493,7 +412,7 @@ class ServerList
 		#	x.connect
 		#	return x
 		else
-			newserver = Server.new(name, presence, self)
+			newserver = ServerBuffer.new(name, presence, self)
 			@servers.push(newserver)
 			@servers = @servers.sort
 			insertintobox(newserver)
@@ -565,11 +484,11 @@ class ServerList
 	end
 end
 
-class Server
-	include Stuff
-	attr_reader :name, :channels, :buffer, :button, :box, :parent, :config, :username, :presence, :connected, :users
+class ServerBuffer < Buffer
+	attr_reader :name, :channels, :button, :box, :parent, :config, :username, :presence, :connected, :users
 	#attr_writer :username, :presence
 	def initialize(name, presence, parent)
+		super()
 		@presence = presence
 		#puts @presence
 		@username = @presence.deep_clone
@@ -577,17 +496,8 @@ class Server
 		@name = name
 		@channels = Array.new
 		#@config = getparentwindow.config
-		@buffer = Gtk::TextBuffer.new
+		#@buffer = Gtk::TextBuffer.new
 		@users = UserList.new
-		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
-		@commandbuffer = []
-		@currentcommand = ''
-		@commandindex = 0
 		@button = Gtk::ToggleButton.new(@name)
 		@button.setchannel(self)
 		@button.signal_connect('clicked')do |w|
@@ -642,7 +552,7 @@ class Server
 			puts 'You are already connected to #'+name+" on this server"
 			return
 		end
-		newchannel = Channel.new(name, self)
+		newchannel = ChannelBuffer.new(name, self)
 		@channels.push(newchannel)
 		@channels = @channels.sort
 		insertintobox(newchannel)
@@ -694,35 +604,21 @@ class Server
 	
 end
 
-class Channel
-	include Stuff
-	attr_reader :name, :buffer, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
+class ChannelBuffer < Buffer
+	attr_reader :name, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
 	attr_writer :topic
 	def initialize(name, server)
+		super()
 		@server = server
 		@name = name
 		#puts @server.username
 		#@config = getparentwindow.config
-		@buffer = Gtk::TextBuffer.new
+		#@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)
 		@renderer = Gtk::CellRendererText.new
 		@column = Gtk::TreeViewColumn.new("Users", @renderer)
 		@column.add_attribute(@renderer, "text",  0)
 		@userlist.clear
-		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
-		#~ @buffer.modify_bg(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#~ @buffer.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		#~ @buffer.modify_bg(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		#~ @buffer.modify_fg(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-		#@buffer.create_tag('standard', {'foreground_gdk'=>$config.standard})
-		@commandbuffer = []
-		@currentcommand = ''
-		@commandindex = 0
 		@status = INACTIVE
 		@topic = ''
 		@button = Gtk::ToggleButton.new(name)
@@ -848,4 +744,3 @@ class Channel
 	#~ end
 
 end
-		
