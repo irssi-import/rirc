@@ -423,8 +423,12 @@ class Main
 		elsif network
 			messages = message.split("\n")
 			messages.each { |message|
-
-				send_command('message'+rand(100).to_s, 'msg;network='+network+';channel='+channel+';msg='+escape(message)+";presence="+presence)
+				
+				if channel.class == ChannelBuffer
+					send_command('message'+rand(100).to_s, 'msg;network='+network+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
+				elsif channel.class == ChatBuffer
+					send_command('message'+rand(100).to_s, 'msg;network='+network+';nick='+channel.name+';msg='+escape(message)+";presence="+presence)
+				end
 				line = {}
 				line['nick'] = presence
 				line['msg'] = message
@@ -852,7 +856,25 @@ class Main
 				#~ end	
 				
 			elsif line['type'] == 'msg'
-				return if !line['channel']
+				if !line['channel'] and line['no-autoreply']
+					if line['nick']
+						network.send_event(line, MESSAGE)
+					else
+						network.send_event(line, NOTICE)
+					end
+					return
+				elsif !line['channel'] and line['nick']
+					#puts network.chat_exists?(line['nick'])
+					if !network.chat_exists?(line['nick'])
+						chat = network.addchat(line['nick'])
+					else
+						chat = network.chat_exists?(line['nick'])
+					end
+					chat.send_event(line, MESSAGE)
+					return
+				elsif !line['channel']
+					return
+				end
 				
 				if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
 					network.users[line['name']].hostname = line['address']
@@ -986,7 +1008,6 @@ class Main
 		send_command('quit', 'quit')
 		@connection.close if @connection
 		puts 'bye byeeeeee...'
-		Gtk.main_quit
 		exit
 	end
 end

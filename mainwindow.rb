@@ -57,6 +57,20 @@ class MainWindow
 		
 		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
 		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
+		@messages.signal_connect('key_press_event') do |widget, event|
+			if event.keyval
+				#puts Gdk::Keyval.to_unicode(event.keyval)
+				
+				#focus_input
+				#@messageinput.signal_emit('key_press_event', event)
+				#@messageinput.delete_selection
+			end
+		end
+		#~ @messages.key_snooper_install do |widget, event|
+			#~ focus input
+			#~ @messageinput.signal_emit('key_press_event', event)
+			#~ return true
+		#~ end
 		
 		@path= $path
 		
@@ -86,9 +100,10 @@ class MainWindow
 		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
 		
+		puts $config['selectedbackgroundcolor'], $config['selectedforegroundcolor']
+		
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-		
 		
 		@glade['window1'].resize(x, y)
 		@glade['window1'].show
@@ -166,20 +181,22 @@ class MainWindow
 	
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
-		return if @channelbuttonlock
+		#I dunno if there was a better way then using a lock, but its the only solution that I tried that worked
+		#return if @channelbuttonlock
 		if !channel.button.active? or channel == @currentbuffer
 			if @currentbuffer == channel and @currentbuffer.button.active? == false
-				@currentbuffer.button.active = true
+				@currentbuffer.activate
 				return
 			end
 		end
-		@channelbuttonlock = true
+		#@channelbuttonlock = true
 		#puts 'yes way', @currentbuffer, channel, channel.button.active?
 		@currentbuffer.currentcommand = @messageinput.text
 		@currentbuffer.deactivate
 		@userlist.remove_column(@currentbuffer.column) if @currentbuffer.class == ChannelBuffer
 		@currentbuffer = channel
 		@messageinput.text = @currentbuffer.currentcommand
+		#@messageinput.delete_selection
 		#~ selection = Gdk::EventSelection.new(Gdk::Event::SELECTION_CLEAR)
 		#~ @messageinput.signal_emit('selection_clear_event', selection)
 		#~ @messageinput.signal_emit('selection_notify_event', selection)
@@ -187,7 +204,7 @@ class MainWindow
 		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
-		@channelbuttonlock = false
+		#@channelbuttonlock = false
 	end
 	
 	def updateusercount
@@ -228,8 +245,11 @@ class MainWindow
 		return if widget.text.length == 0
 		@currentbuffer.addcommand(widget.text)
 		
-		channel = @currentbuffer.name
+		#channel = @currentbuffer.name
 		if @currentbuffer.class == ChannelBuffer
+			network = @currentbuffer.server.name
+			presence = @currentbuffer.server.presence
+		elsif @currentbuffer.class == ChatBuffer
 			network = @currentbuffer.server.name
 			presence = @currentbuffer.server.presence
 		elsif @currentbuffer.class == ServerBuffer
@@ -240,7 +260,7 @@ class MainWindow
 		end
 		
 		message = widget.text
-		$main.handle_input(message, channel, network, presence)
+		$main.handle_input(message, @currentbuffer, network, presence)
 		widget.text = ''
 	end
 	
@@ -284,10 +304,11 @@ class MainWindow
 		x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
 		if event.button == 1
 			textview_go_link(widget, x, y)
+			return false
 		elsif event.button == 3
 			textview_popup_menu(widget, event, x, y)
+			return true
 		end
-		true
 	end
 	
 	def textview_motion_notify(widget, event)
@@ -295,6 +316,8 @@ class MainWindow
 		textview_set_cursor(widget, x, y)
 		@x = event.x
 		@y = event.y
+		focus_input
+		return false
 	end
 	
 	def textview_go_link(widget, x, y)
@@ -343,7 +366,7 @@ class MainWindow
 		iter = textview.get_iter_at_location(x, y)
 		
 		@highlighted.each do |tag|
-			tag.foreground = 'black'
+			#tag.foreground = 'black'
 			tag.underline = Pango::AttrUnderline::NONE
 		end
 		
@@ -404,7 +427,15 @@ class MainWindow
 	end
 	
 	def focus_input
-		@messageinput.grab_focus
+		start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
+		stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
+		if @currentbuffer.buffer.get_text(start, stop).length <= 0
+			#puts 'no selection'
+			@messageinput.grab_focus
+			#@messageinput.delete_selection
+		else
+			@messages.grab_focus
+		end
 	end
 	
 	def quit

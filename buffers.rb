@@ -17,7 +17,7 @@ ERROR = 6
 NOTICE = 7
 
 class Buffer
-	attr_reader :endmark, :oldendmark, :currentcommand, :buffer
+	attr_reader :endmark, :oldendmark, :currentcommand, :buffer, :button
 	attr_writer :currentcommand
 	#spaceship operator
 	def initialize(name)
@@ -34,9 +34,10 @@ class Buffer
 		@button = Gtk::ToggleButton.new(name)
 		@button.show
 		@button.active = false
-		@button.signal_connect('toggled')do |w|
+		@togglehandler = @button.signal_connect('toggled')do |w|
 			switchchannel(self)
 		end
+		puts @togglehandler
 	end
 	
 	def switchchannel(channel)
@@ -65,7 +66,9 @@ class Buffer
 	end
 	
 	def activate
+		@button.signal_handler_block(@togglehandler)
 		@button.active=true #if !@button.active?
+		@button.signal_handler_unblock(@togglehandler)
 		#@button.signal_emit_stop('toggled')
 		@status = ACTIVE
 		recolor
@@ -73,8 +76,10 @@ class Buffer
 	end
 	
 	def deactivate
+		@button.signal_handler_block(@togglehandler)
 		@button.active=false #if @button.active?
 		#@button.signal_emit_stop('toggled')
+		@button.signal_handler_unblock(@togglehandler)
 		@status = INACTIVE
 		recolor
 	end
@@ -360,7 +365,7 @@ class Buffer
 end
 
 class RootBuffer < Buffer
-	attr_reader :servers, :box, :button, :name, :parent, :config, :username, :connected
+	attr_reader :servers, :box, :name, :parent, :config, :username, :connected
 	def initialize(parent)
 		super('Servers')
 		@username = ''
@@ -492,7 +497,7 @@ class RootBuffer < Buffer
 end
 
 class ServerBuffer < Buffer
-	attr_reader :name, :channels, :button, :box, :parent, :config, :username, :presence, :connected, :users
+	attr_reader :name, :channels, :box, :parent, :config, :username, :presence, :connected, :users
 	#attr_writer :username, :presence
 	def initialize(name, presence, parent)
 		super(name)
@@ -502,6 +507,7 @@ class ServerBuffer < Buffer
 		@parent = parent
 		@name = name
 		@channels = Array.new
+		@chats = Array.new
 		#@config = getparentwindow.config
 		#@buffer = Gtk::TextBuffer.new
 		@users = UserList.new
@@ -560,13 +566,34 @@ class ServerBuffer < Buffer
 		return newchannel
 	end
 	
-	def insertintobox(newchannel)
+	def addchat(name)
+		#return if @chats[name]
+		
+		
+		newchat = ChatBuffer.new(name, self)
+		@chats.push(newchat)
+		@chats.sort
+		insertintobox(newchat)
+		return newchat
+	end
+	
+	def insertintobox(item)
 		#insert the widget
-		@box.pack_start(newchannel.button, true, true)
-		for i in 0...(@channels.length)
-			if @channels[i] == newchannel
-				@box.reorder_child(newchannel.button, i+1)
-				return
+		if item.class == ChannelBuffer
+			@box.pack_start(item.button, true, true)
+			for i in 0...(@channels.length)
+				if @channels[i] == item
+					@box.reorder_child(item.button, i+1)
+					return
+				end
+			end
+		elsif item.class == ChatBuffer
+			@box.pack_start(item.button, true, true)
+			for i in 0...(@chats.length)
+				if @chats[i] == item
+					@box.reorder_child(item.button, (i+@channels.length+1))
+					return
+				end
 			end
 		end
 	end
@@ -586,6 +613,15 @@ class ServerBuffer < Buffer
 		else
 			return name2index(key)
 		end
+	end
+	
+	def chat_exists?(name)
+		@chats.each do |chat|
+			if chat.name == name
+				return chat
+			end
+		end
+		return false
 	end
 	
 	def name2index(name)
@@ -610,7 +646,7 @@ class ServerBuffer < Buffer
 end
 
 class ChannelBuffer < Buffer
-	attr_reader :name, :button, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
+	attr_reader :name, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
 	attr_writer :topic
 	def initialize(name, server)
 		super(name)
@@ -739,5 +775,34 @@ class ChannelBuffer < Buffer
 	#~ end
 	def getnetworkpresencepair
 		return @server.getnetworkpresencepair
+	end
+end
+
+class ChatBuffer < Buffer
+	attr_reader :name, :server
+	def initialize(name, server)
+		super(name)
+		@server = server
+		@name = name
+		#puts @server.username
+		#@config = getparentwindow.config
+		#@buffer = Gtk::TextBuffer.new
+		@userlist = Gtk::ListStore.new(String)
+		@renderer = Gtk::CellRendererText.new
+		@column = Gtk::TreeViewColumn.new("Users", @renderer)
+		@column.add_attribute(@renderer, "text",  0)
+		@userlist.clear
+		@status = INACTIVE
+		@topic = ''
+		@button.label= @name
+		@button.active = false
+		@button.show
+		@users = UserList.new
+		@connected = true
+		
+		@useriters = []
+	end
+	def username
+		return @server.username
 	end
 end

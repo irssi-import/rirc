@@ -7,7 +7,6 @@ Big things:
 	Finish porting rirc to windows (if I can be bothered)
 	
 Little things:
-	/msgs from other users should open a new tab at the end of the channel list for that network
 	network buffers should also maybe do event get
 	Search the logs to find user's hostname for event get events like /part and /join
 	Tab completion
@@ -15,6 +14,7 @@ Little things:
 	Disable tab for input line
 	
 Bugs:
+	Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
 	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)
 	Disappearing nick bug (change nick from vag to vag2 for example)
 	
