@@ -9,9 +9,9 @@ Big things:
 Little things:
 	network buffers should also maybe do event get
 	Search the logs to find user's hostname for event get events like /part and /join
-	Tab completion
 	Implement long format date
-	Disable tab for input line
+	Store hostname, last activity time in user object
+	Add ability to sort tabcompleted users by last activity time (needs above)
 	
 Bugs:
 	Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
