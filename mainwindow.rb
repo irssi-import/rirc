@@ -28,10 +28,27 @@ class MainWindow
 		
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
+			#puts Gdk::Keyval.to_name(event.keyval)
+			if event.keyval == Gdk::Keyval.from_name('Tab')
+				if @currentbuffer.class == ChannelBuffer
+					substr = get_completion_substr
+					#puts substr
+					nick = @currentbuffer.tabcomplete(substr)
+					#@messageinput.text = nick if nick
+					replace_completion_substr(substr, nick) if nick
+				end
+			else
+				if @currentbuffer.class == ChannelBuffer
+					@currentbuffer.clear_tabcomplete
+				end
+			end
+			
 			if event.keyval == Gdk::Keyval.from_name('Up')
 				getlastcommand
 			elsif event.keyval == Gdk::Keyval.from_name('Down')
 				getnextcommand
+			elsif event.keyval == Gdk::Keyval.from_name('Tab')
+				true
 			end
 		end
 		#~ if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
@@ -57,15 +74,15 @@ class MainWindow
 		
 		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
 		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
-		@messages.signal_connect('key_press_event') do |widget, event|
-			if event.keyval
+		#@messages.signal_connect('key_press_event') do |widget, event|
+			#if event.keyval
 				#puts Gdk::Keyval.to_unicode(event.keyval)
 				
 				#focus_input
 				#@messageinput.signal_emit('key_press_event', event)
 				#@messageinput.delete_selection
-			end
-		end
+			#end
+		#end
 		#~ @messages.key_snooper_install do |widget, event|
 			#~ focus input
 			#~ @messageinput.signal_emit('key_press_event', event)
@@ -177,25 +194,67 @@ class MainWindow
 			return false
 		end
 	end
-
 	
+	def get_completion_substr
+		string = @messageinput.text
+		position = @messageinput.position
+		#puts position
+		string = string[0, position]
+		#puts string
+		name, whatever = string.reverse.split(' ', 2)
+		
+		name = name.reverse
+		
+		return name
+	end
+	
+	def replace_completion_substr(substr, nick)
+		nick = nick
+		string = @messageinput.text.rstrip
+		
+		index = string.rindex(substr)
+		
+		string = string.reverse.sub(substr.reverse, nick.reverse)
+		string.reverse!
+		#index = string.rindex(nick)
+		#puts index
+		if index == 0
+			if string[nick.length, 1] == ' '
+				string.insert(nick.length, ';')
+			else
+				string.insert(nick.length, '; ')
+			end
+		elsif index+nick.length == string.length
+			#~ puts index
+			#~ puts nick.length
+			#~ puts index+nick.length
+			#~ puts string.length
+			#puts 'end'
+		else
+			if string[index+nick.length, 1] != ' '
+				string.insert(index+nick.length, ' ')
+			end
+			#puts 'middle'
+		end
+		@messageinput.text = string
+		@messageinput.set_position(index+nick.length+1)
+	end
+
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
-		#I dunno if there was a better way then using a lock, but its the only solution that I tried that worked
-		#return if @channelbuttonlock
 		if !channel.button.active? or channel == @currentbuffer
 			if @currentbuffer == channel and @currentbuffer.button.active? == false
 				@currentbuffer.activate
 				return
 			end
 		end
-		#@channelbuttonlock = true
-		#puts 'yes way', @currentbuffer, channel, channel.button.active?
 		@currentbuffer.currentcommand = @messageinput.text
 		@currentbuffer.deactivate
 		@userlist.remove_column(@currentbuffer.column) if @currentbuffer.class == ChannelBuffer
 		@currentbuffer = channel
 		@messageinput.text = @currentbuffer.currentcommand
+		@messageinput.select_region(0, 0)
+		@messageinput.position=-1
 		#@messageinput.delete_selection
 		#~ selection = Gdk::EventSelection.new(Gdk::Event::SELECTION_CLEAR)
 		#~ @messageinput.signal_emit('selection_clear_event', selection)
@@ -204,7 +263,6 @@ class MainWindow
 		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
-		#@channelbuttonlock = false
 	end
 	
 	def updateusercount
@@ -432,6 +490,8 @@ class MainWindow
 		if @currentbuffer.buffer.get_text(start, stop).length <= 0
 			#puts 'no selection'
 			@messageinput.grab_focus
+			@messageinput.select_region(0, 0)
+			@messageinput.position=-1
 			#@messageinput.delete_selection
 		else
 			@messages.grab_focus

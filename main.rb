@@ -202,6 +202,7 @@ class Configuration
 end
 
 #load all my home rolled ruby files here
+require 'tabcomplete'
 require 'users'
 require 'buffers'
 require 'events'

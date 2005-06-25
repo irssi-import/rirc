@@ -114,8 +114,20 @@ class UserList
 		return result
 	end
 	
-	def sort
-		@users.sort!
+	def sort!(&block)
+		if block_given?
+			@users.sort!(&block)
+		else
+			@users.sort!
+		end
+	end
+	
+	def sort(&block)
+		if block_given?
+			return @users.sort(&block)
+		else
+			return @users.sort
+		end
 	end
 	
 	def length
