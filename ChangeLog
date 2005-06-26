@@ -1,0 +1,210 @@
+2005-06-26 19:42:34 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Tabcomplete can now sort results alphabetically or by last message time
+	Time can be taken from the server, or from the client, all times will be 
+	Corrected to use the same time.
+	Tabcomplete sorting, time source and link click action are now 
+	Configurable via the GUI.
+	Bugfixes to the tabcomplete
+	Bugfixes in the config code
+	Some commenting of main.rb
+	Other bugfixes and cleanups
+
+2005-06-25 23:28:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	update todo
+
+2005-06-25 23:25:28 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Tabcompletion!
+	various h4x I can'r remember ATM
+
+2005-06-24 23:46:56 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Hackish workaround for selected text color bug
+	Chat tabs implemented (results of /msg) - need to make them rename when 
+	user changes their nick tho...
+
+2005-06-23 21:10:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	More work on making the buffers inherit more from the parent class
+	Fixed the channelbutton toggle bug
+
+2005-06-23 17:29:42 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Code reorganization
+
+2005-06-22 00:45:37 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	added crazy silc key stuff
+
+2005-06-20 23:10:38 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	removed debugging prints
+
+2005-06-20 23:04:10 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Added right click pop-up menus for URLs and usernames
+	Added direct click for URLs (browser used to open links is hardcoded to 
+	firefox ATM)
+	Fixed text coloring bug
+	Presence name is now configurable via the connection window (need a 
+	better way to set the presence)
+	Timestamps are now toggleable
+	Some code reorgninizations and fixes
+
+2005-06-18 15:35:50 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Foreground and background colors are now applied
+	The input line is correctly kept in focus
+
+2005-06-18 14:02:06 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	override the connection window's 'x' button event
+
+2005-06-18 13:53:53 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	More work on the connection dialog, settings are now saved and 
+	autoconnect has been added
+
+2005-06-17 23:11:34 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Remove Config.rb, update readme
+
+2005-06-17 23:02:56 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Connection GUI - does not currentlu save config
+
+2005-06-15 23:24:19 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Work on the config stuff
+	Channel list is now placeable top, bottom, left, right
+	Window dimensions and seperator position are saved
+	bugfixes
+
+2005-06-12 18:48:58 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Hooked up config to set and get config from irssi2
+	Made the default colors a little less ugly
+
+2005-06-12 03:04:49 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	added category changing for config
+
+2005-06-12 02:46:38 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Work on the config gui (still very incomplete)
+	Mminor reorginization of 
+	files
+
+2005-06-11 18:26:11 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Work on file send
+	Bugfixes
+
+2005-06-10 22:38:04 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Changed seperator to ; to reflect irssi2 change
+	/send command for sending files
+	bugfixes
+
+2005-06-09 22:56:24 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	silc support
+
+2005-06-09 21:09:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	New ssh piggybacking code, code reorginazation, bugfixes
+
+2005-06-05 20:31:56 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	New ssh piggyback connection method (use this instead of net::ssh)
+	Tab coloring fix
+	minor connection/disconnection bugs
+
+2005-05-15 17:54:48 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Added TODO
+	Added /whois command
+	Added /nick command
+
+2005-05-14 16:30:32 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	made ssh a bit more configurable
+
+2005-05-14 15:57:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Exception handing
+
+2005-05-14 00:12:55 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Username fixes
+
+2005-05-13 22:38:35 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Added SSH support
+	Connection type is now configurable
+	/msg support
+	Username tracking
+
+2005-05-11 22:41:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	New event handler, and userlist now inserts correctly
+
+2005-05-10 21:53:45 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Excape : in topic
+
+2005-05-10 21:24:29 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	removed useless debug messages, filtered irc_events
+	Topics are now handled correctly and are filled on channel list events 
+	and updated on channel_changed events
+
+2005-05-10 17:42:26 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	/raw command for sending commands directly to irssi2
+	channel_join and channel_part events are now handled
+
+2005-05-09 23:27:54 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	colon escaping bug in event buffer
+
+2005-05-09 23:24:48 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	some hostname detection, more userlist work
+
+2005-05-09 18:24:07 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	More userlist work
+
+2005-05-09 01:27:48 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Code cleanup
+	Userlist overhaul(unfinished)
+
+2005-05-08 20:24:44 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	added /ruby command to allow debugging
+
+2005-05-08 18:46:52 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Added support for irssi2 disconnects/segfaults
+	Added error for missing config file
+
+2005-05-08 16:59:23 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Fixed error handling bug
+
+2005-05-08 16:49:38 - Geert
+
+	Fixed the structure.
+
+2005-05-08 16:44:29 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Initial import
+
+2005-05-08 16:39:01 - Geert
+
+	The rirc project.
+
