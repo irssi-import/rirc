@@ -41,6 +41,36 @@ class TabComplete
 	end
 end
 
+#mixin for adding to buffers
+module TabCompleteModule
+	def tabcomplete(substr)
+		if !@tabcomplete
+		
+			if $config['tabcompletesort'] == 'activity'
+				#sort by activity
+				list = @users.sort{|x, y| y.lastspoke <=> x.lastspoke}
+			else	
+				#otherwise, sort by name
+				list = @users.sort
+			end
+			
+			@tabcomplete = TabComplete.new(substr, list)
+			if @tabcomplete.firstmatch
+				return @tabcomplete.firstmatch.name
+			else
+				clear_tabcomplete
+				return nil
+			end
+		else
+			return @tabcomplete.succ.name
+		end
+	end
+	
+	def clear_tabcomplete
+		@tabcomplete = nil
+	end
+end
+
 #~ bleh = TabComplete.new('va', list)
 #~ bleh.results.each do |user|
 	#~ puts user.name

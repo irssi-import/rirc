@@ -89,8 +89,6 @@ class MainWindow
 			#~ return true
 		#~ end
 		
-		@path= $path
-		
 		@me = self
 		
 		@last = nil
@@ -211,8 +209,8 @@ class MainWindow
 	def replace_completion_substr(substr, nick)
 		nick = nick
 		string = @messageinput.text.rstrip
-		
-		index = string.rindex(substr)
+		position = @messageinput.position
+		index = string.rindex(substr, position)
 		
 		string = string.reverse.sub(substr.reverse, nick.reverse)
 		string.reverse!
@@ -468,14 +466,21 @@ class MainWindow
 	end
 	
 	def create_user_popup(user)
-		menu = Gtk::Menu.new
-		menu.append(Gtk::MenuItem.new(user))
-		whois = Gtk::MenuItem.new("Whois "+ user)
-		whois.signal_connect('activate') do |w|
-			puts 'requested whois for '+user
-			whois(user)
+		user = @currentbuffer.users[user] if @currentbuffer.users
+		if user
+			menu = Gtk::Menu.new
+			menu.append(Gtk::MenuItem.new(user.name))
+			menu.append(Gtk::MenuItem.new('hostname: '+user.hostname)) if user.hostname
+			menu.append(Gtk::MenuItem.new('Last message: '+user.lastspoke.strftime('%H:%M')))
+			whois = Gtk::MenuItem.new("Whois "+ user.name)
+			whois.signal_connect('activate') do |w|
+				puts 'requested whois for '+user.name
+				whois(user.name)
+			end
+			menu.append(whois)
+		else
+			menu = @defaultmenu
 		end
-		menu.append(whois)
 	end
 	
 	def whois(user)

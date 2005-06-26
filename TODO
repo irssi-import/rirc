@@ -10,9 +10,7 @@ Little things:
 	network buffers should also maybe do event get
 	Search the logs to find user's hostname for event get events like /part and /join
 	Implement long format date
-	Store hostname, last activity time in user object
-	Add ability to sort tabcompleted users by last activity time (needs above)
-	
+
 Bugs:
 	Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
 	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)

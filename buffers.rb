@@ -646,6 +646,7 @@ class ServerBuffer < Buffer
 end
 
 class ChannelBuffer < Buffer
+	include TabCompleteModule
 	attr_reader :name, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
 	attr_writer :topic
 	def initialize(name, server)
@@ -775,25 +776,6 @@ class ChannelBuffer < Buffer
 	#~ end
 	def getnetworkpresencepair
 		return @server.getnetworkpresencepair
-	end
-	
-	def tabcomplete(substr)
-		if !@tabcomplete
-			list = @users.sort
-			@tabcomplete = TabComplete.new(substr, list)
-			if @tabcomplete.firstmatch
-				return @tabcomplete.firstmatch.name
-			else
-				clear_tabcomplete
-				return nil
-			end
-		else
-			return @tabcomplete.succ.name
-		end
-	end
-	
-	def clear_tabcomplete
-		@tabcomplete = nil
 	end
 end
 

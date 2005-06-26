@@ -1,10 +1,12 @@
 class User
 	attr_reader :hostname, :name, :lastspoke
-	attr_writer :hostname, :lastspoke
+	attr_writer :hostname#, :lastspoke
 	def initialize(name)
 		@hostname = nil
 		@name = name
-		@lastspoke = Time.new
+		time = Time.new
+		time = time - $main.drift if $config['canonicaltime'] == 'server'
+		@lastspoke = time
 	end
 	
 	def rename(name)
@@ -33,6 +35,10 @@ class User
 			#~ end
 		#~ end
 		#~ return retval
+	end
+	
+	def lastspoke=(time)
+		@lastspoke = Time.at(time.to_i)
 	end
 	
 	def comparetostring(string)
@@ -74,9 +80,10 @@ class UserList
 		@users = []
 	end
 	
-	def create(name)
+	def create(name, hostname = nil)
 		return if self[name]
 		new = User.new(name)
+		new.hostname = hostname
 		@users.push(new)
 		@users.sort!
 		#puts 'creating user: ' +name

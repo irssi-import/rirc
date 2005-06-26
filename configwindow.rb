@@ -15,6 +15,8 @@ class ConfigWindow
 		@channellistposition = @glade['channellistposition']
 		@options = {}
 		@options['channellistposition'] = ['Top', 'Bottom', 'Left', 'Right']
+		@options['canonicaltime'] = ['Server', 'Client']
+		@options['tabcompletesort'] = ['Alphabetical', 'Activity']
 		#~ i = 0
 		#~ #fill the combobox
 		#~ @positions.each do |value|
@@ -28,13 +30,13 @@ class ConfigWindow
 		parent = @treestore.append(nil)
 		parent[0] = "Interface"
 		child2 = @treestore.append(parent)
-		child2[0] = "Layout"
+		child2[0] = "Miscallenous"
 		child = @treestore.append(parent)
 		child[0] = "Prompts"
 		child = @treestore.append(parent)
 		child[0] = "Colors"
 		
-		@categories = {'Layout' => @glade['layoutconfig'], 'Prompts'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
+		@categories = {'Miscallenous' => @glade['miscconfig'], 'Prompts'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
 		
 		#~ @treeselection.set_select_function do
 		#~ |selection, model, path, path_currently_selected|
@@ -65,7 +67,7 @@ class ConfigWindow
 		@treeselection.select_iter(child2)
 		@currentcategory = @configarea.child
 		#puts @currentcategory
-		draw_category(@categories['Layout'])
+		draw_category(@categories['Miscallenous'])
 		@configarray = {}
 		
 		#puts @glade['message'].class
@@ -87,10 +89,12 @@ class ConfigWindow
 					i = 0
 					#fill the combobox
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+					puts key
+					next unless @options[key]
 					@options[key].each do |v|
-						@channellistposition.append_text(v)
+						@glade[key].append_text(v)
 						if value == v.downcase
-							@channellistposition.active = i
+							@glade[key].active = i
 						end
 						i += 1
 					end
@@ -130,7 +134,7 @@ class ConfigWindow
 	end
 
 	def change_setting(widget, setting)
-		puts 'changed setting of '+widget.name
+		puts 'changed setting of '+widget.name+' to '+setting.to_s
 		@configarray[widget] = {'name' => widget.name, 'value' => setting}
 	end
 	

@@ -18,9 +18,9 @@ class SSHConnection
 		#sleep 5
 		#loop { puts @output.gets }
 		begin
-			@output.expect(/^\*;preauth;time=\d*$/) do
+			@output.expect(/^\*;preauth;time=(\d+)\n/) do |x, y|
 				connectionwindow.send_text('logged in')
-				#@connected = true
+				$main.calculate_clock_drift(y)
 			end
 		
 		rescue NoMethodError

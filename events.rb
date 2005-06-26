@@ -57,6 +57,14 @@ class Event
 			end
 		end
 		
+		if @command['command'] != 'event get'
+			$main.calculate_clock_drift(temp['time'])
+		end
+		
+		if $config['canonicaltime'] == 'client'
+			temp['time'] = Time.at(temp['time'].to_i + $main.drift)
+		end
+		
 		if temp['status'] == '+'
 			@complete = true
 		end

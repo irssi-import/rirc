@@ -24,13 +24,17 @@ class Object
 end
 
 def duration(seconds)
-
-	mins = (seconds / 60).floor
-	secs = seconds % 60
-	hours = (mins/60).floor
-	mins = mins%60
-	days = (hours/24).floor
-	hours = hours%24
+	if seconds < 0
+		seconds *= -1
+		negative = true
+	end
+	
+	mins = (seconds / 60).floor.to_i
+	secs = (seconds % 60).to_i
+	hours = (mins/60).floor.to_i
+	mins = (mins%60).to_i
+	days = (hours/24).floor.to_i
+	hours = (hours%24).to_i
 	
 	stuff = []
 	
@@ -40,10 +44,14 @@ def duration(seconds)
 	stuff.push(days.to_s+' Days') if days > 0
 	
 	if stuff.length > 1
-		return stuff.pop+' '+stuff.pop
+		result = stuff.pop+' '+stuff.pop
 	else
-		return stuff[0]
+		result = stuff[0]
 	end
+	
+	result = ' - '+result if negative
+	
+	return result
 end
 
 	
@@ -95,6 +103,9 @@ class Configuration
 		
 		@values['presence'] = 'vag'
 		
+		@values['canonicaltime'] = 'client'
+		@values['tabcompletesort'] = 'activity'
+		
 		@oldvalues = {}
 	end
 	
@@ -103,14 +114,17 @@ class Configuration
 		return @statuscolors[status]
 	end
 	
+	#retrieves a value
 	def [](value)
 		return get_value(value)
 	end
 	
+	#why is this here?
 	def get_all_values
 		return @values
 	end
 	
+	#another mystery function
 	def get_value(value)
 		if @values.values
 			return @values[value]
@@ -119,10 +133,12 @@ class Configuration
 		end
 	end
 	
+	#set a config value
 	def set_value(key, value)
 		@values[key] = value
 	end
 	
+	#send the config to irssi2
 	def send_config
 		cmdstring = ''
 		
@@ -130,14 +146,15 @@ class Configuration
 			value = encode_value(v)
 			if @oldvalues[k] != value or  !@oldvalues[k]
 				cmdstring += ';rirc_'+k+'='+value if k and value
-				#puts k+" HAS changed"
+				puts k+" HAS changed"
 			else
 				#puts k+' has not changed'
 			end
 		end
 		
 		if cmdstring == ''
-			#puts 'no changes'
+			puts 'no changes'
+			return
 		else
 			cmdstring = 'config set'+cmdstring
 		end
@@ -145,6 +162,7 @@ class Configuration
 		$main.send_command('sendconfig', cmdstring)
 	end
 	
+	#request the config from irssi2
 	def get_config
 		$main.send_command('getconfig', 'config get;*')
 		while $main.events['getconfig']
@@ -152,6 +170,7 @@ class Configuration
 		end
 	end
 	
+	#encode the values so they can be stored by irssi2
 	def encode_value(value)
 		if value.class == Gdk::Color
 			colors = value.to_a
@@ -167,6 +186,7 @@ class Configuration
 		end
 	end
 	
+	#decode values retrieved from irssi2
 	def decode_value(value)
 		#puts value
 		if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
@@ -181,6 +201,7 @@ class Configuration
 		end
 	end
 	
+	#parse the configs retrieved from irssi2
 	def parse_config(event)
 		event.lines.each do |line| 
 			if line['key'] and line['value']
@@ -193,6 +214,7 @@ class Configuration
 		create_config_snapshot
 	end
 	
+	#create a copy of the config so we can compare for changes
 	def create_config_snapshot
 		@values.each do |k, v|
 			@oldvalues[k.deep_clone] = encode_value(v)
@@ -213,7 +235,7 @@ require 'connectionwindow'
 
 
 class Main
-	attr_reader :serverlist, :window, :events, :connectionwindow
+	attr_reader :serverlist, :window, :events, :connectionwindow, :drift
 	def initialize
 		@serverlist = RootBuffer.new(self)
 		@connection = nil
@@ -223,8 +245,10 @@ class Main
 		@filehandles = []
 		@filedescriptors = {}
 		@keys = {}
+		@drift = 0
 	end
 	
+	#start doing stuff
 	def start
 		Gtk.init
 		@connectionwindow = ConnectionWindow.new
@@ -235,26 +259,31 @@ class Main
 		Gtk.main
 	end
 	
+	#wrapper for window function
 	def switchchannel(channel)
 		@window.switchchannel(channel) if @window
 	end
 	
+	#wrapper for window function
 	def scroll_to_end(channel)
 		@window.scroll_to_end(channel)
 	end
 	
+	#escape the string
 	def escape(string)
 		result = string.gsub('\\', '\\\\\\')
 		result.gsub!(';', '\\.')
 		return result
 	end
 	
+	#unescape the string
 	def unescape(string)
 		result = string.gsub('\\.', ';')
 		result.gsub!('\\\\', '\\')
 		return result
 	end
 	
+	#connect to irssi2
 	def connect(method, settings)
 		return if @connection
 		#Thread.start{
@@ -296,6 +325,7 @@ class Main
 		#}
 	end
 	
+	#what do do when we get disconnected from irssi2
 	def disconnect
 		@connection = nil
 		#puts 'doing global disconnect'
@@ -305,9 +335,9 @@ class Main
 				channel.disconnect
 			}
 		}
-		#sleep 5#prevent flooding the server with reconnect requests
 	end
 	
+	#connect to a network
 	def connectnetwork(name, protocol, address, port,  presence)
 		send_command('addnet', "network add;name="+name+";protocol="+protocol)
 		cmdstring = "presence add;name="+presence+";network="+name
@@ -324,7 +354,8 @@ class Main
 		send_command('addhost', temp)
 		send_command('connect', "presence connect;network="+name+";presence="+presence)
 	end
-		
+	
+	#split by line and parse each line
 	def parse_lines(string)
 		lines = string.split("\n")
 		
@@ -332,7 +363,8 @@ class Main
 			handle_output(lines[i])
 		end
 	end
-  
+	
+	#what to do with input from the user
 	def handle_input(message, channel, network, presence)
 		command, arguments = message.split(' ', 2)
 		
@@ -350,7 +382,9 @@ class Main
 			else
 				line = {}
 				line['err'] = 'Part requires a channel argument'
-				line['time'] = Time.new.to_i
+				time = Time.new
+				time = time - @drift if $config['canonicaltime'] == 'server'
+				line['time'] = time
 				@window.currentbuffer.send_event(line, ERROR)
 			end
 		elsif command == '/quit'
@@ -418,7 +452,9 @@ class Main
 			else
 				line = {}
 				line['err'] = '/msg requires a username and a message'
-				line['time'] = Time.new.to_i
+				time = Time.new
+				time = time - @drift if $config['canonicaltime'] == 'server'
+				line['time'] = time
 				@window.currentbuffer.send_event(line, ERROR)
 			end
 		elsif network
@@ -433,16 +469,24 @@ class Main
 				line = {}
 				line['nick'] = presence
 				line['msg'] = message
-				line['time'] = Time.new.to_i
+				time = Time.new
+				puts time
+				time = time - @drift if $config['canonicaltime'] == 'server'
+				puts time, $config['canonicaltime'], @drift
+				line['time'] = time
+				@serverlist[network, 'vag'].users[presence].lastspoke= time.to_i
 				@window.currentbuffer.send_event(line, USERMESSAGE)			}
 		elsif !network
 			line = {}
 			line['err'] = 'Invalid server command'
-			line['time'] = Time.new.to_i
+			time = Time.new
+			time = time - @drift if $config['canonicaltime'] == 'server'
+			line['time'] = time
 			@window.currentbuffer.send_event(line, ERROR)
 		end
 	end
 	
+	#send a command to irssi2
 	def send_command(tag, command, length=nil)
 		if !@connection
 			#puts 'connection not initialized'
@@ -471,6 +515,7 @@ class Main
 		end
 	end
 	
+	#handle output from irssi2
 	def handle_output(string)
 		return if string.length == 0
 		#puts string
@@ -512,6 +557,11 @@ class Main
 				line[x] = true
 			end
 		end
+		calculate_clock_drift(line['time']) if line['time']
+		
+		if $config['canonicaltime'] == 'client'
+			line['time'] = Time.at(line['time'].to_i + $main.drift)
+		end
 		
 		num = line['id'].to_i
 		@buffer[num] = line 
@@ -521,9 +571,9 @@ class Main
 		end
 
 		parse_line(@buffer[num])
-
 	end
 	
+	#handle events from irssi2 (responses to commands sent from a client)
 	def handle_event(event)
 		
 		#puts 'handling '+event.name
@@ -634,7 +684,7 @@ class Main
 						channel.adduser(line['name'], true)
 						@window.updateusercount
 					end
-					
+				#handle past events here
 				elsif event.command['command'] == 'event get'
 					if line['event'] == 'msg'
 						if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
@@ -712,6 +762,7 @@ class Main
 		#@events.delete(event.name)
 	end
 	
+	#handle normal output from irssi2
 	def parse_line(line)
 		
 		#create the network and channel only if explicitly done here
@@ -845,7 +896,7 @@ class Main
 				
 			elsif line['type'] == 'presence_init'
 				#puts 'presence init '+line['name']
-				network.users.create(line['name'])
+				network.users.create(line['name'], line['address'])
 				
 			elsif line['type'] == 'presence_deinit'
 				#puts 'presence deinit'
@@ -857,6 +908,16 @@ class Main
 				#~ end	
 				
 			elsif line['type'] == 'msg'
+				if line['nick']
+					user = network.users[line['nick']]
+					if user
+						user.lastspoke = line['time']
+						if !user.hostname
+							user.hostname = line['address']
+						end
+					end
+				end
+			
 				if !line['channel'] and line['no-autoreply']
 					if line['nick']
 						network.send_event(line, MESSAGE)
@@ -944,8 +1005,16 @@ class Main
 		end
 	end
 	
+	#keep an eye on the difference between client & server time
+	def calculate_clock_drift(servertime)
+		server = Time.at(servertime.to_i)
+		client = Time.new
+		@drift = (client - server).to_i
+		#puts 'clock drift is '+duration(@drift)
+	end
+	
+	#output the result of a whois
 	def whois(event)
-		
 		network = @serverlist[event.command['network'], event.command['presence']]
 		
 		event.lines.each do |line|
@@ -985,6 +1054,7 @@ class Main
 		end
 	end
 	
+	#create a network if it doesn't already exist
 	def createnetworkifnot(network, presence)
 		if ! @serverlist[network, presence]
 			switchchannel(@serverlist.add(network, presence))
@@ -993,6 +1063,7 @@ class Main
 		return @serverlist[network, presence]
 	end
 	
+	#create a channel if it doesn't already exist
 	def createchannelifnot(network, channel)
 		if network and ! network[channel]
 			switchchannel(network.add(channel))
@@ -1004,6 +1075,7 @@ class Main
 		return network[channel]
 	end
 	
+	#duh....
 	def quit
 		$config.send_config
 		send_command('quit', 'quit')
