@@ -112,6 +112,9 @@ class ConfigWindow
 					else
 						@glade[key].active = false
 					end
+                elsif @glade[key].class == Gtk::FontButton
+                    @configarray[@glade[key]] = {'name' => key, 'value' => value}
+                    @glade[key].font_name = value
 				end
 			end
 		end
@@ -178,6 +181,13 @@ class ConfigWindow
 		change_setting(widget, widget.active?)
 	end
 	
+    def font_changed(widget)
+        puts 'changed font'+widget.font_name
+        change_setting(widget, widget.font_name)
+        #@configarray[0] = {'name' => 'font_name', 'value' => widget.font_name}
+        #@configarray[1] = {'name' => 'font_size', 'value' => widget.font_name} 
+    end
+    
 	def update_config
 		#pass all the values back to $config
 		@configarray.each do |k, v|

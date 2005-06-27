@@ -47,7 +47,7 @@ class Event
 		items.each do |x|
 			vals = x.split('=', 2)
 			if vals[1] and vals[1] != ''
-				#puts vals[1]
+                #puts vals[1]
 				vals[1].gsub!('\\\\.', ';')
 				vals[1].gsub!('\\.', ';')
 				vals[1].gsub!('\\\\\\\\', '\\')

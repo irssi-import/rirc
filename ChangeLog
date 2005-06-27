@@ -1,3 +1,11 @@
+2005-06-28 01:22 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Added font selection.
+
+2005-06-26 20:43:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Added changelog
+
 2005-06-26 19:42:34 - Andrew Thompson <vagabond@cataclysm-software.net>
 
 	Tabcomplete can now sort results alphabetically or by last message time

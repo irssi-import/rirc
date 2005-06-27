@@ -120,6 +120,10 @@ class MainWindow
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
 		
+        font = Pango::FontDescription.new($config['main_font'])
+        
+        @messages.modify_font(font)
+        
 		@glade['window1'].resize(x, y)
 		@glade['window1'].show
 		@messageinput.grab_focus

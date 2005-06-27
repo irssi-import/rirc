@@ -1535,7 +1535,7 @@ Colors are set by surrounding the text to be colored with %&lt;number&gt; where 
       <property name="y_options">fill</property>
     </packing>
   </child>
-  
+
   <child>
     <widget class="GtkComboBox" id="canonicaltime">
       <property name="visible">True</property>
@@ -1551,7 +1551,7 @@ Colors are set by surrounding the text to be colored with %&lt;number&gt; where 
       <property name="y_options">fill</property>
     </packing>
   </child>
-  
+
   <child>
     <widget class="GtkLabel" id="label26">
       <property name="visible">True</property>
@@ -1591,7 +1591,7 @@ Colors are set by surrounding the text to be colored with %&lt;number&gt; where 
       <property name="y_options">fill</property>
     </packing>
   </child>
-  
+
   <child>
     <widget class="GtkLabel" id="label28">
       <property name="visible">True</property>
@@ -1616,28 +1616,28 @@ Colors are set by surrounding the text to be colored with %&lt;number&gt; where 
     </packing>
   </child>
 
-      <child>
-	<widget class="GtkEntry" id="linkclickaction">
-	  <property name="visible">True</property>
-	  <property name="tooltip" translatable="yes">what to do when a link is clicked</property>
-	  <property name="can_focus">True</property>
-	  <property name="editable">True</property>
-	  <property name="visibility">True</property>
-	  <property name="max_length">0</property>
-	  <property name="text" translatable="yes"></property>
-	  <property name="has_frame">True</property>
-	  <property name="invisible_char">*</property>
-	  <property name="activates_default">False</property>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">3</property>
-	  <property name="top_attach">4</property>
-	  <property name="bottom_attach">5</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-      
+  <child>
+    <widget class="GtkEntry" id="linkclickaction">
+      <property name="visible">True</property>
+      <property name="tooltip" translatable="yes">what to do when a link is clicked</property>
+      <property name="can_focus">True</property>
+      <property name="editable">True</property>
+      <property name="visibility">True</property>
+      <property name="max_length">0</property>
+      <property name="text" translatable="yes"></property>
+      <property name="has_frame">True</property>
+      <property name="invisible_char">*</property>
+      <property name="activates_default">False</property>
+    </widget>
+    <packing>
+      <property name="left_attach">1</property>
+      <property name="right_attach">3</property>
+      <property name="top_attach">4</property>
+      <property name="bottom_attach">5</property>
+      <property name="y_options"></property>
+    </packing>
+  </child>
+
   <child>
     <widget class="GtkLabel" id="label29">
       <property name="visible">True</property>
@@ -1657,6 +1657,50 @@ Colors are set by surrounding the text to be colored with %&lt;number&gt; where 
       <property name="right_attach">1</property>
       <property name="top_attach">4</property>
       <property name="bottom_attach">5</property>
+      <property name="x_options"></property>
+      <property name="y_options"></property>
+    </packing>
+  </child>
+
+  <child>
+    <widget class="GtkFontButton" id="main_font">
+      <property name="visible">True</property>
+      <property name="can_focus">True</property>
+      <property name="show_style">True</property>
+      <property name="show_size">True</property>
+      <property name="use_font">True</property>
+      <property name="use_size">True</property>
+      <property name="focus_on_click">True</property>
+      <signal name="font_set" handler="font_changed" last_modification_time="Mon, 27 Jun 2005 18:36:28 GMT"/>
+    </widget>
+    <packing>
+      <property name="left_attach">1</property>
+      <property name="right_attach">3</property>
+      <property name="top_attach">5</property>
+      <property name="bottom_attach">6</property>
+      <property name="y_options"></property>
+    </packing>
+  </child>
+
+  <child>
+    <widget class="GtkLabel" id="label30">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">Font:</property>
+      <property name="use_underline">False</property>
+      <property name="use_markup">False</property>
+      <property name="justify">GTK_JUSTIFY_LEFT</property>
+      <property name="wrap">False</property>
+      <property name="selectable">False</property>
+      <property name="xalign">0</property>
+      <property name="yalign">0.5</property>
+      <property name="xpad">0</property>
+      <property name="ypad">0</property>
+    </widget>
+    <packing>
+      <property name="left_attach">0</property>
+      <property name="right_attach">1</property>
+      <property name="top_attach">5</property>
+      <property name="bottom_attach">6</property>
       <property name="x_options"></property>
       <property name="y_options"></property>
     </packing>

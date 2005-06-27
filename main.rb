@@ -105,6 +105,8 @@ class Configuration
 		
 		@values['canonicaltime'] = 'client'
 		@values['tabcompletesort'] = 'activity'
+        
+        @values['main_font'] = 'monospace 9'
 		
 		@oldvalues = {}
 	end
