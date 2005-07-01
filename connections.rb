@@ -11,7 +11,7 @@ class SSHConnection
 		cmdstring += '-l '+settings['username']+' ' if settings['username']
 		cmdstring += settings['host']+' '+settings['binpath']
 		#@input, @output, @error = Open3.popen3("setsid ssh "+host+' \'recordio '+$ssh_binpath+' \' 2>log2')
-		puts cmdstring
+		#puts cmdstring
 		@input, @output, @error = Open3.popen3(cmdstring)
 		#puts 'connected'
 		#puts @output.gets

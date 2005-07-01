@@ -38,7 +38,7 @@ class Event
 		
 		if !vars[2]
 			lines.push(temp)
-			puts'no other info '+line
+			#puts'no other info '+line
 			break
 		end
 		

@@ -1,3 +1,11 @@
+2005-07-01 21:50 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+	Modularized all the input/output parsing
+    Moved the config object into its own file
+    Moved the topic events into the config
+    Added the long timestamp for topic_timestamp
+    Lots of cleanups and commenting
+
 2005-06-28 01:22 - Andrew Thompson <vagabond@cataclysm-software.net>
 
 	Added font selection.

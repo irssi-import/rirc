@@ -15,19 +15,22 @@ PART = 4
 USERPART = 5
 ERROR = 6
 NOTICE = 7
+TOPIC = 8
 
 class Buffer
 	attr_reader :endmark, :oldendmark, :currentcommand, :buffer, :button
 	attr_writer :currentcommand
-	#spaceship operator
 	def initialize(name)
 		@buffer = Gtk::TextBuffer.new
-		@buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
-		@buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
-		@buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
-		@buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
-		@buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
-		@buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
+        16.times do |x|
+            @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
+        end
+		#~ @buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
+		#~ @buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
+		#~ @buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
+		#~ @buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
+		#~ @buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
+		#~ @buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -37,16 +40,15 @@ class Buffer
 		@togglehandler = @button.signal_connect('toggled')do |w|
 			switchchannel(self)
 		end
-		puts @togglehandler
 	end
 	
+    #trigger a channel switch...?
 	def switchchannel(channel)
-		#puts @button.toplevel 
 		return if @button.toplevel.class != Gtk::Window
-		#puts channel
 		$main.window.switchchannel(channel)
 	end
 	
+    #spaceship operator
 	def <=>(object)
 		length = @name.length
 		retval =-1
@@ -65,25 +67,26 @@ class Buffer
 		return retval
 	end
 	
+    #set a channel as active
 	def activate
 		@button.signal_handler_block(@togglehandler)
-		@button.active=true #if !@button.active?
+		@button.active=true
 		@button.signal_handler_unblock(@togglehandler)
-		#@button.signal_emit_stop('toggled')
 		@status = ACTIVE
 		recolor
 		return @buffer
 	end
 	
+    #set a channel as inactive
 	def deactivate
 		@button.signal_handler_block(@togglehandler)
-		@button.active=false #if @button.active?
-		#@button.signal_emit_stop('toggled')
+		@button.active=false
 		@button.signal_handler_unblock(@togglehandler)
 		@status = INACTIVE
 		recolor
 	end
 	
+    #update the status of a channel
 	def setstatus(status)
 		if(status > @status)
 			@status = status
@@ -91,10 +94,12 @@ class Buffer
 		end
 	end
 	
+    #disconnect a channel
 	def disconnect
 		@button.label = '('+@name+')'
 	end
 	
+    #reconnect a channel
 	def reconnect
 		@button.label = @name
 		@connected = true
@@ -106,6 +111,7 @@ class Buffer
 		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status))
 	end
 	
+    #send a line to the buffer
 	def send_event(line, type, insert_location=BUFFER_END)
 		return if !@connected
 		
@@ -193,20 +199,32 @@ class Buffer
 			pattern += $config['notice'].deep_clone
 			pattern['%m'] = line['msg']
 			
+        elsif type == TOPIC
+            if line['topic'] and line['topic_set_by']
+                pattern += $config['topic_change'].deep_clone
+                pattern['%t'] = line['topic']
+                pattern['%u'] = line['topic_set_by']
+                users.push(line['topic_set_by'])
+            elsif line['topic']
+                pattern += $config['topic'].deep_clone
+                pattern['%c'] = line['channel']
+                pattern['%t'] = line['topic']
+            elsif line['topic_set_by']
+                pattern += $config['topic_setby'].deep_clone
+                pattern['%c'] = line['channel']
+                pattern['%u'] = line['topic_set_by']
+                pattern['%a'] = Time.at(line['topic_timestamp'].to_i).strftime('%c')
+                users.push(line['topic_set_by'])
+            end
 		end
 		
-		#users.push(line['name']) if line['name']
-		
 		if pattern.length > 0
-			#puts pattern
 			recolor
 			if insert_location == BUFFER_START
-				#puts 'at start'
 				if @buffer.char_count > 0
 					pattern += "\n"
 				end
 			elsif insert.offset != 0
-				#puts 'not at start'
 				pattern = "\n"+pattern
 			end
 			colortext(pattern, insert, users)
@@ -219,7 +237,7 @@ class Buffer
 			
 	end
 	
-	#add a command to the buffer
+	#add a command to the command buffer
 	def addcommand(string)
 		return if string.length == 0
 		@commandbuffer.push(string)
@@ -229,13 +247,13 @@ class Buffer
 		@commandindex = @commandbuffer.length
 	end
 	
-	#get the last command in the buffer
+	#get the last command in the command buffer
 	def getlastcommand
 		@commandindex -=1 if @commandindex != 0
 		return @commandbuffer[@commandindex]
 	end
 	
-	#get the next command in the buffer
+	#get the next command in the command buffer
 	def getnextcommand
 		@commandindex +=1
 		 if @commandindex > @commandbuffer.length-1
@@ -253,7 +271,6 @@ class Buffer
 		tags = {}
 		
 		while md.class == MatchData
-			#get the color
 			color = md[2].gsub!('%', 'color')
 			colorid = md[2].gsub!('%', '')
 			#remove the color tags from the text
@@ -278,7 +295,6 @@ class Buffer
 		
 		while md.class == MatchData
 			links.push(md[0])
-			#puts md[0]
 			md = re.match(md.post_match)
 		end
 		
@@ -286,20 +302,16 @@ class Buffer
 		link_tags = {}
 		
 		users.each do |user|
-			#puts 'user: '+user
 			if index = string.index(user)
 				user_tags[Range.new(index, index+user.length)] = user
 			end
 		end
 		
 		links.each do |link|
-			#puts 'link: '+link
 			if index = string.index(link)
 				link_tags[Range.new(index, index+link.length)] = link
 			end
 		end
-		
-		#puts 'sending line'
 		
 		sendtobuffer(string, tags, insert, user_tags, link_tags)
 	end
@@ -307,7 +319,6 @@ class Buffer
 	#send the text to the buffer
 	def sendtobuffer(string, tags, insert, user_tags, link_tags)
 		offset = insert.offset
-		#mark = buffer.create_mark(nil, insert, false)
 		@buffer.insert(insert, string)
 		iter = @buffer.get_iter_at_offset(offset)
 		start = iter.offset
@@ -315,55 +326,39 @@ class Buffer
 			if @buffer.tag_table.lookup(v)
 				tag_start = @buffer.get_iter_at_offset(k.begin+start)
 				tag_end = @buffer.get_iter_at_offset(k.end+start)
-				#puts tag_start.offset, tag_end.offset, '<>'
 				@buffer.apply_tag(v, tag_start, tag_end)
-				#puts offset, tag_start.offset, tag_end.offset, v.class
-				#puts @buffer.get_text(tag_start, tag_end)
 			else
 				puts 'invalid tag '+v
 			end
 		end
 		
 		link_tags.each do |k, v|
-			#puts k
-			#tag = @buffer.create_tag(v, {})
 			name = 'link_'+rand(1000).to_s+'_'+v
 			while @buffer.tag_table.lookup(name)#
 				name = 'link_'+rand(1000).to_s+'_'+v
 			end
 			tag = Gtk::TextTag.new(name)
 			@buffer.tag_table.add(tag)
-			#puts @buffer.tag_table.lookup(name)
-			#tag.foreground = 'blue'
 			tag_start = @buffer.get_iter_at_offset(k.begin+start)
 			tag_end = @buffer.get_iter_at_offset(k.end+start)
-			#puts tag_start.offset, tag_end.offset, '<>'
 			@buffer.apply_tag(tag, tag_start, tag_end)
-			#tag.data['type'] = 'link'
-			#tag.data['link'] = v
 		end
 		
 		user_tags.each do |k, v|
-			#puts k
-			#tag = @buffer.create_tag(v, {})
 			name = 'user_'+rand(1000).to_s+'_'+v
 			while @buffer.tag_table.lookup(name)#
 				name = 'user_'+rand(1000).to_s+'_'+v
 			end
 			tag = Gtk::TextTag.new(name)
-			#tag.foreground = 'blue'
 			@buffer.tag_table.add(tag)
-			#puts @buffer.tag_table.lookup(name)
 			tag_start = @buffer.get_iter_at_offset(k.begin+start)
 			tag_end = @buffer.get_iter_at_offset(k.end+start)
-			#puts tag_start.offset, tag_end.offset, '<>'
 			@buffer.apply_tag(tag, tag_start, tag_end)
-			#tag.data['type'] = 'user'
-			#tag.data['user'] = v
 		end
 	end
 end
 
+#The 'Servers' buffer, not sure if this will be required in the future...
 class RootBuffer < Buffer
 	attr_reader :servers, :box, :name, :parent, :config, :username, :connected
 	def initialize(parent)
@@ -377,13 +372,13 @@ class RootBuffer < Buffer
 			@box = Gtk::HBox.new
 		end
 		@box.show
-		#@config = @parent.config
 		@name = 'servers'
 		@box.pack_start(@button)
 		@status = INACTIVE
 		@connected = true
 	end
 	
+    #redraw the buttonbox
 	def redraw
 		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
 			empty_box
@@ -406,6 +401,7 @@ class RootBuffer < Buffer
 		return @box
 	end
 	
+    #remove all the buttons from a box
 	def empty_box
 		@box.remove(@button)
 		@servers.each do |server|
@@ -414,15 +410,13 @@ class RootBuffer < Buffer
 		@box.destroy
 	end
 	
+    #add a network
 	def add(name, presence)
 		return if !presence or !name
 		x = name2index(name, presence)
 		if x  != nil and x.connected
 			puts "You are already connected to " + name + "for presence "+ presence
 			return
-		#elsif x!= nil and ! x.connected
-		#	x.connect
-		#	return x
 		else
 			newserver = ServerBuffer.new(name, presence, self)
 			@servers.push(newserver)
@@ -432,54 +426,42 @@ class RootBuffer < Buffer
 		end
 	end
 	
+    #add a button to the button box
 	def insertintobox(newserver)
 		#insert the widget
 		@box.pack_start(newserver.box, true, true)
 		for i in 0...(@servers.length)
-			#puts @servers[i].name
 			if @servers[i] == newserver
 				#pick the right seperator to be using...
 				if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
-					#puts 'horizontal seperator'
 					seperator = Gtk::HSeparator.new
 				else
-					#puts 'vertical seperator'
 					seperator = Gtk::VSeparator.new
 				end
 				
 				if i !=0 and i == @servers.length-1
 					@box.pack_start(seperator, false, false, 5)
-					seperator.show
 					@box.reorder_child(seperator, @servers.length*2)
 					@box.reorder_child(newserver.box, @servers.length*2)
-					#puts 'a '+ @servers.length.to_s
 				elsif i > 0
-					#seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
-					seperator.show
 					@box.reorder_child(seperator, (i*2)+1)
 					@box.reorder_child(newserver.box, (i*2)+2)
-					#puts 'b'+i.to_s
 				elsif i == 0 and @servers.length > 1
-					#seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
-					seperator.show
-					
 					@box.reorder_child(seperator, i+2)
 					@box.reorder_child(newserver.box, i+2)
-					#puts 'c'
 				else
-					#puts 'd'
-					#seperator = Gtk::VSeparator.new
 					@box.pack_start(seperator, false, false, 5)
-					seperator.show
 					@box.reorder_child(seperator, @servers.length+1)
 					@box.reorder_child(newserver.box, @servers.length+1)
 				end
+                seperator.show
 			end
 		end
 	end
 	
+    #function for getting a network when you pass a server/presence pair
 	def [](key, presence)
 		if key.kind_of?(Integer)
 			return @servers[key]
@@ -496,20 +478,17 @@ class RootBuffer < Buffer
 	end
 end
 
+#buffer used for networks
 class ServerBuffer < Buffer
 	attr_reader :name, :channels, :box, :parent, :config, :username, :presence, :connected, :users
-	#attr_writer :username, :presence
 	def initialize(name, presence, parent)
 		super(name)
 		@presence = presence
-		#puts @presence
 		@username = @presence.deep_clone
 		@parent = parent
 		@name = name
 		@channels = Array.new
 		@chats = Array.new
-		#@config = getparentwindow.config
-		#@buffer = Gtk::TextBuffer.new
 		@users = UserList.new
 		@button.active = false
 		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
@@ -526,6 +505,7 @@ class ServerBuffer < Buffer
 		@connected = true
 	end
 	
+    #redraw the button box
 	def redraw
 		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
 			empty_box
@@ -544,8 +524,8 @@ class ServerBuffer < Buffer
 			insertintobox(channel)
 		end
 	end
-		
-		
+    
+    #remove all the buttons from the box
 	def empty_box
 		@box.remove(@button)
 		@channels.each do |channel|
@@ -554,6 +534,7 @@ class ServerBuffer < Buffer
 		@box.destroy
 	end
 	
+    #add a channel to the network
 	def add(name)
 		if name2index(name) != nil
 			puts 'You are already connected to #'+name+" on this server"
@@ -566,10 +547,8 @@ class ServerBuffer < Buffer
 		return newchannel
 	end
 	
+    #add a chat to the network
 	def addchat(name)
-		#return if @chats[name]
-		
-		
 		newchat = ChatBuffer.new(name, self)
 		@chats.push(newchat)
 		@chats.sort
@@ -577,6 +556,7 @@ class ServerBuffer < Buffer
 		return newchat
 	end
 	
+    #insert the button into the box
 	def insertintobox(item)
 		#insert the widget
 		if item.class == ChannelBuffer
@@ -598,6 +578,7 @@ class ServerBuffer < Buffer
 		end
 	end
 	
+    #redraw the box
 	def redrawbox
 		for i in 0...(@channels.length)
 			@box.remove(@channels[i].button)
@@ -607,6 +588,7 @@ class ServerBuffer < Buffer
 		end
 	end
 	
+    #method to get the channel object when passing the channel name
 	def [](key)
 		if key.kind_of?(Integer)
 			return @channels[key]
@@ -615,6 +597,7 @@ class ServerBuffer < Buffer
 		end
 	end
 	
+    #check if a chat with a particular person exists
 	def chat_exists?(name)
 		@chats.each do |chat|
 			if chat.name == name
@@ -631,10 +614,12 @@ class ServerBuffer < Buffer
 		return nil
 	end
 	
+    #get the parent window...?
 	def getparentwindow
 		return @parent.parent
 	end
 	
+    #set the username on this network
 	def set_username(name)
 		@username = name
 	end
@@ -645,6 +630,7 @@ class ServerBuffer < Buffer
 	
 end
 
+#buffer for channels
 class ChannelBuffer < Buffer
 	include TabCompleteModule
 	attr_reader :name, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
@@ -653,9 +639,6 @@ class ChannelBuffer < Buffer
 		super(name)
 		@server = server
 		@name = name
-		#puts @server.username
-		#@config = getparentwindow.config
-		#@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)
 		@renderer = Gtk::CellRendererText.new
 		@column = Gtk::TreeViewColumn.new("Users", @renderer)
@@ -672,33 +655,28 @@ class ChannelBuffer < Buffer
 		@useriters = []
 	end
 	
+    #add this channel to the server
 	def add(name)
 		@server.add(name)
 	end
 	
+    #add a user
 	def adduser(name, init = false)
 		if @server.users[name]
 			if ! @users[name]
 				@users.add(@server.users[name])
 				@users.sort
 				if !init
-					#puts 'syncing list'
 					drawusers
 				end
-			#else
-				#puts name+' already exists in userlist'
 			end
-			#iter = @userlist.append
-			#@users[name] = iter
-			#iter[0] = name
 		else
 			puts 'Unknown user '+name
 		end
 	end
 	
+    #draw the user list
 	def drawusers
-		#I *really* should just sync the list
-		#@userlist.clear
 		@users.sort
 		
 		if @useriters.length == 0
@@ -714,26 +692,18 @@ class ChannelBuffer < Buffer
 					iter = @userlist.append
 					iter[0] = user.name
 					@useriters .push(iter)
-					#puts 'end of iter list'
 					return
 				end
-				#puts i, @useriters[i][0], user.name
 				res = user.comparetostring(@useriters[i][0])
 				if res == 0
-					#puts 'equal, continuing'
 				elsif res == 1
-					#puts 'removing '+@useriters[i][0]+' at '+i.to_s
-					#puts @useriters[i]
 					@userlist.remove(@useriters[i])
 					@useriters.delete_at(i)
 				elsif res == -1
-					#puts 'adding '+user.name+' at '+i.to_s
 					iter = @userlist.insert_before(@useriters[i])
 					iter[0] = user.name
 					@useriters[i] = [iter, @useriters.at(i)]
 					@useriters.flatten!
-					#puts @useriters[i].class, @useriters[i+1].class
-					#put in the useriters at the right place somehow...
 				end
 				
 				i += 1
@@ -742,52 +712,42 @@ class ChannelBuffer < Buffer
 				@userlist.remove(@useriters[@useriters.length-1])
 				@useriters.delete_at(@useriters.length-1)
 			end
-			
-			#puts @users.length.to_s,  @useriters.length.to_s
 		end
 	end
 	
+    #remove all the users
 	def clearusers
 		@userlist.clear
 	end
 	
+    #remove a user
 	def deluser(user, deinit = false)
 		if @users[user]
-			#@userlist.remove(@users[user])
 			@users.remove(user)
 			@users.sort
 			if !deinit
-				#puts 'syncing list'
 				drawusers
 			end
 		end
 	end
 	
+    #get the username
 	def username
 		return @server.username
 	end
-	
-	#~ def changeuser(old, new)
-		#~ if @users[old]
-			#~ @users[new] = @users[old]
-			#~ @users[new][0] = new
-			#~ @users.delete(old)
-		#~ end
-	#~ end
+    
 	def getnetworkpresencepair
 		return @server.getnetworkpresencepair
 	end
 end
 
+#buffer used for 2 person chats
 class ChatBuffer < Buffer
 	attr_reader :name, :server
 	def initialize(name, server)
 		super(name)
 		@server = server
 		@name = name
-		#puts @server.username
-		#@config = getparentwindow.config
-		#@buffer = Gtk::TextBuffer.new
 		@userlist = Gtk::ListStore.new(String)
 		@renderer = Gtk::CellRendererText.new
 		@column = Gtk::TreeViewColumn.new("Users", @renderer)
@@ -803,6 +763,8 @@ class ChatBuffer < Buffer
 		
 		@useriters = []
 	end
+    
+    #get the username
 	def username
 		return @server.username
 	end

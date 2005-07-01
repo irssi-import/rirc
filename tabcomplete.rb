@@ -1,17 +1,3 @@
-#~ require('users')
-
-#~ userlist = UserList.new
-
-#~ names = ['AArdvark', 'Beta', 'Dude', 'vapid', 'Vagabond', 'vag', 'alpha', 'damn']
-
-#~ names.each do |name|
-	#~ userlist.create(name)
-#~ end
-
-#~ userlist['Vagabond'].lastspoke = Time.at(0)
-#~ #puts userlist['Vagabond'].lastspoke
-#~ list = userlist.sort {|x, y| y.lastspoke <=> x.lastspoke}
-
 class TabComplete
 	attr_reader :results
 	def initialize(substr, list)
@@ -70,12 +56,3 @@ module TabCompleteModule
 		@tabcomplete = nil
 	end
 end
-
-#~ bleh = TabComplete.new('va', list)
-#~ bleh.results.each do |user|
-	#~ puts user.name
-#~ end
-#~ puts bleh.firstmatch.name
-#~ puts bleh.succ.name
-#~ puts bleh.succ.name
-#~ puts bleh.succ.name

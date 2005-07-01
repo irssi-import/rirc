@@ -2,7 +2,7 @@
 class MainWindow
 	attr_reader :currentbuffer
 	def initialize
-		puts 'starting main window'
+		#puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
 		
@@ -115,7 +115,7 @@ class MainWindow
 		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
 		
-		puts $config['selectedbackgroundcolor'], $config['selectedforegroundcolor']
+		#puts $config['selectedbackgroundcolor'], $config['selectedforegroundcolor']
 		
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
