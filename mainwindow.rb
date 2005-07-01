@@ -359,6 +359,24 @@ class MainWindow
 		#for some reason we need to return a nil here or the window contents won't resize
 		nil
 	end
+    
+    def userlist_on_click(widget, event)
+		if event.button == 3
+			userlist_popup_menu(event)
+			return true
+		end
+    end
+    
+    def userlist_popup_menu(event)
+        selection = @userlist.selection.selected
+        puts selection.class
+        if selection
+            puts selection[0]
+            menu = create_user_popup(selection[0])
+            menu.show_all
+            menu.popup(nil, nil, event.button, event.time)
+        end
+    end
 	
 	def textview_on_click(widget, event)
 		x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
@@ -389,7 +407,8 @@ class MainWindow
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				puts 'clicked tag linking to '+name[2]
-				system($config['linkclickaction'].sub('%s', name[2]))
+                link = to_uri(name[2])
+				system($config['linkclickaction'].sub('%s', link))
 				break
 			#elsif tag.data['type']  == 'user'
 			#	puts 'clicked tag linking to '+tag.data['user'].to_s
@@ -398,6 +417,14 @@ class MainWindow
 		end
 		
 	end
+    
+    def to_uri(uri)
+        if uri =~ /^[a-zA-Z]+\:\/\/.+/
+            return uri
+        else
+            return 'http://'+uri
+        end
+    end
 	
 	def textview_popup_menu(widget, event, x, y)
 		iter = widget.get_iter_at_location(x, y)
@@ -465,6 +492,10 @@ class MainWindow
 	
 	def create_link_popup(link)
 		menu = Gtk::Menu.new
+        link = to_uri(link)
+        item = Gtk::MenuItem.new(link)
+        item.sensitive = false
+        menu.append(item)
 		menu.append(Gtk::MenuItem.new("Open link in browser"))
 		menu.append(Gtk::MenuItem.new("Copy link location"))
 	end

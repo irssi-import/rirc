@@ -283,6 +283,7 @@
 					  <property name="rules_hint">False</property>
 					  <property name="reorderable">False</property>
 					  <property name="enable_search">False</property>
+					  <signal name="button_press_event" handler="userlist_on_click" last_modification_time="Fri, 01 Jul 2005 23:39:53 GMT"/>
 					</widget>
 				      </child>
 				    </widget>

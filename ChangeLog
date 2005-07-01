@@ -1,3 +1,9 @@
+2005-07-02 12:01 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added prepending http:// to URIs with  no protocol
+    Added right click menu for user list
+    Changed default link click action
+
 2005-07-01 21:50 - Andrew Thompson <vagabond@cataclysm-software.net>
 
 	Modularized all the input/output parsing

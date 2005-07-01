@@ -39,7 +39,7 @@ class Configuration
         @values['topic'] ='Topic for %6%c%6 is %6%t%6'
 		@values['topic_setby'] = 'Topic for %6%c%6 set by %6%u%6 at %6%a%6'
         
-		@values['linkclickaction'] = 'firefox %s'
+		@values['linkclickaction'] = 'firefox -remote "openURL(%s,new-tab)"'
 		
 		@serverbuttons = true
 		

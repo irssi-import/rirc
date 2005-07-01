@@ -274,7 +274,7 @@ module LineParser
         
         if line['topic'] or line['topic_set_by']
             channel.topic = line['topic'] if line['topic']
-            channel.send_event(line, TOPIC, BUFFER_START)
+            channel.send_event(line, TOPIC)
             @window.updatetopic
         end
         
