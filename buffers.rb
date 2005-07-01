@@ -598,7 +598,7 @@ class ServerBuffer < Buffer
 	end
 	
     #check if a chat with a particular person exists
-	def chat_exists?(name)
+	def has_chat?(name)
 		@chats.each do |chat|
 			if chat.name == name
 				return chat
@@ -755,7 +755,7 @@ class ChatBuffer < Buffer
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
-		@button.label= @name
+		@button.label= @name.gsub('_', '__')
 		@button.active = false
 		@button.show
 		@users = UserList.new
@@ -768,4 +768,11 @@ class ChatBuffer < Buffer
 	def username
 		return @server.username
 	end
+    
+    def rename(name)
+        puts name, @name
+        @name = name
+        puts @button.label
+        @button.label = name.gsub('_', '__')
+    end
 end

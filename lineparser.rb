@@ -154,6 +154,11 @@ module LineParser
                     end
                 }
             end
+            
+            if line['name'] and chat = network.has_chat?(line['name'])
+                chat.rename(line['new_name'])
+            end
+            
         end
 	
         if line['address']
@@ -196,10 +201,10 @@ module LineParser
             end
             return
         elsif !line['channel'] and line['nick']
-            if !network.chat_exists?(line['nick'])
+            if !network.has_chat?(line['nick'])
                 chat = network.addchat(line['nick'])
             else
-                chat = network.chat_exists?(line['nick'])
+                chat = network.has_chat?(line['nick'])
             end
             chat.send_event(line, MESSAGE)
             return

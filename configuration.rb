@@ -3,7 +3,7 @@ class Configuration
 		#set some defaults... probably too soon be overriden by the user's config, but you gotta start somewhere :P
 		@values = {}
         16.times do |x|
-            @values['color'+x.to_s] = Gdk::Color.new(65535, 65535, 65535)
+            @values['color'+x.to_s] = Gdk::Color.new(0, 0, 0)
         end
 		@values['color0'] = Gdk::Color.new(62168, 16051, 16051)
 		@values['color1'] = Gdk::Color.new(0, 47254, 11392)
