@@ -1,3 +1,11 @@
+2005-07-03 12:27 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Added half finished plugin API (currently disabled)
+    Added event reaper to deal with expired events
+    Overhauled how channels are initially synced when reconnecting to irssi2
+    Userlist *should* now be thread-safe (no more modifing while iterating errors)
+    Lots of fidding around, some bugfixes
+    
 2005-07-02 12:49 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Chat tabs are now renamed on a presence_changed event, if applicable.
