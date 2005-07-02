@@ -1,16 +1,17 @@
-module InputParser
+module InputParser    
     def handle_input(message, channel, network, presence)
 		command, arguments = message.split(' ', 2)
 		
 		arguments = '' if ! arguments
         
         if command[0].chr == '/'
-            command = command[1, command.length]
+            cmd = command[1, command.length]
         end
         
-        if self.respond_to?('cmd_'+command)
-            self.send('cmd_'+command, arguments, channel, network, presence)
+        if cmd and self.respond_to?('cmd_'+cmd)
+            self.send('cmd_'+cmd, arguments, channel, network, presence)
         else
+            puts 'no method for cmd_'+command
             #its not a command, treat as a message
             if network
                 messages = message.split("\n")
@@ -27,7 +28,7 @@ module InputParser
                     time = Time.new
                     time = time - @drift if $config['canonicaltime'] == 'server'
                     line['time'] = time
-                    @serverlist[network, 'vag'].users[presence].lastspoke= time.to_i
+                    #@serverlist[network, 'vag'].users[presence].lastspoke= time.to_i
                     @window.currentbuffer.send_event(line, USERMESSAGE)			}
             elsif !network
                 line = {}
@@ -71,12 +72,14 @@ module InputParser
     def cmd_quit(arguments, channel, network, presence)
         send_command('quit', 'quit')
         Gtk.main_quit
+        quit
     end
     
     #/shutdown command
     def cmd_shutdown(arguments, channel, network, presence)
         send_command('shutdown', 'shutdown')
         Gtk.main_quit
+        quit
     end
     
     #/silckey command
@@ -155,6 +158,10 @@ module InputParser
             line['time'] = time
             @window.currentbuffer.send_event(line, ERROR)
         end
+    end
+    
+    def cmd_load(arguments, channel, network, presence)
+        plugin_load(arguments)
     end
         
 end

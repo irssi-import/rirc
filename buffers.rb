@@ -200,6 +200,7 @@ class Buffer
 			pattern['%m'] = line['msg']
 			
         elsif type == TOPIC
+            setstatus(NEWDATA)
             if line['topic'] and line['topic_set_by']
                 pattern += $config['topic_change'].deep_clone
                 pattern['%t'] = line['topic']
@@ -633,10 +634,12 @@ end
 #buffer for channels
 class ChannelBuffer < Buffer
 	include TabCompleteModule
-	attr_reader :name, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic
-	attr_writer :topic
+	attr_reader :name, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic, :usersync, :eventsync
+	attr_writer :topic, :usersync, :eventsync
 	def initialize(name, server)
 		super(name)
+        @usersync = false
+        @eventsync = false
 		@server = server
 		@name = name
 		@userlist = Gtk::ListStore.new(String)
@@ -661,7 +664,7 @@ class ChannelBuffer < Buffer
 	end
 	
     #add a user
-	def adduser(name, init = false)
+	def adduser(name, init = true)
 		if @server.users[name]
 			if ! @users[name]
 				@users.add(@server.users[name])

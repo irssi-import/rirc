@@ -1,7 +1,7 @@
 module LineParser
     #handle normal output from irssi2
 	def parse_line(line)
-    
+        
 		#trap for events that refer to a channel that does not exist
 		if line['network'] and line['presence']
 			if !@serverlist[line['network'], line['presence']]
@@ -11,8 +11,8 @@ module LineParser
 				network = @serverlist[line['network'], line['presence']]
 			end
 			
-			if line['channel']
-				if !@serverlist[line['network'], line['presence']][line['channel']]
+			if line['channel'] and network
+				if !network[line['channel']]
 					#puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
 					#return
 				else
@@ -62,7 +62,9 @@ module LineParser
             puts 'request to create already existing channel, ignoring'
             return
         else
-            switchchannel(@serverlist[line['network'], line['presence']].add(line['channel']))
+            channel = @serverlist[line['network'], line['presence']].add(line['channel'])
+            channel.usersync = channel.eventsync = true
+            switchchannel(channel)
         end
     end
     
@@ -106,7 +108,7 @@ module LineParser
     def channel_presence_added(line, network, channel)
         return unless channel
         if !line['init']
-            channel.adduser(line['name'])
+            channel.adduser(line['name'], false)
             if line['name'] == network.username
                 channel.send_event(line, USERJOIN)
             else
@@ -114,7 +116,7 @@ module LineParser
                 @window.updateusercount
             end
         elsif
-            channel.adduser(line['name'], false)
+            channel.adduser(line['name'], true)
         end
     end
     
@@ -216,6 +218,7 @@ module LineParser
             network.users[line['name']].hostname = line['address']
         end
         
+        return unless channel
         if line['own']
             channel.send_event(line, USERMESSAGE)
         else
@@ -248,9 +251,11 @@ module LineParser
     #the gateway has changed
     def gateway_changed(line, network, channel)
         return unless network
-        msg = line['presence']+" sets mode +"+line['irc_mode']+" "+line['presence']
-        line['msg'] = msg
-        network.send_event(line, NOTICE)
+        if line['irc_mode']
+            msg = line['presence']+" sets mode +"+line['irc_mode']+" "+line['presence']
+            line['msg'] = msg
+            network.send_event(line, NOTICE)
+        end
     end
     
     #server's message of the day
@@ -266,6 +271,7 @@ module LineParser
         if line['initial_presences_added']
             puts 'initial presences added'
             @window.updateusercount
+            channel.drawusers
         end
         #~ elsif line['topic'] and line['topic_set_by']
             #~ #pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
@@ -292,6 +298,13 @@ module LineParser
     end
     
     def silc_event(line, network, channel)
+    end
+    
+    def presence_status_changed(line, network, channel)
+        return unless network
+        if user = network.users[line['name']]
+            user.lastspoke = line['idle_started']
+        end
     end
     
 end

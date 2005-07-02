@@ -286,6 +286,14 @@ class MainWindow
 			@topic.text =@currentbuffer.topic
 			@usernamebutton.show
 			updateusercount
+            @panel.position = $config['panelposition'].to_i if $config['panelposition']
+            #resize the window if we have some saved sizes...
+            x = -1
+            y = -1
+            
+            x = $config['windowwidth'].to_i if $config['windowwidth']
+            y = $config['windowheight'].to_i if $config['windowheight']
+            @panel.position = $config['panelposition'].to_i if $config['panelposition']
 		else
 			@mainbox.remove(@panel)
 			@panel.remove(@messagebox)
@@ -298,7 +306,7 @@ class MainWindow
 			else
 				@usernamebutton.show
 			end
-		end
+        end
 	end
 	
 	def message_input(widget)
@@ -369,9 +377,9 @@ class MainWindow
     
     def userlist_popup_menu(event)
         selection = @userlist.selection.selected
-        puts selection.class
+        #puts selection.class
         if selection
-            puts selection[0]
+            #puts selection[0]
             menu = create_user_popup(selection[0])
             menu.show_all
             menu.popup(nil, nil, event.button, event.time)

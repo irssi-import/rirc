@@ -1,9 +1,17 @@
 module EventParser
     #handle events from irssi2 (responses to commands sent from a client)
 	def handle_event(event)
-
+    
+        if event.error
+            event.lines.each do |line|
+                if line['status'] == '-'
+                    handle_error(line, event)
+                end
+            end
+        end
+        
 		if event.command['command'] == 'presence status'
-			whois(event)
+			ev_presence_status(event)
 			return
 		elsif event.command['command'] == 'config get'
 			$config.parse_config(event)
@@ -52,6 +60,8 @@ module EventParser
                 puts 'no method to handle '+cmd+' event.'
             end
         end
+        #remove the event
+        #@events.delete(event.name)
     end
 
     #sending a file
@@ -96,12 +106,15 @@ module EventParser
                 end
                 switchchannel(channel)
                 puts 'getting channel info'
-                send_command('listchan-'+line['network']+line['name'], "channel names;network="+line['network']+";channel="+line['name']+";presence="+line['presence'])
-                send_command('events-'+line['network']+line['name'], "event get;end=*;limit=500;filter=(channel="+line['name']+")")
+                #~ send_command('listchan-'+line['network']+line['name'], "channel names;network="+line['network']+";channel="+line['name']+";presence="+line['presence'])
+                #~ send_command('events-'+line['network']+line['name'], "event get;end=*;limit=500;filter=(channel="+line['name']+")")
+
             else
                 puts 'channel call for existing network, ignoring '+line['network']+' '+line['presence']+' '+line['name']
                 return
             end
+        elsif line['status'] == '+'
+            syncchannels unless @syncchannels
         end
         
     end
@@ -111,16 +124,19 @@ module EventParser
         if line['network'] and line['presence'] and line['channel'] and line['name']
             network.users.create(line['name'])
             channel.adduser(line['name'], true)
-            @window.updateusercount
+            #@window.updateusercount
         elsif line['status'] == '+'
             puts 'end of user list'
             @serverlist[event.command['network'], event.command['presence']][event.command['channel']].drawusers
             @window.updateusercount
+                        @serverlist[event.command['network'], event.command['presence']][event.command['channel']].usersync = true
         end
     end
                     
     #handle past events here
     def ev_event_get(line, network, channel, event)
+        event.network ||= network if network
+        event.channel ||= channel if channel
         if line['event'] == 'msg'
             if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
                 network.users[line['name']].hostname = line['address']
@@ -178,7 +194,52 @@ module EventParser
             else
                 channel.send_event(line, JOIN, BUFFER_START)
             end
+        elsif line['status'] == '+'
+            #event.command
+            event.channel.eventsync = true if event.channel
+            #Thread.new{syncchannels}
         end
     end
+    
+	#output the result of a whois
+	def ev_presence_status(event)
+		network = @serverlist[event.command['network'], event.command['presence']]
+		
+		event.lines.each do |line|
+		
+			if line['address'] and line['real_name']
+				msg = '('+line['address']+') : '+line['real_name']
+			elsif line['address']
+				address = line['address']
+				next
+			elsif line['real_name'] and address
+				msg = address+' : '+line['real_name']
+			elsif line['server_address'] and line['server_name']
+				msg = line['server_address']+' : '+line['server_name']
+			elsif line['idle'] and line['login_time']
+				idletime = duration(line['idle'].to_i)
+				#puts idletime
+				logintime = duration(Time.at(line['time'].to_i) - Time.at(line['login_time'].to_i))
+				#puts logintime
+				msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
+			elsif line['channels']
+				msg = line['channels']
+			elsif line['extra']
+				msg = line['extra']
+			elsif line['status'] == '+'
+				msg = 'End of /whois'
+				line['name'] = event.command['name']
+			else
+				next
+			end
+			
+			pattern = $config['whois'].deep_clone
+			pattern['%m'] = msg if msg
+			pattern['%n'] = line['name'] if line['name']
+			line['msg'] = pattern
+			network.send_event(line, NOTICE)
+			time = line['time']
+		end
+	end
 
 end

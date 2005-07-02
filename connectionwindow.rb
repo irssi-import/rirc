@@ -75,7 +75,7 @@ class ConnectionWindow
 	
 	def load_settings
 		return if !File.exists?('settings.yaml')
-		settings = YAML.load(File.open('settings.yaml'))
+		settings = YAML.load_file('settings.yaml')
 		
 		group = @glade['ssh'].group
 		group.each do |button|

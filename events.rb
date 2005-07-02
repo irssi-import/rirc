@@ -1,12 +1,17 @@
 class Event
-	attr_reader :complete, :lines, :name, :command, :origcommand
+	attr_reader :complete, :lines, :name, :command, :origcommand, :error, :network, :channel, :start
+    attr_writer :network, :channel
 	def initialize(name, command)
+        @start = Time.new
 		@name = name
 		@lines = []
 		@complete = false
 		@command = {}
+        @error = false
 		@origcommand = command
 		parsecommand(command)
+        @network = nil
+        @channel = nil
 	end
 	
 	#get the info of the original command
@@ -30,6 +35,7 @@ class Event
 	
 	#parse a line and add it to the object
 	def addline(line)
+        #time = Time.new
 		temp = {}
 		vars = line.split(";", 3)
 		temp['tagname'] = vars[0]
@@ -66,6 +72,7 @@ class Event
 		end
 		
 		if temp['status'] == '+'
+            #puts 'event '+@command['command']+' done'
 			@complete = true
 		end
 		
@@ -73,8 +80,11 @@ class Event
 			error = line.gsub(temp['tagname']+';-;', '')
 			temp['error'] = error
 			@complete = true
+            @error = true
 		end
 		
 		@lines.push(temp)
+       # time2 = Time.new
+       # puts time2-time
 	end
 end

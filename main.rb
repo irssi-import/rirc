@@ -4,6 +4,8 @@ require 'libglade2'
 require 'socket'
 require 'rbconfig'
 require 'base64'
+require 'thread'
+require 'monitor'
 include Config
 puts CONFIG['target']
 
@@ -50,6 +52,7 @@ end
 
 #load all my home rolled ruby files here
 require 'configuration'
+require 'plugins'
 require 'lineparser'
 require 'eventparser'
 require 'inputparser'
@@ -65,6 +68,7 @@ require 'connectionwindow'
 
 class Main
 	attr_reader :serverlist, :window, :events, :connectionwindow, :drift
+    #include Plugins
     include LineParser
     include EventParser
     include InputParser
@@ -79,10 +83,11 @@ class Main
 		@keys = {}
 		@drift = 0
 	end
-	
+    
 	#start doing stuff
 	def start
 		Gtk.init
+        event_reaper
 		@connectionwindow = ConnectionWindow.new
 		@window = MainWindow.new
 		if @connectionwindow.autoconnect == true
@@ -91,6 +96,29 @@ class Main
 		Gtk.main
 	end
 	
+    def event_reaper
+        @reaperthread = Thread.new do
+            puts 'starting event reaper thread...'
+            while true
+                sleep 5
+                @events.each do |key, event|
+                    #puts (Time.new - event.start).to_i 
+                    if (Time.new - event.start).to_i > 10
+                        if event.complete
+                            puts 'REAPING - event '+event.name+' is complete, parsing'
+                             @events.delete(key)
+                            handle_event(event)
+                        else
+                            puts 'REAPING - event '+event.name+' is incomplete and expired, resending'
+                            @events.delete(key)
+                            send_command(key, event.origcommand)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
 	#wrapper for window function
 	def switchchannel(channel)
 		@window.switchchannel(channel) if @window
@@ -115,6 +143,35 @@ class Main
 		return result
 	end
 	
+    def syncchannels
+        @syncchannels = true
+        Thread.new do
+            @serverlist.servers.each do |server|
+                server.channels.each do |channel|
+                    if !channel.usersync
+                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";presence="+server.presence)
+                        puts 'usersyncing '+channel.name
+                        while channel.usersync != true
+                            sleep 1
+                        end
+                    end
+                end
+                
+                server.channels.each do |channel|
+                    if !channel.eventsync
+                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')')
+                        puts 'eventsyncing '+channel.name
+                        while channel.eventsync != true
+                            sleep 1
+                        end
+                    end
+                end
+            end
+            @syncchannels = nil
+            puts 'done'
+        end
+    end
+    
 	#connect to irssi2
 	def connect(method, settings)
 		return if @connection
@@ -280,47 +337,6 @@ class Main
 		#puts 'clock drift is '+duration(@drift)
 	end
 	
-	#output the result of a whois
-	def whois(event)
-		network = @serverlist[event.command['network'], event.command['presence']]
-		
-		event.lines.each do |line|
-		
-			if line['address'] and line['real_name']
-				msg = '('+line['address']+') : '+line['real_name']
-			elsif line['address']
-				address = line['address']
-				next
-			elsif line['real_name'] and address
-				msg = address+' : '+line['real_name']
-			elsif line['server_address'] and line['server_name']
-				msg = line['server_address']+' : '+line['server_name']
-			elsif line['idle'] and line['login_time']
-				idletime = duration(line['idle'].to_i)
-				#puts idletime
-				logintime = duration(Time.at(line['time'].to_i) - Time.at(line['login_time'].to_i))
-				#puts logintime
-				msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
-			elsif line['channels']
-				msg = line['channels']
-			elsif line['extra']
-				msg = line['extra']
-			elsif line['status'] == '+'
-				msg = 'End of /whois'
-				line['name'] = event.command['name']
-			else
-				next
-			end
-			
-			pattern = $config['whois'].deep_clone
-			pattern['%m'] = msg if msg
-			pattern['%n'] = line['name'] if line['name']
-			line['msg'] = pattern
-			network.send_event(line, NOTICE)
-			time = line['time']
-		end
-	end
-	
 	#create a network if it doesn't already exist
 	def createnetworkifnot(network, presence)
 		if ! @serverlist[network, presence]
@@ -342,11 +358,66 @@ class Main
 		return network[channel]
 	end
 	
+    def handle_error(line, event)
+        channel ||= event.command['channel']
+        network ||= event.command['network']
+        presence ||= event.command['presence']
+        
+        if channel = @serverlist[network, presence][channel]
+            target = channel
+        elsif network = @serverlist[network, presence]
+            target = network
+        else
+            target = @serverlist
+        end
+        
+        if line['bad']
+            err = 'Bad line - '+event.origcommand
+        elsif line['args']
+            err = 'Bad arguments - '+event.origcommand
+        elsif line['state']
+            err = 'Bad state - '+event.origcommand
+        elsif line['unknown']
+            err = 'Unknown command - '+event.command['command']
+        elsif line['nogateway']
+            err = 'No gateway'
+            err += 'for network - '+event.command['network'] if event.command['network']
+        elsif line['noprotocol']
+            err = 'Invalid Protocol'
+            err += ' - '+event.command['protocol'] if event.command['protocol']
+        elsif line['noconnection']
+        elsif line['nonetwork']
+            err = 'Invalid network'
+            err += ' - '+event.command['network'] if event.command['network']
+        elsif line['nopresence']
+            err = 'Invalid or protected presence'
+            err += ' - '+event.command['presence'] if event.command['presence']
+        elsif line['exists']
+            err ='Already Exists'
+        elsif line['notfound']
+            err = 'Not Found'
+        elsif line['reply_lost']
+            err = 'Reply to command - '+event.origcommand+' lost.'
+        else
+            puts 'unhandled error '+line['original']
+            return
+        end
+        
+        line = {}
+        puts err
+        line['err'] = err
+        time = Time.new
+        time = time - @drift if $config['canonicaltime'] == 'server'
+        line['time'] = time
+        target.send_event(line, ERROR)
+    end
+    
 	#duh....
 	def quit
 		$config.send_config
 		send_command('quit', 'quit')
 		@connection.close if @connection
+        @reaperthread.kill if @reaperthread
 		puts 'bye byeeeeee...'
 		exit
 	end
