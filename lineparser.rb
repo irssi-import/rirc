@@ -95,6 +95,7 @@ module LineParser
         return unless channel
         channel.send_event(line, USERPART)
         channel.disconnect
+        channel.clearusers
     end
     
     #user joined a channel
@@ -135,7 +136,13 @@ module LineParser
             user = network.users[line['name']]
             
             if user
+                puts user
                 user.rename(line['new_name'])
+                network.channels.each do |channel|
+                    if channel.users[user.name]
+                        channel.drawusers
+                    end
+                end
             end
             
             if line['new_name'] == network.username
