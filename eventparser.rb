@@ -57,7 +57,7 @@ module EventParser
             if self.respond_to?(cmd)
                 self.send(cmd, line, network, channel, event)
             else
-                puts 'no method to handle '+cmd+' event.'
+                #puts 'no method to handle '+cmd+' event.'
             end
         end
         #remove the event
@@ -105,7 +105,7 @@ module EventParser
                     channel.topic = line['topic']
                 end
                 switchchannel(channel)
-                puts 'getting channel info'
+                #puts 'getting channel info'
                 #~ send_command('listchan-'+line['network']+line['name'], "channel names;network="+line['network']+";channel="+line['name']+";presence="+line['presence'])
                 #~ send_command('events-'+line['network']+line['name'], "event get;end=*;limit=500;filter=(channel="+line['name']+")")
 
@@ -126,7 +126,7 @@ module EventParser
             channel.adduser(line['name'], true)
             #@window.updateusercount
         elsif line['status'] == '+'
-            puts 'end of user list'
+            #puts 'end of user list'
             @serverlist[event.command['network'], event.command['presence']][event.command['channel']].drawusers
             @window.updateusercount
                         @serverlist[event.command['network'], event.command['presence']][event.command['channel']].usersync = true

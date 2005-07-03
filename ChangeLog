@@ -1,3 +1,7 @@
+2005-07-03 17:11 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added --debug command arg to print commands sent to irssi2
+    
 2005-07-03 16:47 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     *Really* fixed the resize bug (I hope)

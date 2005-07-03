@@ -9,6 +9,21 @@ require 'monitor'
 include Config
 puts CONFIG['target']
 
+#puts ARGV
+
+def parse_args
+    args = ARGV
+    args.each do |arg|
+        #puts arg
+        if arg == '--debug'
+            puts 'debugging on'
+            $debug = true
+        end
+    end
+end
+
+parse_args
+
 #useful for debugging
 Thread.abort_on_exception = true
 
@@ -98,7 +113,7 @@ class Main
 	
     def event_reaper
         @reaperthread = Thread.new do
-            puts 'starting event reaper thread...'
+            #puts 'starting event reaper thread...'
             while true
                 sleep 5
                 @events.each do |key, event|
@@ -150,7 +165,7 @@ class Main
                 server.channels.each do |channel|
                     if !channel.usersync
                          send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";presence="+server.presence)
-                        puts 'usersyncing '+channel.name
+                        #puts 'usersyncing '+channel.name
                         while channel.usersync != true
                             sleep 1
                         end
@@ -160,7 +175,7 @@ class Main
                 server.channels.each do |channel|
                     if !channel.eventsync
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')')
-                        puts 'eventsyncing '+channel.name
+                        #puts 'eventsyncing '+channel.name
                         while channel.eventsync != true
                             sleep 1
                         end
@@ -168,7 +183,7 @@ class Main
                 end
             end
             @syncchannels = nil
-            puts 'done'
+            #puts 'done'
         end
     end
     
@@ -260,6 +275,9 @@ class Main
 			cmdstr = tag+';'+command+"\n"
 		end
 		
+        if $debug
+            puts(cmdstr)
+        end
 		#puts 'sent '+cmdstr
 		sent = @connection.send(cmdstr)
 		
