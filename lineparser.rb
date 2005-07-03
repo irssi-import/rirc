@@ -24,7 +24,7 @@ module LineParser
         if self.respond_to?(line['type'])
             self.send(line['type'], line, network, channel)
         else
-            puts 'no method to handle '+line['type']+' event.'
+            #puts 'no method to handle '+line['type']+' event.'
         end
     end
     

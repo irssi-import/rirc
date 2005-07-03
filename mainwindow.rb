@@ -110,6 +110,7 @@ class MainWindow
 		
 		x = $config['windowwidth'].to_i if $config['windowwidth']
 		y = $config['windowheight'].to_i if $config['windowheight']
+        @glade['window1'].resize(x, y)
         
         @panel.position = $config['panelposition'].to_i if $config['panelposition']
 		
@@ -125,7 +126,6 @@ class MainWindow
         
         @messages.modify_font(font)
         
-		@glade['window1'].resize(x, y)
         if unhide
             @glade['window1'].show
         end
@@ -351,8 +351,8 @@ class MainWindow
     def update_dimensions
         $config.set_value('panelposition', @panel.position) if @panel
         width, height = @glade['window1'].size if @glade['window1']
-        $config.set_value('windowwidth', width)
-		$config.set_value('windowheight', height)
+        $config.set_value('windowwidth', width) if width
+		$config.set_value('windowheight', height) if height
     end
 	
 	def on_preferences1_activate

@@ -11,18 +11,33 @@ puts CONFIG['target']
 
 #puts ARGV
 
+$args = {}
+
 def parse_args
     args = ARGV
     args.each do |arg|
         #puts arg
-        if arg == '--debug'
-            puts 'debugging on'
-            $debug = true
+        #~ if arg == '--debug'
+            #~ puts 'debugging on'
+            #~ $debug = true
+        while arg[0].chr == '-'
+            arg = arg[1, arg.length]
         end
+        name, value = arg.split('=')
+        if value
+            $args[name] = value
+        else
+            $args[name] = true
+        end
+        #end
     end
 end
 
 parse_args
+
+$args.each do |k, v|
+    puts k, v
+end
 
 #useful for debugging
 Thread.abort_on_exception = true
@@ -275,7 +290,7 @@ class Main
 			cmdstr = tag+';'+command+"\n"
 		end
 		
-        if $debug
+        if $args['debug']
             puts(cmdstr)
         end
 		#puts 'sent '+cmdstr
