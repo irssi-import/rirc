@@ -363,10 +363,10 @@ class Main
         network ||= event.command['network']
         presence ||= event.command['presence']
         
-        if channel = @serverlist[network, presence][channel]
-            target = channel
-        elsif network = @serverlist[network, presence]
+        if network = @serverlist[network, presence]
             target = network
+        elsif @serverlist[network, presence] and channel = @serverlist[network, presence][channel]
+            target = channel
         else
             target = @serverlist
         end

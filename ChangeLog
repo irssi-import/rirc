@@ -1,3 +1,7 @@
+2005-07-03 16:47 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    *Really* fixed the resize bug (I hope)
+    
 2005-07-03 01:29 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Fixed window resize bug

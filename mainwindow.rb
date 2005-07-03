@@ -104,13 +104,14 @@ class MainWindow
 	def draw_from_config(unhide=true)
 		@serverlist.redraw
 		redraw_channellist
-		@panel.position = $config['panelposition'].to_i if $config['panelposition']
 		#resize the window if we have some saved sizes...
 		x = -1
 		y = -1
 		
 		x = $config['windowwidth'].to_i if $config['windowwidth']
 		y = $config['windowheight'].to_i if $config['windowheight']
+        
+        @panel.position = $config['panelposition'].to_i if $config['panelposition']
 		
 		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
@@ -348,8 +349,8 @@ class MainWindow
 	end
     
     def update_dimensions
-        $config.set_value('panelposition', @panel.position)
-        width, height = @glade['window1'].size
+        $config.set_value('panelposition', @panel.position) if @panel
+        width, height = @glade['window1'].size if @glade['window1']
         $config.set_value('windowwidth', width)
 		$config.set_value('windowheight', height)
     end
