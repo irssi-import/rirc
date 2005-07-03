@@ -9,11 +9,10 @@ Big things:
 	
 Little things:
 	network buffers should also maybe do event get
-    rename chats when the user's name changes
 
 Bugs:
 	Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
 	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)
 	Disappearing nick bug (change nick from vag to vag2 for example)
-    Window resizing bug, seems to be related to switching from tabs with no userlist to tabs with a userlist
+    messages/events from event get should not color the tab buttons
 	

@@ -101,7 +101,7 @@ class MainWindow
 		
 	end
 	
-	def draw_from_config
+	def draw_from_config(unhide=true)
 		@serverlist.redraw
 		redraw_channellist
 		@panel.position = $config['panelposition'].to_i if $config['panelposition']
@@ -125,7 +125,9 @@ class MainWindow
         @messages.modify_font(font)
         
 		@glade['window1'].resize(x, y)
-		@glade['window1'].show
+        if unhide
+            @glade['window1'].show
+        end
 		@messageinput.grab_focus
 	end
 	
@@ -264,6 +266,7 @@ class MainWindow
 		@messages.buffer = @currentbuffer.activate
 		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
+        update_dimensions
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
 	end
 	
@@ -286,14 +289,7 @@ class MainWindow
 			@topic.text =@currentbuffer.topic
 			@usernamebutton.show
 			updateusercount
-            @panel.position = $config['panelposition'].to_i if $config['panelposition']
-            #resize the window if we have some saved sizes...
-            x = -1
-            y = -1
-            
-            x = $config['windowwidth'].to_i if $config['windowwidth']
-            y = $config['windowheight'].to_i if $config['windowheight']
-            @panel.position = $config['panelposition'].to_i if $config['panelposition']
+            draw_from_config(false)
 		else
 			@mainbox.remove(@panel)
 			@panel.remove(@messagebox)
@@ -306,6 +302,7 @@ class MainWindow
 			else
 				@usernamebutton.show
 			end
+            draw_from_config(false)
         end
 	end
 	
@@ -349,8 +346,16 @@ class MainWindow
 		@messageinput.text = @currentbuffer.getnextcommand
 		@messageinput.grab_focus
 	end
+    
+    def update_dimensions
+        $config.set_value('panelposition', @panel.position)
+        width, height = @glade['window1'].size
+        $config.set_value('windowwidth', width)
+		$config.set_value('windowheight', height)
+    end
 	
 	def on_preferences1_activate
+        update_dimensions
 		configwindow = ConfigWindow.new
 		configwindow.show_all
 	end
@@ -362,10 +367,10 @@ class MainWindow
 	end
 	
 	def window_resized(window, event)
-		$config.set_value('windowwidth', event.width)
-		$config.set_value('windowheight', event.height)
+		#$config.set_value('windowwidth', event.width)
+		#$config.set_value('windowheight', event.height)
 		#for some reason we need to return a nil here or the window contents won't resize
-		nil
+		false
 	end
     
     def userlist_on_click(widget, event)
@@ -549,7 +554,7 @@ class MainWindow
 	def quit
 		#$main.send_command('quit', 'quit')
 		#@connection.close if @connection
-		$config.set_value('panelposition', @panel.position)
+        update_dimensions
 		Gtk.main_quit
 		$main.quit
 	end

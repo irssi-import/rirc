@@ -413,9 +413,11 @@ class Main
     end
     
 	#duh....
-	def quit
+	def quit(send_quit = true)
 		$config.send_config
-		send_command('quit', 'quit')
+        if send_quit
+            send_command('quit', 'quit')
+        end
 		@connection.close if @connection
         @reaperthread.kill if @reaperthread
 		puts 'bye byeeeeee...'

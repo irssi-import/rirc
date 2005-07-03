@@ -2,7 +2,8 @@
 INACTIVE = 0
 NEWDATA = 1
 NEWMSG = 2
-ACTIVE = 3
+HIGHLIGHT = 3
+ACTIVE = 0
 
 BUFFER_START = 0
 BUFFER_END = 1
@@ -44,7 +45,7 @@ class Buffer
 	
     #trigger a channel switch...?
 	def switchchannel(channel)
-		return if @button.toplevel.class != Gtk::Window
+		return if @button.toplevel.class != Gtk::Window or !$main.window
 		$main.window.switchchannel(channel)
 	end
 	
@@ -109,6 +110,11 @@ class Buffer
 	def recolor
 		label = @button.child
 		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status))
+        if @button.active?
+            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(0))
+        else
+            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@status))
+        end
 	end
 	
     #send a line to the buffer

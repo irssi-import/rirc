@@ -72,14 +72,14 @@ module InputParser
     def cmd_quit(arguments, channel, network, presence)
         send_command('quit', 'quit')
         Gtk.main_quit
-        quit
+        quit(false)
     end
     
     #/shutdown command
     def cmd_shutdown(arguments, channel, network, presence)
         send_command('shutdown', 'shutdown')
         Gtk.main_quit
-        quit
+        quit(false)
     end
     
     #/silckey command

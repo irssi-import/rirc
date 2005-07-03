@@ -1,3 +1,9 @@
+2005-07-03 01:29 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Fixed window resize bug
+    Prelit tab buttons preserve their colors
+    Window dimensions are saved at more sane times
+
 2005-07-03 12:27 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Added half finished plugin API (currently disabled)
