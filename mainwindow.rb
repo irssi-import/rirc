@@ -5,7 +5,6 @@ class MainWindow
 		#puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
-		
 		@channelbuttonlock = false
 		
 		@serverlist = $main.serverlist
@@ -14,27 +13,13 @@ class MainWindow
 		@messages = @glade["message_window"]
 		@messageinput = @glade["message_input"]
 		@messagescroll = @glade['message_scroll']
-		@messagescroll.vadjustment.signal_connect('value-changed') do |w|
-			#~ puts w.value.to_s
-			#~ puts w.page_size.to_s
-			#~ puts w.lower.to_s
-			#~ puts w.upper.to_s
-			#~ puts @messages.buffer.line_count.to_s
-			#~ puts '---'
-			
-		end
-		
-		#@messageinput.signal_connect("selection_received") { |x, y, z| puts 'selection changed'}
 		
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
-			#puts Gdk::Keyval.to_name(event.keyval)
 			if event.keyval == Gdk::Keyval.from_name('Tab')
 				if @currentbuffer.class == ChannelBuffer
 					substr = get_completion_substr
-					#puts substr
 					nick = @currentbuffer.tabcomplete(substr)
-					#@messageinput.text = nick if nick
 					replace_completion_substr(substr, nick) if nick
 				end
 			else
@@ -51,13 +36,6 @@ class MainWindow
 				true
 			end
 		end
-		#~ if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
-			#~ @channellist = @glade['channellist_side']
-		#~ else
-			#~ @channellist = @glade['channellist_top']
-		#~ end
-		
-		#puts $config['channellistposition']
 
 		@userbar = @glade['userbar']
 		@userlist = @glade['userlist']
@@ -74,20 +52,6 @@ class MainWindow
 		
 		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
 		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
-		#@messages.signal_connect('key_press_event') do |widget, event|
-			#if event.keyval
-				#puts Gdk::Keyval.to_unicode(event.keyval)
-				
-				#focus_input
-				#@messageinput.signal_emit('key_press_event', event)
-				#@messageinput.delete_selection
-			#end
-		#end
-		#~ @messages.key_snooper_install do |widget, event|
-			#~ focus input
-			#~ @messageinput.signal_emit('key_press_event', event)
-			#~ return true
-		#~ end
 		
 		@me = self
 		
@@ -98,26 +62,25 @@ class MainWindow
 		@defaultmenu = Gtk::Menu.new
 		@defaultmenu.append(Gtk::MenuItem.new("thing1"))
 		@defaultmenu.append(Gtk::MenuItem.new("thing2"))
-		
 	end
 	
 	def draw_from_config(unhide=true)
 		@serverlist.redraw
 		redraw_channellist
+        
 		#resize the window if we have some saved sizes...
 		x = -1
 		y = -1
 		
-		x = $config['windowwidth'].to_i if $config['windowwidth']
+        x = $config['windowwidth'].to_i if $config['windowwidth']
 		y = $config['windowheight'].to_i if $config['windowheight']
         @glade['window1'].resize(x, y)
         
         @panel.position = $config['panelposition'].to_i if $config['panelposition']
+        puts 'moved panel to '+$config['panelposition'].to_s if $config['panelposition']
 		
 		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		
-		#puts $config['selectedbackgroundcolor'], $config['selectedforegroundcolor']
 		
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
@@ -169,19 +132,12 @@ class MainWindow
 		@messageinput.text = ""
 		return
 	end
-	
-	#def on_message_window_button_release_event
-#		@messageinput.focus=true
-	#end
 
 	def scroll_to_end(channel)
 		return if @currentbuffer != channel
 		#check if we were at the end before the message was sent, if so, move down again
 		if mark_onscreen?(@currentbuffer.oldendmark)
-			#puts 'onscreen'
 			@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
-		else
-			#puts 'not onscreen'
 		end
 	end
 	
@@ -203,9 +159,7 @@ class MainWindow
 	def get_completion_substr
 		string = @messageinput.text
 		position = @messageinput.position
-		#puts position
 		string = string[0, position]
-		#puts string
 		name, whatever = string.reverse.split(' ', 2)
 		
 		name = name.reverse
@@ -221,8 +175,6 @@ class MainWindow
 		
 		string = string.reverse.sub(substr.reverse, nick.reverse)
 		string.reverse!
-		#index = string.rindex(nick)
-		#puts index
 		if index == 0
 			if string[nick.length, 1] == ' '
 				string.insert(nick.length, ';')
@@ -247,6 +199,7 @@ class MainWindow
 
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
+        update_dimensions
 		if !channel.button.active? or channel == @currentbuffer
 			if @currentbuffer == channel and @currentbuffer.button.active? == false
 				@currentbuffer.activate
@@ -267,8 +220,8 @@ class MainWindow
 		@messages.buffer = @currentbuffer.activate
 		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-        update_dimensions
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
+        @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 	end
 	
 	def updateusercount
@@ -290,7 +243,6 @@ class MainWindow
 			@topic.text =@currentbuffer.topic
 			@usernamebutton.show
 			updateusercount
-            draw_from_config(false)
 		else
 			@mainbox.remove(@panel)
 			@panel.remove(@messagebox)
@@ -303,15 +255,13 @@ class MainWindow
 			else
 				@usernamebutton.show
 			end
-            draw_from_config(false)
         end
 	end
 	
 	def message_input(widget)
 		return if widget.text.length == 0
 		@currentbuffer.addcommand(widget.text)
-		
-		#channel = @currentbuffer.name
+
 		if @currentbuffer.class == ChannelBuffer
 			network = @currentbuffer.server.name
 			presence = @currentbuffer.server.presence
@@ -366,13 +316,6 @@ class MainWindow
 			@topic.text =@currentbuffer.topic
 		end
 	end
-	
-	def window_resized(window, event)
-		#$config.set_value('windowwidth', event.width)
-		#$config.set_value('windowheight', event.height)
-		#for some reason we need to return a nil here or the window contents won't resize
-		false
-	end
     
     def userlist_on_click(widget, event)
 		if event.button == 3
@@ -383,9 +326,7 @@ class MainWindow
     
     def userlist_popup_menu(event)
         selection = @userlist.selection.selected
-        #puts selection.class
         if selection
-            #puts selection[0]
             menu = create_user_popup(selection[0])
             menu.show_all
             menu.popup(nil, nil, event.button, event.time)
@@ -417,16 +358,12 @@ class MainWindow
 		
 		iter.tags.each do |tag|
 			next unless tag.name
-			#puts tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				puts 'clicked tag linking to '+name[2]
                 link = to_uri(name[2])
 				system($config['linkclickaction'].sub('%s', link))
 				break
-			#elsif tag.data['type']  == 'user'
-			#	puts 'clicked tag linking to '+tag.data['user'].to_s
-			#	break
 			end
 		end
 		
@@ -446,7 +383,6 @@ class MainWindow
 		
 		iter.tags.each do |tag| 
 			next unless tag.name
-			#puts tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				menu = create_link_popup(name[2])
@@ -475,7 +411,6 @@ class MainWindow
 		
 		iter.tags.each do |tag|
 			next unless tag.name
-			#puts tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
 				@highlighted.push(tag)
@@ -542,19 +477,15 @@ class MainWindow
 		start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
 		stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
 		if @currentbuffer.buffer.get_text(start, stop).length <= 0
-			#puts 'no selection'
 			@messageinput.grab_focus
 			@messageinput.select_region(0, 0)
 			@messageinput.position=-1
-			#@messageinput.delete_selection
 		else
 			@messages.grab_focus
 		end
 	end
 	
 	def quit
-		#$main.send_command('quit', 'quit')
-		#@connection.close if @connection
         update_dimensions
 		Gtk.main_quit
 		$main.quit

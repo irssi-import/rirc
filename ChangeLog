@@ -1,3 +1,8 @@
+2005-07-04 02:09 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Absolutely positively for the last time ever fixed resize bug.
+    Code cleanups
+    
 2005-07-03 21:04 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed disappearing or duplicate name bug
