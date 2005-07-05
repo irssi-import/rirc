@@ -247,8 +247,8 @@ class Main
 	
 	#connect to a network
 	def connectnetwork(name, protocol, address, port,  presence)
-		send_command('addnet', "network add;name="+name+";protocol="+protocol)
-		cmdstring = "presence add;name="+presence+";network="+name
+		send_command('addnet', "network add;network="+name+";protocol="+protocol)
+		cmdstring = "presence add;presence="+presence+";network="+name
 		#if protocol.downcase == 'silc' and @keys[presence] and @keys[presence]['silc_pub']
 		#	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
 		#	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']

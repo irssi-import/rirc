@@ -140,6 +140,9 @@ module LineParser
                 user.rename(line['new_name'])
                 network.channels.each do |channel|
                     if channel.users[user.name]
+                        #remove the user and readd him before the redraw
+                        channel.deluser(user.name)
+                        channel.adduser(user.name)
                         channel.drawusers
                     end
                 end
