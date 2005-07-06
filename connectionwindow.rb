@@ -75,7 +75,9 @@ class ConnectionWindow
 		end
 		
 		#puts settings['ssh'].length, 'Items'
-		
+		unless File.directory?(ENV['HOME']+'/.rirc')
+            Dir.new(ENV['HOME']+'/.rirc')
+        end
 		File.open(ENV['HOME']+'/.rirc/settings.yaml', "w") {|f| YAML.dump(settings, f)}
 	end
 	
