@@ -17,7 +17,7 @@ class ConnectionWindow
 		#@ssh_button.active = true
 		@config = {}
 		
-		@config['default_method'] = 'socket'
+		@config['default_method'] = 'local'
 		
 		@config[@ssh_button] = {}
 		@config[@ssh_button]['host'] = 'localhost'
