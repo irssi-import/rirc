@@ -76,12 +76,12 @@ class ConnectionWindow
 		
 		#puts settings['ssh'].length, 'Items'
 		
-		File.open('settings.yaml', "w") {|f| YAML.dump(settings, f)}
+		File.open(ENV['HOME']+'/.rirc/settings.yaml', "w") {|f| YAML.dump(settings, f)}
 	end
 	
 	def load_settings
-		return if !File.exists?('settings.yaml')
-		settings = YAML.load_file('settings.yaml')
+		return if !File.exists?(ENV['HOME']+'/.rirc/settings.yaml')
+		settings = YAML.load_file(ENV['HOME']+'/.rirc/settings.yaml')
 		
 		group = @glade['ssh'].group
 		group.each do |button|

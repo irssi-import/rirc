@@ -98,6 +98,7 @@ class Buffer
     #disconnect a channel
 	def disconnect
 		@button.label = '('+@name+')'
+        @connected = false
 	end
 	
     #reconnect a channel
@@ -116,7 +117,15 @@ class Buffer
             label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@status))
         end
 	end
-	
+    
+    #send an event from the user to the buffer
+    def send_user_event(line, type)
+        time = Time.new
+        time = time - $main.drift if $config['canonicaltime'] == 'server'
+        line['time'] = time
+        send_event(line, type)
+    end
+    
     #send a line to the buffer
 	def send_event(line, type, insert_location=BUFFER_END)
 		return if !@connected
@@ -367,11 +376,12 @@ end
 
 #The 'Servers' buffer, not sure if this will be required in the future...
 class RootBuffer < Buffer
-	attr_reader :servers, :box, :name, :parent, :config, :username, :connected
+	attr_reader :servers, :box, :name, :parent, :config, :username, :connected, :server
 	def initialize(parent)
 		super('Servers')
 		@username = ''
 		@parent = parent
+        @server = self
 		@servers = Array.new
 		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
 			@box = Gtk::VBox.new
@@ -467,6 +477,17 @@ class RootBuffer < Buffer
 			end
 		end
 	end
+    
+    def get_network_by_name(name)
+        results = []
+        @servers.each do |server|
+            if server.name == name
+                results.push(server)
+            end
+        end
+        
+        return results
+    end
 	
     #function for getting a network when you pass a server/presence pair
 	def [](key, presence)
@@ -487,9 +508,10 @@ end
 
 #buffer used for networks
 class ServerBuffer < Buffer
-	attr_reader :name, :channels, :box, :parent, :config, :username, :presence, :connected, :users
+	attr_reader :name, :channels, :box, :parent, :config, :username, :presence, :connected, :users, :server, :chats
 	def initialize(name, presence, parent)
 		super(name)
+        @server = self
 		@presence = presence
 		@username = @presence.deep_clone
 		@parent = parent
@@ -611,6 +633,7 @@ class ServerBuffer < Buffer
 				return chat
 			end
 		end
+        puts 'no chat for '+name
 		return false
 	end
 	

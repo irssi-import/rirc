@@ -25,18 +25,18 @@ module CommandParser
                     line = {}
                     line['nick'] = presence
                     line['msg'] = message
-                    time = Time.new
-                    time = time - @drift if $config['canonicaltime'] == 'server'
-                    line['time'] = time
+                    #~ time = Time.new
+                    #~ time = time - @drift if $config['canonicaltime'] == 'server'
+                    #~ line['time'] = time
                     #@serverlist[network, 'vag'].users[presence].lastspoke= time.to_i
-                    @window.currentbuffer.send_event(line, USERMESSAGE)			}
+                    @window.currentbuffer.send_user_event(line, USERMESSAGE)			}
             elsif !network
-                line = {}
-                line['err'] = 'Invalid server command'
-                time = Time.new
-                time = time - @drift if $config['canonicaltime'] == 'server'
-                line['time'] = time
-                @window.currentbuffer.send_event(line, ERROR)
+                #line = {}
+                line = {'err' => 'Invalid server command'}
+                #~ time = Time.new
+                #~ time = time - @drift if $config['canonicaltime'] == 'server'
+                #~ line['time'] = time
+                @window.currentbuffer.send_user_event(line, ERROR)
             end
         end
     end
@@ -67,20 +67,47 @@ module CommandParser
         
         network_connect(network, presence)
     end
+    
+    #/disconnect command
+    def cmd_disconnect(arguments, *args)
+        servername, presence = arguments.split(' ', 2)
         
+        if presence
+        elsif @window.currentbuffer.server.name == servername
+            presence = @window.currentbuffer.server.presence
+        else
+            results = @serverlist.get_network_by_name(servername)
+            
+            results.delete_if {|server| !server.connected}
+            
+            if results.length == 1
+                presence = results[0].presence
+            elsif results.length > 1
+                line = {'err' => 'Multiple networks named '+servername+' please specify a presence'}
+                @window.currentbuffer.send_user_event(line, ERROR)
+            else
+                line = {'err' => 'No network names '+servernames}
+                @window.currentbuffer.send_user_event(line, ERROR)
+            end
+        end
         
+        if presence and servername
+            send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
+        end
+    end
+    
     #/part command
     def cmd_part(arguments, channel, network, presence)
         arguments = arguments.split(' ')
         if arguments[0]
             send_command('part', "channel part;network="+network+";presence="+$config['presence']+";channel="+arguments[0])
         else
-            line = {}
-            line['err'] = 'Part requires a channel argument'
-            time = Time.new
-            time = time - @drift if $config['canonicaltime'] == 'server'
-            line['time'] = time
-            @window.currentbuffer.send_event(line, ERROR)
+            #line = {}
+            line = {'err' => 'Part requires a channel argument'}
+            #~ time = Time.new
+            #~ time = time - @drift if $config['canonicaltime'] == 'server'
+            #~ line['time'] = time
+            @window.currentbuffer.send_user_event(line, ERROR)
         end
     end
     
@@ -167,17 +194,41 @@ module CommandParser
                 send_command('msg'+rand(100).to_s, 'msg;network='+network+';nick='+arguments[0]+';msg='+message+";presence="+presence)
             }
         else
-            line = {}
-            line['err'] = '/msg requires a username and a message'
-            time = Time.new
-            time = time - @drift if $config['canonicaltime'] == 'server'
-            line['time'] = time
-            @window.currentbuffer.send_event(line, ERROR)
+            line ={'err' => '/msg requires a username and a message'}
+            #~ time = Time.new
+            #~ time = time - @drift if $config['canonicaltime'] == 'server'
+            #~ line['time'] = time
+            @window.currentbuffer.send_user_event(line, ERROR)
         end
     end
     
     def cmd_load(arguments, channel, network, presence)
         plugin_load(arguments)
+    end
+    
+    def cmd_help(arguments, channel, network, presence)
+        helptext = "This is a list of the supported commands and their parameters:
+
+/server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
+/connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
+/disconnect <network> [<presence>] - Disconnect from the network
+/join <channel>
+/part <channel>
+/msg <user> <message>
+/quit - Quit rirc, but leave irssi2 running.
+/shutdown - Quit rirc and kill irssi2.
+/send <file> Sends a file to irssi2 - buggy.
+/whois <username>
+/help - Displays this message
+        
+/raw <command> - Sends a raw command to irssi2, do NOT specify a tag.
+/ruby <command> - Sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces."
+        
+        lines = helptext.split("\n")
+        lines.each do |line|
+            temp = {'msg' => line}
+            @serverlist.send_user_event(temp, NOTICE)
+        end
     end
         
 end

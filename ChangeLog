@@ -1,3 +1,9 @@
+2005-07-06 12:57 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Added /disconnect and /help commands
+    Work to make rirc installable
+    Wrapper script added
+    
 2005-07-06 19:20 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Renaming rirc internals to conform to irssi2 conventions

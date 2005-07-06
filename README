@@ -29,18 +29,20 @@ run './main.rb' or 'ruby main.rb'
 
 This is a list of the supported commands and their parameters:
 
-/server <name>:<protocol>:<address>[:<port>] (port is optional, irssi2 will use the defaults if its not specified) This command does NOT connect to the server, it merely defines the server so you can /connect to it
-/connect <networkname> [<presence>] Connect to the network, if no presence is defined it will use the default
+/server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
+/connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
+/disconnect <network> [<presence>] - Disconnect from the network
 /join <channel>
 /part <channel>
-/msg <user> <message> (you can send, but rirc will not handle incoming messages correctly ATM)
-/quit (quit rirc, but leave irssi2 running)
-/shutdown (quit rirc and kill irssi2)
-/send <file> (sends a file to irssi2 - buggy)
+/msg <user> <message>
+/quit - Quit rirc, but leave irssi2 running.
+/shutdown - Quit rirc and kill irssi2.
+/send <file> Sends a file to irssi2 - buggy.
 /whois <username>
-
-/raw <command> (sends a raw command to irssi2, do NOT specify a tag)
-/ruby <command> (sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces)
+/help - Displays this message
+        
+/raw <command> - Sends a raw command to irssi2, do NOT specify a tag.
+/ruby <command> - Sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces.
 
 ***TROUBLESHOOTING***
 

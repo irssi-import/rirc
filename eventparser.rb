@@ -47,6 +47,16 @@ module EventParser
         event['msg'] = msg
         network.send_event(event, NOTICE)
     end
+    
+    #disconnected from a network
+    def event_gateway_disconnected(event, network, channel)
+        if network
+            line = {'msg' => 'Disconnected from '+network.name}
+            network.send_user_event(line, NOTICE)
+            network.chats.each {|chat| chat.disconnect}
+            network.disconnect
+        end
+    end
 
     #joined a channel
     def event_channel_init(event, network, channel )

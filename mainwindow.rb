@@ -225,7 +225,7 @@ class MainWindow
 	end
 	
 	def updateusercount
-		return if @currentbuffer.class == RootBuffer
+		return unless @currentbuffer.class == ChannelBuffer
 		#puts 'updating user count'
 		@usercount.text = @currentbuffer.users.users.length.to_s+" users"
 	end
