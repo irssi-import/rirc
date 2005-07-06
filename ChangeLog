@@ -1,3 +1,7 @@
+2005-07-06 19:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Renaming rirc internals to conform to irssi2 conventions
+
 2005-07-06 18:30 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Changed behaviour of /server command and added /connect command, see README

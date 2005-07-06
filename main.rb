@@ -83,9 +83,9 @@ end
 #load all my home rolled ruby files here
 require 'configuration'
 require 'plugins'
-require 'lineparser'
+require 'commandparser'
 require 'eventparser'
-require 'inputparser'
+require 'replyparser'
 require 'tabcomplete'
 require 'users'
 require 'buffers'
