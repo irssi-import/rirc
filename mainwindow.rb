@@ -276,7 +276,7 @@ class MainWindow
 		end
 		
 		message = widget.text
-		$main.handle_input(message, @currentbuffer, network, presence)
+		$main.command_parse(message, @currentbuffer, network, presence)
 		widget.text = ''
 	end
 	

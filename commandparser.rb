@@ -1,5 +1,5 @@
-module InputParser    
-    def handle_input(message, channel, network, presence)
+module CommandParser    
+    def command_parse(message, channel, network, presence)
 		command, arguments = message.split(' ', 2)
 		
 		arguments = '' if ! arguments

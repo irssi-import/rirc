@@ -1,143 +1,143 @@
-module LineParser
+module EventParser
     #handle normal output from irssi2
-	def parse_line(line)
+	def event_parse(event)
         
 		#trap for events that refer to a channel that does not exist
-		if line['network'] and line['presence']
-			if !@serverlist[line['network'], line['presence']]
+		if event['network'] and event['presence']
+			if !@serverlist[event['network'], event['presence']]
 				#puts 'Error, non existant network event caught, ignoring'
 				#return
 			else
-				network = @serverlist[line['network'], line['presence']]
+				network = @serverlist[event['network'], event['presence']]
 			end
 			
-			if line['channel'] and network
-				if !network[line['channel']]
-					#puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']
+			if event['channel'] and network
+				if !network[event['channel']]
+					#puts 'Error, non existant channel event caught, ignoring '+event['network']+' '+event['presence']+' '+event['channel']
 					#return
 				else
-					channel = @serverlist[line['network'], line['presence']][line['channel']]
+					channel = @serverlist[event['network'], event['presence']][event['channel']]
 				end
 			end
         end
         
-        if self.respond_to?(line['type'])
-            self.send(line['type'], line, network, channel)
+        if self.respond_to?('event_'+event['type'])
+            self.send('event_'+event['type'], event, network, channel)
         else
-            #puts 'no method to handle '+line['type']+' event.'
+            #puts 'no method to handle '+event['type']+' event.'
         end
     end
     
     #connecting to a server
-    def gateway_connecting(line, network, channel)
+    def event_gateway_connecting(event, network, channel)
         #return unless network
-        if !@serverlist[line['network'], line['presence']]
-            network = @serverlist.add(line['network'], line['presence'])
+        if !@serverlist[event['network'], event['presence']]
+            network = @serverlist.add(event['network'], event['presence'])
             switchchannel(network)
-        elsif !@serverlist[line['network'], line['presence']].connected
+        elsif !@serverlist[event['network'], event['presence']].connected
             puts 'server exists but is not connected, reconnecting'
-            network = @serverlist[line['network'], line['presence']]
+            network = @serverlist[event['network'], event['presence']]
             network.reconnect
         else
             puts 'request to create already existing network, ignoring'
             return
         end
-        msg = "Connecting to "+line['ip']
-        msg += ":"+line['port'] if line['port']
-        line['msg'] = msg
-        network.send_event(line, NOTICE)
+        msg = "Connecting to "+event['ip']
+        msg += ":"+event['port'] if event['port']
+        event['msg'] = msg
+        network.send_event(event, NOTICE)
     end
 
     #joined a channel
-    def channel_init(line, network, channel )
+    def event_channel_init(event, network, channel )
         return unless network
-        if !@serverlist[line['network'], line['presence']]
+        if !@serverlist[event['network'], event['presence']]
             puts 'Error, non existant channel init event caught for non existant network, ignoring'
             return
-        elsif @serverlist[line['network'], line['presence']][line['channel']] and ! @serverlist[line['network'], line['presence']][line['channel']].connected
+        elsif @serverlist[event['network'], event['presence']][event['channel']] and ! @serverlist[event['network'], event['presence']][event['channel']].connected
             puts 'channel exists, but is not connected, reconnecting'
-            @serverlist[line['network'], line['presence']][line['channel']].reconnect
+            @serverlist[event['network'], event['presence']][event['channel']].reconnect
             
-        elsif @serverlist[line['network'], line['presence']][line['channel']]
+        elsif @serverlist[event['network'], event['presence']][event['channel']]
             puts 'request to create already existing channel, ignoring'
             return
         else
-            channel = @serverlist[line['network'], line['presence']].add(line['channel'])
+            channel = @serverlist[event['network'], event['presence']].add(event['channel'])
             channel.usersync = channel.eventsync = true
             switchchannel(channel)
         end
     end
     
     #notice from the server
-    def notice(line, network, channel)
+    def event_notice(event, network, channel)
         return unless network
-        network.send_event(line, NOTICE)
+        network.send_event(event, NOTICE)
     end
     
     #another user left the channel
-    def channel_presence_removed(line, network, channel)
+    def event_channel_presence_removed(event, network, channel)
         return unless channel
-        if ! line['deinit']
-            if line['name'] == network.username
-                channel.send_event(line, USERPART)
+        if ! event['deinit']
+            if event['name'] == network.username
+                channel.send_event(event, USERPART)
             else
-                channel.send_event(line, PART)
+                channel.send_event(event, PART)
             end
-            channel.deluser(line['name'])
+            channel.deluser(event['name'])
             @window.updateusercount
         else
-            channel.deluser(line['name'], true)
+            channel.deluser(event['name'], true)
         end
     end
     
     #user left the channel
-    def channel_part(line, network, channel)
+    def event_channel_part(event, network, channel)
         return unless channel
-        channel.send_event(line, USERPART)
+        channel.send_event(event, USERPART)
         channel.disconnect
         channel.clearusers
     end
     
     #user joined a channel
-    def channel_join(line, network, channel)
+    def event_channel_join(event, network, channel)
         return unless channel
         channel.reconnect
-        channel.send_event(line, USERJOIN)
+        channel.send_event(event, USERJOIN)
     end
     
     #another user joined the channel
-    def channel_presence_added(line, network, channel)
+    def event_channel_presence_added(event, network, channel)
         return unless channel
-        if !line['init']
-            channel.adduser(line['name'], false)
-            if line['name'] == network.username
-                channel.send_event(line, USERJOIN)
+        if !event['init']
+            channel.adduser(event['name'], false)
+            if event['name'] == network.username
+                channel.send_event(event, USERJOIN)
             else
-                channel.send_event(line, JOIN)
+                channel.send_event(event, JOIN)
                 @window.updateusercount
             end
         elsif
-            channel.adduser(line['name'], true)
+            channel.adduser(event['name'], true)
         end
     end
     
     #a user has changed
-    def presence_changed(line, network, channel)
+    def event_presence_changed(event, network, channel)
         return unless network
-        if line['new_name']
+        if event['new_name']
         
-            if line['name'] == network.username
-                network.set_username(line['new_name'])
+            if event['name'] == network.username
+                network.set_username(event['new_name'])
                 @window.get_username
                 @window.show_username
             end
             pattern = $config['notice'].deep_clone
             
-            user = network.users[line['name']]
+            user = network.users[event['name']]
             
             if user
                 puts user
-                user.rename(line['new_name'])
+                user.rename(event['new_name'])
                 network.channels.each do |channel|
                     if channel.users[user.name]
                         #remove the user and readd him before the redraw
@@ -148,172 +148,172 @@ module LineParser
                 end
             end
             
-            if line['new_name'] == network.username
-                pattern = 'You are now known as '+line['new_name']
-            elsif line['name'] != line['new_name']
-                pattern= line['name']+' is now known as '+line['new_name']
+            if event['new_name'] == network.username
+                pattern = 'You are now known as '+event['new_name']
+            elsif event['name'] != event['new_name']
+                pattern= event['name']+' is now known as '+event['new_name']
             else
                 pattern = nil
             end
             
-            line['msg'] = pattern
+            event['msg'] = pattern
             
             if pattern
                 network.channels.each{ |c|
-                    if c.users[line['new_name']]
+                    if c.users[event['new_name']]
                         c.drawusers
-                        c.send_event(line, NOTICE)
+                        c.send_event(event, NOTICE)
                     end
                 }
             end
             
-            if line['name'] and chat = network.has_chat?(line['name'])
-                chat.rename(line['new_name'])
+            if event['name'] and chat = network.has_chat?(event['name'])
+                chat.rename(event['new_name'])
             end
             
         end
 	
-        if line['address']
-            if user = network.users[line['name']]
-                user.hostname = line['address']
+        if event['address']
+            if user = network.users[event['name']]
+                user.hostname = event['address']
             end
         end
     end
     
     #a user has caught irssi2's attention
-    def presence_init(line, network, channel)
+    def event_presence_init(event, network, channel)
         return unless network
-        network.users.create(line['name'], line['address'])
+        network.users.create(event['name'], event['address'])
     end
     
     #a user has left irssi2's attention
-    def presence_deinit(line, network, channel)
+    def event_presence_deinit(event, network, channel)
         return unless network
-        network.users.remove(line['name'])
+        network.users.remove(event['name'])
     end
     
     #a message is recieved
-    def msg(line, network, channel)
+    def event_msg(event, network, channel)
         return unless network
-        if line['nick']
-            user = network.users[line['nick']]
+        if event['nick']
+            user = network.users[event['nick']]
             if user
-                user.lastspoke = line['time']
+                user.lastspoke = event['time']
                 if !user.hostname
-                    user.hostname = line['address']
+                    user.hostname = event['address']
                 end
             end
         end
     
-        if !line['channel'] and line['no-autoreply']
-            if line['nick']
-                network.send_event(line, MESSAGE)
+        if !event['channel'] and event['no-autoreply']
+            if event['nick']
+                network.send_event(event, MESSAGE)
             else
-                network.send_event(line, NOTICE)
+                network.send_event(event, NOTICE)
             end
             return
-        elsif !line['channel'] and line['nick']
-            if !network.has_chat?(line['nick'])
-                chat = network.addchat(line['nick'])
+        elsif !event['channel'] and event['nick']
+            if !network.has_chat?(event['nick'])
+                chat = network.addchat(event['nick'])
             else
-                chat = network.has_chat?(line['nick'])
+                chat = network.has_chat?(event['nick'])
             end
-            chat.send_event(line, MESSAGE)
+            chat.send_event(event, MESSAGE)
             return
-        elsif !line['channel']
+        elsif !event['channel']
             return
         end
     
-        if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
-            network.users[line['name']].hostname = line['address']
+        if event['address'] and network.users[event['name']] and network.users[event['name']].hostname == 'hostname'
+            network.users[event['name']].hostname = event['address']
         end
         
         return unless channel
-        if line['own']
-            channel.send_event(line, USERMESSAGE)
+        if event['own']
+            channel.send_event(event, USERMESSAGE)
         else
-            channel.send_event(line, MESSAGE)
+            channel.send_event(event, MESSAGE)
         end
     end
     
     #connected to a server
-	def gateway_connected(line, network, channel)
+	def event_gateway_connected(event, network, channel)
         return unless network
-        msg = "Connected to "+line['ip']
-        msg += ":"+line['port'] if line['port']
-        line['msg'] = msg
-        network.send_event(line, NOTICE)
+        msg = "Connected to "+event['ip']
+        msg += ":"+event['port'] if event['port']
+        event['msg'] = msg
+        network.send_event(event, NOTICE)
     end
     
     #failed to connect to a server
-    def gateway_connect_failed(line, network, channel)
+    def event_gateway_connect_failed(event, network, channel)
         return unless network
-        err = "Connection to "+line['ip']+':'+line['port']+" failed : "+line['error']
-        line['err'] = err
-        network.send_event(line, ERROR)
+        err = "Connection to "+event['ip']+':'+event['port']+" failed : "+event['error']
+        event['err'] = err
+        network.send_event(event, ERROR)
     end
     
     #the gateway has changed
-    def gwconn_changed(line, network, channel)
-        gateway_changed(line, network, channel)
+    def event_gwconn_changed(event, network, channel)
+        gateway_changed(event, network, channel)
     end
     
     #the gateway has changed
-    def gateway_changed(line, network, channel)
+    def gateway_changed(event, network, channel)
         return unless network
-        if line['irc_mode']
-            msg = line['presence']+" sets mode +"+line['irc_mode']+" "+line['presence']
-            line['msg'] = msg
-            network.send_event(line, NOTICE)
+        if event['irc_mode']
+            msg = event['presence']+" sets mode +"+event['irc_mode']+" "+event['presence']
+            event['msg'] = msg
+            network.send_event(event, NOTICE)
         end
     end
     
     #server's message of the day
-    def gateway_motd(line, network, channel)
+    def event_gateway_motd(event, network, channel)
         return unless network
-        line['msg'] = line['data']
-        network.send_event(line, NOTICE)
+        event['msg'] = event['data']
+        network.send_event(event, NOTICE)
     end
     
     #a channel has changed
-    def channel_changed(line, network, channel)
+    def event_channel_changed(event, network, channel)
         return unless channel
-        if line['initial_presences_added']
+        if event['initial_presences_added']
             puts 'initial presences added'
             @window.updateusercount
             channel.drawusers
         end
-        #~ elsif line['topic'] and line['topic_set_by']
-            #~ #pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
-            #~ pattern = "%6"+line['topic_set_by']+'%6 has changed the topic to: %6'+line['topic']+'%6'
-        #~ elsif line['topic']
-            #~ pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
-        #~ elsif line['topic_set_by']
-            #~ pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
+        #~ elsif event['topic'] and event['topic_set_by']
+            #~ #pattern = "Topic set to %6"+event['topic']+ "%6 by %6"+event['topic_set_by']+'%6'
+            #~ pattern = "%6"+event['topic_set_by']+'%6 has changed the topic to: %6'+event['topic']+'%6'
+        #~ elsif event['topic']
+            #~ pattern ="Topic for %6"+event['channel']+ "%6 is %6"+event['topic']+'%6'
+        #~ elsif event['topic_set_by']
+            #~ pattern = "Topic for %6"+event['channel']+ "%6 set by %6"+event['topic_set_by']+'%6 at %6'+event['topic_timestamp']+'%6'
         #~ end
-        #~ line['msg'] = pattern
+        #~ event['msg'] = pattern
         
-        if line['topic'] or line['topic_set_by']
-            channel.topic = line['topic'] if line['topic']
-            channel.send_event(line, TOPIC)
+        if event['topic'] or event['topic_set_by']
+            channel.topic = event['topic'] if event['topic']
+            channel.send_event(event, TOPIC)
             @window.updatetopic
         end
         
         #~ if pattern
-            #~ channel.send_event(line, NOTICE)
+            #~ channel.send_event(event, NOTICE)
         #~ end
     end
     
-    def irc_event(line, network, channel)
+    def event_irc_event(event, network, channel)
     end
     
-    def silc_event(line, network, channel)
+    def event_silc_event(event, network, channel)
     end
     
-    def presence_status_changed(line, network, channel)
+    def event_presence_status_changed(event, network, channel)
         return unless network
-        if user = network.users[line['name']]
-            user.lastspoke = line['idle_started']
+        if user = network.users[event['name']]
+            user.lastspoke = event['idle_started']
         end
     end
     

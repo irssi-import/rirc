@@ -112,7 +112,7 @@ class Configuration
 	#request the config from irssi2
 	def get_config
 		$main.send_command('getconfig', 'config get;*')
-		while $main.events['getconfig']
+		while $main.replies['getconfig']
 			sleep 1
 		end
 	end
@@ -147,8 +147,8 @@ class Configuration
 	end
 	
 	#parse the configs retrieved from irssi2
-	def parse_config(event)
-		event.lines.each do |line| 
+	def parse_config(reply)
+		reply.lines.each do |line| 
 			if line['key'] and line['value']
 				value = decode_value(line['value'])
 				@values[line['key'].sub('rirc_', '')] = value

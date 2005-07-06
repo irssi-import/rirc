@@ -1,4 +1,4 @@
-class Event
+class Reply
 	attr_reader :complete, :lines, :name, :command, :origcommand, :error, :network, :channel, :start
     attr_writer :network, :channel
 	def initialize(name, command)
@@ -33,7 +33,7 @@ class Event
 		end
 	end
 	
-	#parse a line and add it to the object
+	#parse a line and add it to the reply object
 	def addline(line)
         #time = Time.new
 		temp = {}

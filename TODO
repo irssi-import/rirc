@@ -1,18 +1,18 @@
 TODO
 
 Big things:
-	Dynamic scrollback fetching
-	On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
-	Fixup the Net::SSH connection method for windows lusers
-	Finish porting rirc to windows (if I can be bothered)
+    Dynamic scrollback fetching
+    On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
+    Fixup the Net::SSH connection method for windows lusers
+    Finish porting rirc to windows (if I can be bothered)
     Plugin support?
 	
 Little things:
-	network buffers should also maybe do event get
+    network buffers should also maybe do event get
 
 Bugs:
-	Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
-	Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)
+    Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
+    Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)
     messages/events from event get should not color the tab buttons
     fix tab completion weirdness
 	

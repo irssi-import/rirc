@@ -1,29 +1,29 @@
-module EventParser
-    #handle events from irssi2 (responses to commands sent from a client)
-	def handle_event(event)
+module ReplyParser
+    #handle replies from irssi2 (responses to commands sent from a client)
+	def reply_parse(reply)
     
-        if event.error
-            event.lines.each do |line|
+        if reply.error
+            reply.lines.each do |line|
                 if line['status'] == '-'
-                    handle_error(line, event)
+                    handle_error(line, reply)
                 end
             end
         end
         
-		if event.command['command'] == 'presence status'
-			ev_presence_status(event)
+		if reply.command['command'] == 'presence status'
+			reply_presence_status(reply)
 			return
-		elsif event.command['command'] == 'config get'
-			$config.parse_config(event)
+		elsif reply.command['command'] == 'config get'
+			$config.parse_config(reply)
 			return
 		end
 		
-		event.lines.each do |line|
+		reply.lines.each do |line|
 			
             channel = nil
             network = nil
             
-			if event.name == 'raw'
+			if reply.name == 'raw'
 				output = {}
 				output['msg'] =  line['original']
 				@serverlist.send_event(output, NOTICE)
@@ -31,7 +31,7 @@ module EventParser
 			end
 			
 			if line['status'] == '-'
-				line['err'] = 'Error: '+line['error']+' encountered when sending command '+event.origcommand
+				line['err'] = 'Error: '+line['error']+' encountered when sending command '+reply.origcommand
 				@serverlist.send_event(line, ERROR)
 				return
 			end
@@ -53,9 +53,9 @@ module EventParser
                 end
             end
             
-            cmd = 'ev_'+event.command['command'].gsub(' ', '_')
+            cmd = 'reply_'+reply.command['command'].gsub(' ', '_')
             if self.respond_to?(cmd)
-                self.send(cmd, line, network, channel, event)
+                self.send(cmd, line, network, channel, reply)
             else
                 #puts 'no method to handle '+cmd+' event.'
             end
@@ -65,15 +65,15 @@ module EventParser
     end
 
     #sending a file
-    def ev_file_send(line, network, channel, event)
+    def reply_file_send(line, network, channel, reply)
         if line['closed'] and @filehandles[line['handle'].to_i]
             puts 'file sent'
             @filehandles[line['handle'].to_i].close
             @filehandles.delete_at(line['handle'].to_i)
             return
         end
-        if event.command['name']
-            @filehandles[line['handle'].to_i] = @filedescriptors[event.command['name']]
+        if reply.command['name']
+            @filehandles[line['handle'].to_i] = @filedescriptors[reply.command['name']]
         end
         
         file = @filehandles[line['handle'].to_i]
@@ -87,7 +87,7 @@ module EventParser
     end
     
     #list the connected presences
-    def ev_presence_list(line, network, channel, event)
+    def reply_presence_list(line, network, channel, reply)
         if line['network'] and line['presence'] and line['connected']
             network = createnetworkifnot(line['network'], line['presence'])
             network.set_username(line['name'] ) if line['name']
@@ -102,7 +102,7 @@ module EventParser
     end
     
     #list the connected channels
-    def ev_channel_list(line, network, channel, event)
+    def reply_channel_list(line, network, channel, reply)
         
         if line['network'] and line['presence'] and line['name']
             if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
@@ -126,23 +126,23 @@ module EventParser
     end
     
     #list of users on the channel
-    def ev_channel_names(line, network, channel, event)
+    def reply_channel_names(line, network, channel, reply)
         if line['network'] and line['presence'] and line['channel'] and line['name']
             network.users.create(line['name'])
             channel.adduser(line['name'], true)
             #@window.updateusercount
         elsif line['status'] == '+'
             #puts 'end of user list'
-            @serverlist[event.command['network'], event.command['presence']][event.command['channel']].drawusers
+            @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].drawusers
             @window.updateusercount
-                        @serverlist[event.command['network'], event.command['presence']][event.command['channel']].usersync = true
+                        @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].usersync = true
         end
     end
                     
     #handle past events here
-    def ev_event_get(line, network, channel, event)
-        event.network ||= network if network
-        event.channel ||= channel if channel
+    def reply_event_get(line, network, channel, reply)
+        reply.network ||= network if network
+        reply.channel ||= channel if channel
         if line['event'] == 'msg'
             if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
                 network.users[line['name']].hostname = line['address']
@@ -202,16 +202,16 @@ module EventParser
             end
         elsif line['status'] == '+'
             #event.command
-            event.channel.eventsync = true if event.channel
+            reply.channel.eventsync = true if reply.channel
             #Thread.new{syncchannels}
         end
     end
     
 	#output the result of a whois
-	def ev_presence_status(event)
-		network = @serverlist[event.command['network'], event.command['presence']]
+	def reply_presence_status(reply)
+		network = @serverlist[reply.command['network'], reply.command['presence']]
 		
-		event.lines.each do |line|
+		reply.lines.each do |line|
 		
 			if line['address'] and line['real_name']
 				msg = '('+line['address']+') : '+line['real_name']
@@ -234,7 +234,7 @@ module EventParser
 				msg = line['extra']
 			elsif line['status'] == '+'
 				msg = 'End of /whois'
-				line['name'] = event.command['name']
+				line['name'] = reply.command['name']
 			else
 				next
 			end
@@ -243,7 +243,7 @@ module EventParser
 			pattern['%m'] = msg if msg
 			pattern['%n'] = line['name'] if line['name']
 			line['msg'] = pattern
-			network.send_event(line, NOTICE)
+			network.send_reply(line, NOTICE)
 			time = line['time']
 		end
 	end

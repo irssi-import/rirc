@@ -97,15 +97,15 @@ require 'connectionwindow'
 
 
 class Main
-	attr_reader :serverlist, :window, :events, :connectionwindow, :drift
+	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift
     #include Plugins
-    include LineParser
     include EventParser
-    include InputParser
+    include ReplyParser
+    include CommandParser
 	def initialize
 		@serverlist = RootBuffer.new(self)
 		@connection = nil
-		@events = {}
+		@replies = {}
 		@buffer = []
 		@buffer[0] = true
 		@filehandles = []
@@ -119,7 +119,7 @@ class Main
 	#start doing stuff
 	def start
 		Gtk.init
-        event_reaper
+        reply_reaper
 		@connectionwindow = ConnectionWindow.new
 		@window = MainWindow.new
 		if @connectionwindow.autoconnect == true
@@ -128,22 +128,22 @@ class Main
 		Gtk.main
 	end
 	
-    def event_reaper
+    def reply_reaper
         @reaperthread = Thread.new do
             #puts 'starting event reaper thread...'
             while true
                 sleep 5
-                @events.each do |key, event|
+                @replies.each do |key, reply|
                     #puts (Time.new - event.start).to_i 
-                    if (Time.new - event.start).to_i > 10
-                        if event.complete
-                            puts 'REAPING - event '+event.name+' is complete, parsing'
-                             @events.delete(key)
-                            handle_event(event)
+                    if (Time.new - reply.start).to_i > 10
+                        if reply.complete
+                            puts 'REAPING - reply '+reply.name+' is complete, parsing'
+                             @replies.delete(key)
+                            reply_parse(reply)
                         else
-                            puts 'REAPING - event '+event.name+' is incomplete and expired, resending'
-                            @events.delete(key)
-                            send_command(key, event.origcommand)
+                            puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
+                            @replies.delete(key)
+                            send_command(key, reply.origcommand)
                         end
                     end
                 end
@@ -312,7 +312,7 @@ class Main
 		#puts tag, command
 		
 		#puts 'added event for' + tag.to_s
-		@events[tag] = Event.new(tag, command)
+		@replies[tag] = Reply.new(tag, command)
 		
 		if length
 			cmdstr = '+'+length.to_s+';'+tag+';'+command+"\n"
@@ -343,17 +343,17 @@ class Main
 		re2 = /^[*]+;([a-zA-Z_]+);(.+)$/
 		
 		if md = re.match(string)
-			if @events[$1]
+			if @replies[$1]
 				#puts string
 				#@events[$1]['raw_lines'].push(string)
 				#puts @events[$1]
-				event = @events[$1]
-				Thread.new{event.addline(string)}
-				if @events[$1] and @events[$1].complete
+				reply = @replies[$1]
+				Thread.new{reply.addline(string)}
+				if @replies[$1] and @replies[$1].complete
 					#puts 'event '+$1+ ' complete'
 					Thread.new do
-						handle_event(event)
-						@events.delete(event.name)
+						reply_parse(reply)
+						@replies.delete(reply.name)
 					end
 				end
 			else
@@ -389,7 +389,7 @@ class Main
 			@last = num-1
 		end
 
-		parse_line(@buffer[num])
+		event_parse(@buffer[num])
 	end
 	
 	#keep an eye on the difference between client & server time
@@ -421,10 +421,10 @@ class Main
 		return network[channel]
 	end
 	
-    def handle_error(line, event)
-        channel ||= event.command['channel']
-        network ||= event.command['network']
-        presence ||= event.command['presence']
+    def handle_error(line, reply)
+        channel ||= reply.command['channel']
+        network ||= reply.command['network']
+        presence ||= reply.command['presence']
         
         if network = @serverlist[network, presence]
             target = network
@@ -435,32 +435,32 @@ class Main
         end
         
         if line['bad']
-            err = 'Bad line - '+event.origcommand
+            err = 'Bad line - '+reply.origcommand
         elsif line['args']
-            err = 'Bad arguments - '+event.origcommand
+            err = 'Bad arguments - '+reply.origcommand
         elsif line['state']
-            err = 'Bad state - '+event.origcommand
+            err = 'Bad state - '+reply.origcommand
         elsif line['unknown']
-            err = 'Unknown command - '+event.command['command']
+            err = 'Unknown command - '+reply.command['command']
         elsif line['nogateway']
             err = 'No gateway'
-            err += ' for network - '+event.command['network'] if event.command['network']
+            err += ' for network - '+reply.command['network'] if reply.command['network']
         elsif line['noprotocol']
             err = 'Invalid Protocol'
-            err += ' - '+event.command['protocol'] if event.command['protocol']
+            err += ' - '+reply.command['protocol'] if reply.command['protocol']
         elsif line['noconnection']
         elsif line['nonetwork']
             err = 'Invalid network'
-            err += ' - '+event.command['network'] if event.command['network']
+            err += ' - '+reply.command['network'] if reply.command['network']
         elsif line['nopresence']
             err = 'Invalid or protected presence'
-            err += ' - '+event.command['presence'] if event.command['presence']
+            err += ' - '+reply.command['presence'] if reply.command['presence']
         elsif line['exists']
             err ='Already Exists'
         elsif line['notfound']
             err = 'Not Found'
         elsif line['reply_lost']
-            err = 'Reply to command - '+event.origcommand+' lost.'
+            err = 'Reply to command - '+reply.origcommand+' lost.'
         else
             puts 'unhandled error '+line['original']
             return
