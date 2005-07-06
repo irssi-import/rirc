@@ -105,6 +105,75 @@ class SSHConnection
 	end
 end
 
+class LocalConnection
+	#attr_reader :connected
+	def initialize(settings, connectionwindow)
+		require 'open3'
+		require 'expect'
+		@input = nil
+		@output = nil
+		@error = nil
+		@input, @output, @error = Open3.popen3(settings['binpath'])
+		begin
+			@output.expect(/^\*;preauth;time=(\d+)\n/) do |x, y|
+				connectionwindow.send_text('logged in')
+				$main.calculate_clock_drift(y)
+			end
+		
+		rescue NoMethodError
+			connectionwindow.send_text('Something is borked')
+			raise IOError, "one of the many things that could go wrong, has"
+		end
+	end
+	
+	def send(data)
+		#puts data
+		begin
+			@input.puts(data)
+		rescue SystemCallError
+			puts 'Write error: '+$!
+			return false
+		rescue IOError
+			puts 'Write error: '+$!
+			return false
+		end
+		return true
+	end
+	
+	def listen(object)
+		@listenthread = Thread.new do
+			loop do
+				#begin
+					while line = @output.gets
+						#puts 'o: '+line
+						object.parse_lines(line)
+					end
+				
+				#~ rescue IOError
+					#~ puts 'listen: closed stream, disconnecting '+$!
+					#~ close
+					#~ object.disconnect
+					#~ object.connect
+					#~ break
+				#~ rescue StandardError
+					#~ puts 'listen: closed stream, disconnecting '+$!
+					#~ close
+					#~ object.disconnect
+					#~ object.connect
+					#~ break
+				#~ end
+			end
+		end
+	end
+	
+	def close
+		@listenthread.kill if @listenthread
+		@input.close
+		@output.close
+		@error.close
+	end
+end
+
 #~ class RbSSHConnection
 	#~ def initialize(host)
 		#~ @input = nil

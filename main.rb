@@ -112,6 +112,8 @@ class Main
 		@filedescriptors = {}
 		@keys = {}
 		@drift = 0
+        @networks = []
+        @presences = []
 	end
     
 	#start doing stuff
@@ -211,6 +213,8 @@ class Main
 				@connection = SSHConnection.new(settings, @connectionwindow)
 			elsif method == 'socket'
 				@connection = UnixSockConnection.new(settings, @connectionwindow)
+            elsif method == 'local'
+                @connection = LocalConnection.new(settings, @connectionwindow)
 			else
 				@connectionwindow.send_text('invalid connection method')
 				return
@@ -246,22 +250,48 @@ class Main
 	end
 	
 	#connect to a network
-	def connectnetwork(name, protocol, address, port,  presence)
-		send_command('addnet', "network add;network="+name+";protocol="+protocol)
-		cmdstring = "presence add;presence="+presence+";network="+name
-		#if protocol.downcase == 'silc' and @keys[presence] and @keys[presence]['silc_pub']
-		#	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
-		#	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
-		#end
-		#send_command('addpres', "presence add;name="+presence+";network="+name)
-		#cmdstring.gsub!("\n", "\\n")
-		#puts cmdstring
-		send_command('addpres', cmdstring)
-		temp = "gateway add;host="+address+";network="+name
-		temp += ";port="+port if port != '' and port
-		send_command('addhost', temp)
-		send_command('connect', "presence connect;network="+name+";presence="+presence)
+	def network_add(name, protocol, address, port)
+        unless @networks.include?(name)
+            send_command('addnet', "network add;network="+name+";protocol="+protocol)
+            temp = "gateway add;host="+address+";network="+name
+            temp += ";port="+port if port != '' and port
+            send_command('addhost', temp)
+            @networks.push(name)
+        else
+            puts 'Network exists'
+        end
+        #presence_add(presence, name)
+		#send_command('connect', "presence connect;network="+name+";presence="+presence)
 	end
+    
+    def network_connect(network, presence)
+        if !@networks.include?(network)
+            puts 'undefined network '+network
+        elsif !@presences.include?([presence, network])
+            puts 'undefined presence '+presence
+        else
+            send_command('connect', "presence connect;network="+network+";presence="+presence)
+        end
+    end
+    
+    def presence_add(network, presence)
+        if !@networks.include?(network)
+            puts 'undefined network '+network
+        elsif @presences.include?([presence, network])
+            puts 'Presence exists'
+        else
+            cmdstring = "presence add;presence="+presence+";network="+network
+            #if protocol.downcase == 'silc' and @keys[presence] and @keys[presence]['silc_pub']
+            #	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
+            #	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
+            #end
+            #send_command('addpres', "presence add;name="+presence+";network="+name)
+            #cmdstring.gsub!("\n", "\\n")
+            #puts cmdstring
+            send_command('addpres', cmdstring)
+            @presences.push([presence, network])
+        end
+    end
 	
 	#split by line and parse each line
 	def parse_lines(string)
@@ -414,7 +444,7 @@ class Main
             err = 'Unknown command - '+event.command['command']
         elsif line['nogateway']
             err = 'No gateway'
-            err += 'for network - '+event.command['network'] if event.command['network']
+            err += ' for network - '+event.command['network'] if event.command['network']
         elsif line['noprotocol']
             err = 'Invalid Protocol'
             err += ' - '+event.command['protocol'] if event.command['protocol']
@@ -437,7 +467,7 @@ class Main
         end
         
         line = {}
-        puts err
+        #puts err
         line['err'] = err
         time = Time.new
         time = time - @drift if $config['canonicaltime'] == 'server'

@@ -5,6 +5,7 @@ RIRC README
 RIRC is a Ruby/GTK client for irssi2 (http://main.irssi.org/projects/irssi2.html). It was the first irssi2 client written, and at the time of writing is the most full featured.
 
 ***LICENCING***
+
 GPL - see COPYING FILE
 
 ***REQUIREMENTS***
@@ -28,14 +29,15 @@ run './main.rb' or 'ruby main.rb'
 
 This is a list of the supported commands and their parameters:
 
-/server <name>:<protocol>:<address>[:<port>] (port is optional, irssi2 will use the defaults if its not specified)
+/server <name>:<protocol>:<address>[:<port>] (port is optional, irssi2 will use the defaults if its not specified) This command does NOT connect to the server, it merely defines the server so you can /connect to it
+/connect <networkname> [<presence>] Connect to the network, if no presence is defined it will use the default
 /join <channel>
 /part <channel>
 /msg <user> <message> (you can send, but rirc will not handle incoming messages correctly ATM)
 /quit (quit rirc, but leave irssi2 running)
 /shutdown (quit rirc and kill irssi2)
 /send <file> (sends a file to irssi2 - buggy)
-/whois
+/whois <username>
 
 /raw <command> (sends a raw command to irssi2, do NOT specify a tag)
 /ruby <command> (sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces)

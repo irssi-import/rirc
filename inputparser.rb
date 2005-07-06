@@ -49,10 +49,26 @@ module InputParser
     #/server command
     def cmd_server(arguments, channel, network, presence)
         if arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
-        connectnetwork($1, $2, $3, $4, presence)
+        network_add($1, $2, $3, $4)
         end
     end
     
+    #/connect command
+    def cmd_connect(arguments, channel, network, presence)
+        network, presence = arguments.split(' ', 2)
+        
+        puts network, presence
+        
+        unless presence
+            presence = $config['presence']
+        end
+        
+        presence_add(network, presence)
+        
+        network_connect(network, presence)
+    end
+        
+        
     #/part command
     def cmd_part(arguments, channel, network, presence)
         arguments = arguments.split(' ')

@@ -88,10 +88,16 @@ module EventParser
     
     #list the connected presences
     def ev_presence_list(line, network, channel, event)
-        if line['network'] and line['presence']
+        if line['network'] and line['presence'] and line['connected']
             network = createnetworkifnot(line['network'], line['presence'])
             network.set_username(line['name'] ) if line['name']
             send_command('channels', "channel list")
+        end
+        
+        if line['network'] and line['presence']
+            #something
+            @networks.push(line['network'])
+            @presences.push([line['presence'], line['network']])
         end
     end
     

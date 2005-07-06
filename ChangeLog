@@ -1,3 +1,14 @@
+2005-07-06 18:30 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Changed behaviour of /server command and added /connect command, see README
+    Added local connection method, unixsocket is depreciated and disabled
+    Stored presences are now handled correctly
+
+2005-07-04 02:09 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Updated the connect commands to reflect irssi2 changes
+    Minor fix to userlist
+
 2005-07-04 02:09 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Absolutely positively for the last time ever fixed resize bug.

@@ -7,10 +7,12 @@ class ConnectionWindow
 		
 		@connection_log = @glade['connection_log']
 		
+        @local_button = @glade['local'] 
 		@ssh_button = @glade['ssh']
 		@socket_button = @glade['socket'] 
 		@net_ssh_button = @glade['net_ssh']
 		@net_ssh_button.sensitive = false
+        @socket_button.sensitive = false
 		
 		#@ssh_button.active = true
 		@config = {}
@@ -22,6 +24,9 @@ class ConnectionWindow
 		@config[@ssh_button]['username'] = `whoami`.chomp
 		@config[@ssh_button]['binpath'] = '/usr/bin/irssi2'
 		
+        @config[@local_button] = {}
+        @config[@local_button] ['binpath'] = '/usr/bin/irssi2'
+        
 		@config[@socket_button] = {}
 		@config[@socket_button]['location'] = ENV['HOME']+'/.irssi2/client-listener'
 		
@@ -33,6 +38,7 @@ class ConnectionWindow
 		@option[@ssh_button] = @glade['ssh_table']
 		@option[@socket_button] = @glade['socket_table']
 		@option[@net_ssh_button] = @glade['net_ssh_table']
+        @option[@local_button] = @glade['local_table']
 		
 		@glade['presence'].text = 'irssi2'
 		
