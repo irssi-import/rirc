@@ -18,7 +18,7 @@ class MainWindow
 			if event.keyval == Gdk::Keyval.from_name('Tab')
 				if @currentbuffer.class == ChannelBuffer
 					substr = get_completion_substr
-					nick = @currentbuffer.tabcomplete(substr)
+					nick = @currentbuffer.tabcomplete(substr) if substr
 					replace_completion_substr(substr, nick) if nick
 				end
 			else
@@ -154,46 +154,66 @@ class MainWindow
 		end
 	end
 	
+    #get the substring to use for tab completion.
 	def get_completion_substr
 		string = @messageinput.text
 		position = @messageinput.position
 		string = string[0, position]
 		name, whatever = string.reverse.split(' ', 2)
+        
+        return nil unless name
 		
 		name = name.reverse
 		
 		return name
 	end
 	
+    #function to do the nick replace for tab completion
 	def replace_completion_substr(substr, nick)
-		nick = nick
 		string = @messageinput.text.rstrip
 		position = @messageinput.position
 		index = string.rindex(substr, position)
 		
-		string = string.reverse.sub(substr.reverse, nick.reverse)
-		string.reverse!
+        #split the string by the cursor position
+        a = string[0, position]
+        b = string[position, string.length-position]
+
+        #use rstrip to ignore traling whitespace for calculating the start of the nick
+        nickstart = a.rstrip.length-substr.length
+        #nick replace
+		a = a.reverse.sub(substr.reverse, nick.reverse)
+		a.reverse!
+        #reassemble the string, converting the pieces to strings if they're nulls
+        a ||= ''
+        b ||= ''
+        string = a+b
+
+        nicklength = nick.length
+        #determine current position and take action
 		if index == 0
+            #the beginning
 			if string[nick.length, 1] == ' '
 				string.insert(nick.length, ';')
+                nicklength = nick.length+2
 			else
 				string.insert(nick.length, '; ')
+                nicklength = nick.length+2
 			end
-        #we're at the end
 		elsif index+nick.length == string.length
-			#~ puts index
-			#~ puts nick.length
-			#~ puts index+nick.length
-			#~ puts string.length
-			#puts 'end'
+            #we're at the end
 		else
+            #somewhere in the middle
 			if string[index+nick.length, 1] != ' '
-				string.insert(index+nick.length, ' ')
+				string.insert(nickstart+nick.length, ' ')
+                nicklength = nick.length+1
+            else
+                nicklength = nick.length+1
 			end
-			#puts 'middle'
 		end
+        #update the content of the entry
 		@messageinput.text = string
-		@messageinput.set_position(index+nick.length+1)
+        #reposition the cursor
+		@messageinput.set_position(nickstart+nicklength)
 	end
 
 	def switchchannel(channel)
