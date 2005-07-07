@@ -38,15 +38,12 @@ module ReplyParser
             
             if line['network'] and line['presence']
                 if !@serverlist[line['network'], line['presence']]
-                    #puts 'Error, non existant network event caught, ignoring'
                 else
                     network = @serverlist[line['network'], line['presence']]
                 end
                 
                 if line['channel']
                     if !@serverlist[line['network'], line['presence']][line['channel']]
-                        #puts 'Error, non existant channel event caught, ignoring '+line['network']+' '+line['presence']+' '+line['channel']+' '+event.origcommand
-                        #return
                     else
                         channel = @serverlist[line['network'], line['presence']][line['channel']]
                     end
@@ -56,12 +53,8 @@ module ReplyParser
             cmd = 'reply_'+reply.command['command'].gsub(' ', '_')
             if self.respond_to?(cmd)
                 self.send(cmd, line, network, channel, reply)
-            else
-                #puts 'no method to handle '+cmd+' event.'
             end
         end
-        #remove the event
-        #@events.delete(event.name)
     end
 
     #sending a file
@@ -111,10 +104,6 @@ module ReplyParser
                     channel.topic = line['topic']
                 end
                 switchchannel(channel)
-                #puts 'getting channel info'
-                #~ send_command('listchan-'+line['network']+line['name'], "channel names;network="+line['network']+";channel="+line['name']+";presence="+line['presence'])
-                #~ send_command('events-'+line['network']+line['name'], "event get;end=*;limit=500;filter=(channel="+line['name']+")")
-
             else
                 puts 'channel call for existing network, ignoring '+line['network']+' '+line['presence']+' '+line['name']
                 return
@@ -130,9 +119,7 @@ module ReplyParser
         if line['network'] and line['presence'] and line['channel'] and line['name']
             network.users.create(line['name'])
             channel.adduser(line['name'], true)
-            #@window.updateusercount
         elsif line['status'] == '+'
-            #puts 'end of user list'
             @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].drawusers
             @window.updateusercount
                         @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].usersync = true
@@ -224,9 +211,7 @@ module ReplyParser
 				msg = line['server_address']+' : '+line['server_name']
 			elsif line['idle'] and line['login_time']
 				idletime = duration(line['idle'].to_i)
-				#puts idletime
 				logintime = duration(Time.at(line['time'].to_i) - Time.at(line['login_time'].to_i))
-				#puts logintime
 				msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
 			elsif line['channels']
 				msg = line['channels']

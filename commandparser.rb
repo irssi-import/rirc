@@ -11,7 +11,6 @@ module CommandParser
         if cmd and self.respond_to?('cmd_'+cmd)
             self.send('cmd_'+cmd, arguments, channel, network, presence)
         else
-           # puts 'no method for cmd_'+command
             #its not a command, treat as a message
             if network
                 messages = message.split("\n")
@@ -56,8 +55,6 @@ module CommandParser
     #/connect command
     def cmd_connect(arguments, channel, network, presence)
         network, presence = arguments.split(' ', 2)
-        
-        puts network, presence
         
         unless presence
             presence = $config['presence']

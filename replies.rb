@@ -44,7 +44,6 @@ class Reply
 		
 		if !vars[2]
 			lines.push(temp)
-			#puts'no other info '+line
 			break
 		end
 		
@@ -53,7 +52,6 @@ class Reply
 		items.each do |x|
 			vals = x.split('=', 2)
 			if vals[1] and vals[1] != ''
-                #puts vals[1]
 				vals[1].gsub!('\\\\.', ';')
 				vals[1].gsub!('\\.', ';')
 				vals[1].gsub!('\\\\\\\\', '\\')
@@ -72,7 +70,6 @@ class Reply
 		end
 		
 		if temp['status'] == '+'
-            #puts 'event '+@command['command']+' done'
 			@complete = true
 		end
 		
@@ -84,7 +81,5 @@ class Reply
 		end
 		
 		@lines.push(temp)
-       # time2 = Time.new
-       # puts time2-time
 	end
 end

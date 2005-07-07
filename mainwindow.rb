@@ -2,7 +2,6 @@
 class MainWindow
 	attr_reader :currentbuffer
 	def initialize
-		#puts 'starting main window'
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
 		@channelbuttonlock = false
@@ -77,7 +76,6 @@ class MainWindow
         @glade['window1'].resize(x, y)
         
         @panel.position = $config['panelposition'].to_i if $config['panelposition']
-        puts 'moved panel to '+$config['panelposition'].to_s if $config['panelposition']
 		
 		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
@@ -181,6 +179,7 @@ class MainWindow
 			else
 				string.insert(nick.length, '; ')
 			end
+        #we're at the end
 		elsif index+nick.length == string.length
 			#~ puts index
 			#~ puts nick.length
@@ -226,7 +225,6 @@ class MainWindow
 	
 	def updateusercount
 		return unless @currentbuffer.class == ChannelBuffer
-		#puts 'updating user count'
 		@usercount.text = @currentbuffer.users.users.length.to_s+" users"
 	end
 	
@@ -360,7 +358,7 @@ class MainWindow
 			next unless tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
-				puts 'clicked tag linking to '+name[2]
+				#puts 'clicked tag linking to '+name[2]
                 link = to_uri(name[2])
 				system($config['linkclickaction'].sub('%s', link))
 				break
@@ -458,7 +456,7 @@ class MainWindow
 			menu.append(Gtk::MenuItem.new('Last message: '+user.lastspoke.strftime('%H:%M')))
 			whois = Gtk::MenuItem.new("Whois "+ user.name)
 			whois.signal_connect('activate') do |w|
-				puts 'requested whois for '+user.name
+				#puts 'requested whois for '+user.name
 				whois(user.name)
 			end
 			menu.append(whois)

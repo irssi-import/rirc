@@ -10,7 +10,6 @@ class TabComplete
 		return if substr.length == 0
 		userlist.each do |user|
 			if user.name[0, substr.length].downcase	== substr.downcase
-				#puts user.name+' matches '+substr
 				@results.push(user)
 			end
 		end

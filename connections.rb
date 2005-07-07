@@ -1,22 +1,15 @@
 class SSHConnection
-	#attr_reader :connected
 	def initialize(settings, connectionwindow)
 		require 'open3'
 		require 'expect'
-		#@connected = false
 		@input = nil
 		@output = nil
 		@error = nil
 		cmdstring = 'setsid ssh '
 		cmdstring += '-l '+settings['username']+' ' if settings['username']
 		cmdstring += settings['host']+' '+settings['binpath']
-		#@input, @output, @error = Open3.popen3("setsid ssh "+host+' \'recordio '+$ssh_binpath+' \' 2>log2')
-		#puts cmdstring
 		@input, @output, @error = Open3.popen3(cmdstring)
-		#puts 'connected'
-		#puts @output.gets
-		#sleep 5
-		#loop { puts @output.gets }
+
 		begin
 			@output.expect(/^\*;preauth;time=(\d+)\n/) do |x, y|
 				connectionwindow.send_text('logged in')
@@ -27,12 +20,10 @@ class SSHConnection
 			connectionwindow.send_text('Something is borked, make sure sshd is running on selected host')
 			raise IOError, "one of the many things that could go wrong, has"
 		end
-		
-		#listenerror
+
 	end
 	
 	def send(data)
-		#puts data
 		begin
 			@input.puts(data)
 		rescue SystemCallError
@@ -48,51 +39,25 @@ class SSHConnection
 	def listen(object)
 		@listenthread = Thread.new do
 			loop do
-				#begin
+				begin
 					while line = @output.gets
 						#puts 'o: '+line
 						object.parse_lines(line)
 					end
 				
-				#~ rescue IOError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ rescue StandardError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ end
-			end
-		end
-	end
-	
-	def listenerror
-		@listenthread = Thread.new do
-			f = File.new('log', 'w+')
-			loop do
-				#begin
-					while line = @error.gets
-						f.puts(line)
-					end
-				
-				#~ rescue IOError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ rescue StandardError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ end
+				rescue IOError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				rescue StandardError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				end
 			end
 		end
 	end
@@ -127,7 +92,6 @@ class LocalConnection
 	end
 	
 	def send(data)
-		#puts data
 		begin
 			@input.puts(data)
 		rescue SystemCallError
@@ -143,25 +107,25 @@ class LocalConnection
 	def listen(object)
 		@listenthread = Thread.new do
 			loop do
-				#begin
+				begin
 					while line = @output.gets
 						#puts 'o: '+line
 						object.parse_lines(line)
 					end
 				
-				#~ rescue IOError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ rescue StandardError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ end
+				rescue IOError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				rescue StandardError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				end
 			end
 		end
 	end

@@ -802,9 +802,7 @@ class ChatBuffer < Buffer
 	end
     
     def rename(name)
-        puts name, @name
         @name = name
-        puts @button.label
         @button.label = name.gsub('_', '__')
     end
 end

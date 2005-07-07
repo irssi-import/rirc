@@ -42,9 +42,7 @@ class ConnectionWindow
 		
 		@glade['presence'].text = 'irssi2'
 		
-		#puts get_active
 		redraw_options
-		#@window.show
 		load_settings
 		@glade[@config['default_method']].active = true
 		fill_entries
@@ -73,10 +71,9 @@ class ConnectionWindow
 				end
 			end
 		end
-		
-		#puts settings['ssh'].length, 'Items'
+
 		unless File.directory?(ENV['HOME']+'/.rirc')
-            Dir.new(ENV['HOME']+'/.rirc')
+            Dir.mkdir(ENV['HOME']+'/.rirc')
         end
 		File.open(ENV['HOME']+'/.rirc/settings.yaml', "w") {|f| YAML.dump(settings, f)}
 	end
@@ -94,7 +91,6 @@ class ConnectionWindow
 		
 		settings.each do |k, v|
 			if v.class != Hash
-				#puts k, v
 				@config[k] = v
 			end
 		end
@@ -130,7 +126,6 @@ class ConnectionWindow
 	
 	def get_active
 		group = @glade['ssh'].group
-		#puts group
 		active = nil
 		
 		group.each do |button|
@@ -158,7 +153,6 @@ class ConnectionWindow
 		end
 		
 		method = button.name
-		#puts method, settings.length
 		save_settings
 		Thread.new{$main.connect(method, settings)}
 		#destroy

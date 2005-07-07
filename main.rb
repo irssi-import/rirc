@@ -6,20 +6,13 @@ require 'rbconfig'
 require 'base64'
 require 'thread'
 require 'monitor'
-include Config
-puts CONFIG['target']
-
-#puts ARGV
+$platform = RUBY_PLATFORM
 
 $args = {}
 
 def parse_args
     args = ARGV
     args.each do |arg|
-        #puts arg
-        #~ if arg == '--debug'
-            #~ puts 'debugging on'
-            #~ $debug = true
         while arg[0].chr == '-'
             arg = arg[1, arg.length]
         end
@@ -29,7 +22,6 @@ def parse_args
         else
             $args[name] = true
         end
-        #end
     end
 end
 
@@ -130,11 +122,9 @@ class Main
 	
     def reply_reaper
         @reaperthread = Thread.new do
-            #puts 'starting event reaper thread...'
             while true
                 sleep 5
                 @replies.each do |key, reply|
-                    #puts (Time.new - event.start).to_i 
                     if (Time.new - reply.start).to_i > 10
                         if reply.complete
                             puts 'REAPING - reply '+reply.name+' is complete, parsing'
@@ -182,7 +172,6 @@ class Main
                 server.channels.each do |channel|
                     if !channel.usersync
                          send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";presence="+server.presence)
-                        #puts 'usersyncing '+channel.name
                         while channel.usersync != true
                             sleep 1
                         end
@@ -192,7 +181,6 @@ class Main
                 server.channels.each do |channel|
                     if !channel.eventsync
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')')
-                        #puts 'eventsyncing '+channel.name
                         while channel.eventsync != true
                             sleep 1
                         end
@@ -200,7 +188,6 @@ class Main
                 end
             end
             @syncchannels = nil
-            #puts 'done'
         end
     end
     
@@ -260,8 +247,6 @@ class Main
         else
             puts 'Network exists'
         end
-        #presence_add(presence, name)
-		#send_command('connect', "presence connect;network="+name+";presence="+presence)
 	end
     
     def network_connect(network, presence)
@@ -305,13 +290,9 @@ class Main
 	#send a command to irssi2
 	def send_command(tag, command, length=nil)
 		if !@connection
-			#puts 'connection not initialized'
 			return
 		end
-		
-		#puts tag, command
-		
-		#puts 'added event for' + tag.to_s
+
 		@replies[tag] = Reply.new(tag, command)
 		
 		if length
@@ -323,11 +304,10 @@ class Main
         if $args['debug']
             puts(cmdstr)
         end
-		#puts 'sent '+cmdstr
+
 		sent = @connection.send(cmdstr)
 		
 		if !sent
-			#puts 'failed to send'
 			@connection = nil
 			disconnect
 			@connectionwindow = ConnectionWindow.new
@@ -337,20 +317,15 @@ class Main
 	#handle output from irssi2
 	def handle_output(string)
 		return if string.length == 0
-		#puts string
 		line= {}
 		re = /(^[^\*]+);([+\->]+)(.*)$/
 		re2 = /^[*]+;([a-zA-Z_]+);(.+)$/
 		
 		if md = re.match(string)
 			if @replies[$1]
-				#puts string
-				#@events[$1]['raw_lines'].push(string)
-				#puts @events[$1]
 				reply = @replies[$1]
 				Thread.new{reply.addline(string)}
 				if @replies[$1] and @replies[$1].complete
-					#puts 'event '+$1+ ' complete'
 					Thread.new do
 						reply_parse(reply)
 						@replies.delete(reply.name)
@@ -397,7 +372,6 @@ class Main
 		server = Time.at(servertime.to_i)
 		client = Time.new
 		@drift = (client - server).to_i
-		#puts 'clock drift is '+duration(@drift)
 	end
 	
 	#create a network if it doesn't already exist
@@ -467,7 +441,6 @@ class Main
         end
         
         line = {}
-        #puts err
         line['err'] = err
         time = Time.new
         time = time - @drift if $config['canonicaltime'] == 'server'

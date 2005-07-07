@@ -5,16 +5,12 @@ module EventParser
 		#trap for events that refer to a channel that does not exist
 		if event['network'] and event['presence']
 			if !@serverlist[event['network'], event['presence']]
-				#puts 'Error, non existant network event caught, ignoring'
-				#return
 			else
 				network = @serverlist[event['network'], event['presence']]
 			end
 			
 			if event['channel'] and network
 				if !network[event['channel']]
-					#puts 'Error, non existant channel event caught, ignoring '+event['network']+' '+event['presence']+' '+event['channel']
-					#return
 				else
 					channel = @serverlist[event['network'], event['presence']][event['channel']]
 				end
@@ -23,8 +19,6 @@ module EventParser
         
         if self.respond_to?('event_'+event['type'])
             self.send('event_'+event['type'], event, network, channel)
-        else
-            #puts 'no method to handle '+event['type']+' event.'
         end
     end
     
@@ -146,7 +140,6 @@ module EventParser
             user = network.users[event['name']]
             
             if user
-                puts user
                 user.rename(event['new_name'])
                 network.channels.each do |channel|
                     if channel.users[user.name]
@@ -289,7 +282,7 @@ module EventParser
     def event_channel_changed(event, network, channel)
         return unless channel
         if event['initial_presences_added']
-            puts 'initial presences added'
+            #puts 'initial presences added'
             @window.updateusercount
             channel.drawusers
         end

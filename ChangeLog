@@ -1,3 +1,8 @@
+2005-07-07 03:05 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Code Cleanups
+    Rirc is now installable to /usr/lib/rirc and able to be called via the rirc script
+
 2005-07-06 12:57 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Added /disconnect and /help commands

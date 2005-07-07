@@ -17,15 +17,6 @@ class ConfigWindow
 		@options['channellistposition'] = ['Top', 'Bottom', 'Left', 'Right']
 		@options['canonicaltime'] = ['Server', 'Client']
 		@options['tabcompletesort'] = ['Alphabetical', 'Activity']
-		#~ i = 0
-		#~ #fill the combobox
-		#~ @positions.each do |value|
-			#~ @channellistposition.append_text(value)
-			#~ if $config['channellistposition'] == value.downcase
-				#~ @channellistposition.active = i
-			#~ end
-			#~ i += 1
-		#~ end
 		
 		parent = @treestore.append(nil)
 		parent[0] = "Interface"
@@ -37,40 +28,17 @@ class ConfigWindow
 		child[0] = "Colors"
 		
 		@categories = {'Miscallenous' => @glade['miscconfig'], 'Prompts'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
-		
-		#~ @treeselection.set_select_function do
-		#~ |selection, model, path, path_currently_selected|
-			#~ if selection.selected and !path_currently_selected
-				#~ if @categories[selection.selected[0]]
-					#~ puts selection.selected[0]
-					#~ true
-				#~ else
-					#~ false
-				#~ end
-				#~ #puts selection.selected[0]
-				#~ #puts selection.selected.path
-				#~ #true
-			#~ elsif path_currently_selected
-				#~ puts selection.selected[0]
-				#~ true
-			#~ else
-				#~ true
-			#~ end
-		#~ end
 
 		renderer = Gtk::CellRendererText.new
 		
 		col = Gtk::TreeViewColumn.new("", renderer, :text => 0)
 		@preferencesbar.append_column(col)
 		@preferencesbar.expand_all
-		#@treeselection.select_path(Gtk::TreePath.new("0:0"))
 		@treeselection.select_iter(child2)
 		@currentcategory = @configarea.child
-		#puts @currentcategory
 		draw_category(@categories['Miscallenous'])
 		@configarray = {}
-		
-		#puts @glade['message'].class
+
 		fill_values
 	end
 	
@@ -89,7 +57,6 @@ class ConfigWindow
 					i = 0
 					#fill the combobox
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
-					puts key
 					next unless @options[key]
 					@options[key].each do |v|
 						@glade[key].append_text(v)
@@ -106,7 +73,6 @@ class ConfigWindow
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
 				elsif @glade[key].class == Gtk::CheckButton
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
-					#puts key, value
 					if value
 						@glade[key].active = true
 					else
@@ -130,7 +96,6 @@ class ConfigWindow
 	end
 	
 	def draw_category(category)
-		#puts category, @currentcategory
 		@configarea.remove(@currentcategory)
 		@configarea.add(category)
 		@currentcategory = category
@@ -172,9 +137,7 @@ class ConfigWindow
 	end
 	
 	def combobox_changed(widget)
-		#puts @options[widget.name][widget.active]
 		change_setting(widget, @options[widget.name][widget.active].downcase)
-		#@configarray[widget] = {'name' => widget.name, 'value' => @options[widget.name][widget.active]}
 	end
 	
 	def tickbox_changed(widget)
@@ -184,8 +147,6 @@ class ConfigWindow
     def font_changed(widget)
         puts 'changed font'+widget.font_name
         change_setting(widget, widget.font_name)
-        #@configarray[0] = {'name' => 'font_name', 'value' => widget.font_name}
-        #@configarray[1] = {'name' => 'font_size', 'value' => widget.font_name} 
     end
     
 	def update_config
