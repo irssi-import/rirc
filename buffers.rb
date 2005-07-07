@@ -149,7 +149,7 @@ class Buffer
 		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, false)
 		
 		if type == MESSAGE
-			setstatus(NEWMSG)
+			setstatus(NEWMSG) if insert_location == BUFFER_END
 			pattern += $config['message'].deep_clone
 			if line['nick']
 				pattern['%u'] = line['nick']
@@ -159,7 +159,7 @@ class Buffer
 			
 			
 		elsif type == USERMESSAGE
-			setstatus(NEWMSG)
+			setstatus(NEWMSG) if insert_location == BUFFER_END
 			pattern += $config['usermessage'].deep_clone
 			if username
 				pattern['%u'] = username
@@ -169,7 +169,7 @@ class Buffer
 			
 			
 		elsif type == JOIN
-			setstatus(NEWDATA)
+			setstatus(NEWDATA) if insert_location == BUFFER_END
 			pattern += $config['join'].deep_clone
 			pattern['%u'] = line['name']
 			users.push(line['name'])
@@ -182,12 +182,12 @@ class Buffer
 			
 			
 		elsif type == USERJOIN
-			setstatus(NEWDATA)
+			setstatus(NEWDATA) if insert_location == BUFFER_END
 			pattern += $config['userjoin'].deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == PART
-			setstatus(NEWDATA)
+			setstatus(NEWDATA) if insert_location == BUFFER_END
 			pattern += $config['part'].deep_clone
 			pattern['%u'] = line['name']
 			users.push(line['name'])
@@ -200,22 +200,22 @@ class Buffer
 			end
 			
 		elsif type == USERPART
-			setstatus(NEWDATA)
+			setstatus(NEWDATA) if insert_location == BUFFER_END
 			pattern += $config['userpart'].deep_clone
 			pattern['%c'] = line['channel']
 			
 		elsif type == ERROR
-			setstatus(NEWDATA)
+			setstatus(NEWDATA) if insert_location == BUFFER_END
 			pattern += $config['error'].deep_clone
 			pattern['%m'] = line['err']
 			
 		elsif type == NOTICE
-			setstatus(NEWDATA)
+			setstatus(NEWDATA) if insert_location == BUFFER_END
 			pattern += $config['notice'].deep_clone
 			pattern['%m'] = line['msg']
 			
         elsif type == TOPIC
-            setstatus(NEWDATA)
+            setstatus(NEWDATA) if insert_location == BUFFER_END
             if line['topic'] and line['topic_set_by']
                 pattern += $config['topic_change'].deep_clone
                 pattern['%t'] = line['topic']

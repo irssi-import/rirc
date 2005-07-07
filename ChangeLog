@@ -1,3 +1,7 @@
+2005-07-07 20:25 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Event get events no longer color the chat tabs.
+    
 2005-07-07 19:57 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed the tabcompletion bugs
