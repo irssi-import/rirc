@@ -59,6 +59,18 @@ module EventParser
         end
     end
     
+    def event_gateway_logged_in(event, network, channel)
+        return unless network
+        
+        network.loggedin = true
+        Thread.new do
+            network.bufferedcommands.each do |command|
+                puts 'sending command '+command+' to network '+network.name
+                command_parse(command, nil, network, network.presence)
+            end
+        end
+    end
+    
     def event_network_init(event, network, channel)
         event['msg'] = 'Added '+event['protocol']+' server '+event['network']
         @window.currentbuffer.send_event(event, NOTICE)

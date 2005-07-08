@@ -90,6 +90,7 @@ module ReplyParser
             if line['connected']
                 puts 'connecting '+line['network']
                 network.connect
+                network.loggedin = true
                 @window.redraw_channellist
                 switchchannel(network)
             end

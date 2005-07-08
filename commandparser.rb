@@ -1,5 +1,13 @@
 module CommandParser    
-    def command_parse(message, channel, network, presence)
+    def command_parse(message, network, presence, channel)
+    
+        puts network, network.loggedin, message if network
+        if network and !network.loggedin
+            puts 'buffering command '+message
+            network.bufferedcommands.push(message)
+            return
+        end
+    
 		command, arguments = message.split(' ', 2)
 		
 		arguments = '' if ! arguments
@@ -17,9 +25,9 @@ module CommandParser
                 messages.each { |message|
                     
                     if channel.class == ChannelBuffer
-                        send_command('message'+rand(100).to_s, 'msg;network='+network+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
+                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
                     elsif channel.class == ChatBuffer
-                        send_command('message'+rand(100).to_s, 'msg;network='+network+';nick='+channel.name+';msg='+escape(message)+";presence="+presence)
+                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';nick='+channel.name+';msg='+escape(message)+";presence="+presence)
                     end
                     line = {}
                     line['nick'] = presence
@@ -40,7 +48,7 @@ module CommandParser
     #/join command
     def cmd_join(arguments, channel, network, presence)
         return unless network
-        send_command('join', 'channel join;network='+network+';presence='+presence+';channel='+arguments)
+        send_command('join', 'channel join;network='+network.name+';presence='+presence+';channel='+arguments)
     end
     
     #/server command
@@ -73,7 +81,9 @@ module CommandParser
         else
             results = @serverlist.get_network_by_name(servername)
             
-            results.delete_if {|server| !server.connected}
+            if results
+                results.delete_if {|server| !server.connected}
+            end
             
             if results.length == 1
                 presence = results[0].presence
@@ -95,7 +105,7 @@ module CommandParser
     def cmd_part(arguments, channel, network, presence)
         arguments = arguments.split(' ')
         if arguments[0]
-            send_command('part', "channel part;network="+network+";presence="+$config['presence']+";channel="+arguments[0])
+            send_command('part', "channel part;network="+network.name+";presence="+$config['presence']+";channel="+arguments[0])
         else
             #line = {}
             line = {'err' => 'Part requires a channel argument'}
@@ -171,13 +181,13 @@ module CommandParser
     #/nick command
     def cmd_nick(arguments, channel, network, presence)
         name, bleh = arguments.split(' ', 2)
-        send_command('nick'+name, 'presence change;network='+network+';presence='+presence+';new_name='+name)
+        send_command('nick'+name, 'presence change;network='+network.name+';presence='+presence+';new_name='+name)
     end
     
     #/whois command
     def cmd_whois(arguments, channel, network, presence)
         name, bleh = arguments.split(' ', 2)
-        send_command('whois'+name, 'presence status;network='+network+';presence='+presence+';name='+name)
+        send_command('whois'+name, 'presence status;network='+network.name+';presence='+presence+';name='+name)
     end
     
     #/msg command
@@ -186,7 +196,7 @@ module CommandParser
         if arguments[0] and arguments[1]
             messages = arguments[1].split("\n")
             messages.each { |message|
-                send_command('msg'+rand(100).to_s, 'msg;network='+network+';nick='+arguments[0]+';msg='+message+";presence="+presence)
+                send_command('msg'+rand(100).to_s, 'msg;network='+network.name+';nick='+arguments[0]+';msg='+message+";presence="+presence)
             }
         else
             line ={'err' => '/msg requires a username and a message'}

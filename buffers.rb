@@ -520,7 +520,8 @@ end
 
 #buffer used for networks
 class ServerBuffer < Buffer
-	attr_reader :name, :channels, :box, :parent, :config, :username, :presence, :connected, :users, :server, :chats
+	attr_reader :name, :channels, :box, :parent, :config, :username, :presence, :connected, :users, :server, :chats, :loggedin, :bufferedcommands
+    attr_writer :bufferedcommands, :loggedin
 	def initialize(name, presence, parent)
 		super(name)
         @server = self
@@ -544,6 +545,8 @@ class ServerBuffer < Buffer
 			@button.show
 		#end
 		@connected = nil
+        @loggedin = false
+        @bufferedcommands = []
 	end
 	
     def connect
@@ -551,6 +554,11 @@ class ServerBuffer < Buffer
         @connected = true
         @button.show
         @parent.redraw
+    end
+    
+    def reconnect
+        super
+        @loggedin = false
     end
     
     #redraw the button box

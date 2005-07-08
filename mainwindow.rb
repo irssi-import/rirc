@@ -277,20 +277,20 @@ class MainWindow
 		@currentbuffer.addcommand(widget.text)
 
 		if @currentbuffer.class == ChannelBuffer
-			network = @currentbuffer.server.name
+			network = @currentbuffer.server
 			presence = @currentbuffer.server.presence
 		elsif @currentbuffer.class == ChatBuffer
-			network = @currentbuffer.server.name
+			network = @currentbuffer.server
 			presence = @currentbuffer.server.presence
 		elsif @currentbuffer.class == ServerBuffer
-			network = @currentbuffer.name
+			network = @currentbuffer
 			presence = @currentbuffer.presence
 		else
 			presence = $config['presence']
 		end
 		
 		message = widget.text
-		$main.command_parse(message, @currentbuffer, network, presence)
+		$main.command_parse(message, network, presence, @currentbuffer)
 		widget.text = ''
 	end
 	

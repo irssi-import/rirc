@@ -1,3 +1,7 @@
+2005-07-08 18:10 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Commands are now buffered until gateway_logged_in event is sent
+
 2005-07-08 17:20 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed presence setting bug
