@@ -170,7 +170,7 @@ class Main
         Thread.new do
             @serverlist.servers.each do |server|
                 server.channels.each do |channel|
-                    if !channel.usersync
+                    if !channel.usersync and channel.connected
                          send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";presence="+server.presence)
                         while channel.usersync != true
                             sleep 1
@@ -179,7 +179,7 @@ class Main
                 end
                 
                 server.channels.each do |channel|
-                    if !channel.eventsync
+                    if !channel.eventsync and channel.connected
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')')
                         while channel.eventsync != true
                             sleep 1
@@ -238,7 +238,7 @@ class Main
 	
 	#connect to a network
 	def network_add(name, protocol, address, port)
-        unless @networks.include?(name)
+        unless @serverlist.get_network_by_name(name)
             send_command('addnet', "network add;network="+name+";protocol="+protocol)
             temp = "gateway add;host="+address+";network="+name
             temp += ";port="+port if port != '' and port
@@ -250,9 +250,9 @@ class Main
 	end
     
     def network_connect(network, presence)
-        if !@networks.include?(network)
+        if !@serverlist.get_network_by_name(network)
             puts 'undefined network '+network
-        elsif !@presences.include?([presence, network])
+        elsif !@serverlist[network, presence]
             puts 'undefined presence '+presence
         else
             send_command('connect', "presence connect;network="+network+";presence="+presence)
@@ -260,9 +260,9 @@ class Main
     end
     
     def presence_add(network, presence)
-        if !@networks.include?(network)
-            puts 'undefined network '+network
-        elsif @presences.include?([presence, network])
+        if !@serverlist.get_network_by_name(network)
+            puts 'Undefined network '+network
+        elsif @serverlist[network, presence]
             puts 'Presence exists'
         else
             cmdstring = "presence add;presence="+presence+";network="+network
@@ -274,7 +274,15 @@ class Main
             #cmdstring.gsub!("\n", "\\n")
             #puts cmdstring
             send_command('addpres', cmdstring)
-            @presences.push([presence, network])
+            #@presences.push([presence, network])
+        end
+    end
+    
+    def channel_add(network, presence, channel)
+        if @serverlist[network, presence] and channel
+            send_command('add', 'channel add;network='+network+';presence='+presence+';channel='+channel)
+        else
+            puts 'invalid network'
         end
     end
 	
@@ -374,26 +382,26 @@ class Main
 		@drift = (client - server).to_i
 	end
 	
-	#create a network if it doesn't already exist
-	def createnetworkifnot(network, presence)
-		if ! @serverlist[network, presence]
-			switchchannel(@serverlist.add(network, presence))
-		end
+	#~ #create a network if it doesn't already exist
+	#~ def createnetworkifnot(network, presence)
+		#~ if ! @serverlist[network, presence]
+			#~ switchchannel(@serverlist.add(network, presence))
+		#~ end
 		
-		return @serverlist[network, presence]
-	end
+		#~ return @serverlist[network, presence]
+	#~ end
 	
-	#create a channel if it doesn't already exist
-	def createchannelifnot(network, channel)
-		if network and ! network[channel]
-			switchchannel(network.add(channel))
-		elsif ! network
-			puts "ERROR: invalid network!"
-			return nil
-		end
+	#~ #create a channel if it doesn't already exist
+	#~ def createchannelifnot(network, channel)
+		#~ if network and ! network[channel]
+			#~ switchchannel(network.add(channel))
+		#~ elsif ! network
+			#~ puts "ERROR: invalid network!"
+			#~ return nil
+		#~ end
 		
-		return network[channel]
-	end
+		#~ return network[channel]
+	#~ end
 	
     def handle_error(line, reply)
         channel ||= reply.command['channel']

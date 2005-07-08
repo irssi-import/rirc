@@ -36,7 +36,7 @@ class Buffer
 		@currentcommand = ''
 		@commandindex = 0
 		@button = Gtk::ToggleButton.new(name)
-		@button.show
+		#@button.show
 		@button.active = false
 		@togglehandler = @button.signal_connect('toggled')do |w|
 			switchchannel(self)
@@ -383,16 +383,18 @@ class RootBuffer < Buffer
 		@parent = parent
         @server = self
 		@servers = Array.new
-		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
-			@box = Gtk::VBox.new
-		else
-			@box = Gtk::HBox.new
-		end
-		@box.show
+		#~ if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
+			#~ @box = Gtk::VBox.new
+		#~ else
+			#~ @box = Gtk::HBox.new
+		#~ end
+		#~ @box.show
 		@name = 'servers'
-		@box.pack_start(@button)
+#		@box.pack_start(@button)
 		@status = INACTIVE
 		@connected = true
+        @button.show
+        redraw
 	end
 	
     #redraw the buttonbox
@@ -404,14 +406,18 @@ class RootBuffer < Buffer
 			empty_box
 			@box = Gtk::HBox.new
 		end
-		
+        
 		@box.pack_start(@button)
 		
 		@servers.sort
 		
 		@servers.each do |server|
-			server.redraw
-			insertintobox(server)
+            puts 'trying to redraw '+server.name
+            unless server.connected.nil?
+                puts 'redrawing '+server.name
+                server.redraw
+                insertintobox(server)
+            end
 		end
 		
 		@box.show_all
@@ -420,6 +426,7 @@ class RootBuffer < Buffer
 	
     #remove all the buttons from a box
 	def empty_box
+        return unless @box
 		@box.remove(@button)
 		@servers.each do |server|
 			@box.remove(server.box)
@@ -445,6 +452,7 @@ class RootBuffer < Buffer
 	
     #add a button to the button box
 	def insertintobox(newserver)
+        return if newserver.connected.nil?
 		#insert the widget
 		@box.pack_start(newserver.box, true, true)
 		for i in 0...(@servers.length)
@@ -486,7 +494,11 @@ class RootBuffer < Buffer
             end
         end
         
-        return results
+        if results.length == 0
+            return nil
+        else
+            return results
+        end
     end
 	
     #function for getting a network when you pass a server/presence pair
@@ -531,11 +543,19 @@ class ServerBuffer < Buffer
 		#if($config.serverbuttons)
 			@button.show
 		#end
-		@connected = true
+		@connected = nil
 	end
 	
+    def connect
+        puts 'connected '+@name
+        @connected = true
+        @button.show
+        @parent.redraw
+    end
+    
     #redraw the button box
 	def redraw
+        puts 'in redraw of '+@name
 		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
 			empty_box
 			@box = Gtk::VBox.new
@@ -543,8 +563,7 @@ class ServerBuffer < Buffer
 			empty_box
 			@box = Gtk::HBox.new
 		end
-		@box.show
-		
+
 		@box.pack_start(@button)
 		
 		@channels.sort
@@ -552,10 +571,12 @@ class ServerBuffer < Buffer
 		@channels.each do |channel|
 			insertintobox(channel)
 		end
+        @box.show_all
 	end
     
     #remove all the buttons from the box
 	def empty_box
+        return unless @box
 		@box.remove(@button)
 		@channels.each do |channel|
 			@box.remove(channel.button)
@@ -587,6 +608,7 @@ class ServerBuffer < Buffer
 	
     #insert the button into the box
 	def insertintobox(item)
+        return if item.connected.nil?
 		#insert the widget
 		if item.class == ChannelBuffer
 			@box.pack_start(item.button, true, true)
@@ -680,12 +702,19 @@ class ChannelBuffer < Buffer
 		@topic = ''
 		@button.label= @name
 		@button.active = false
-		@button.show
+		#@button.show
 		@users = UserList.new
-		@connected = true
+		@connected = nil
 		
 		@useriters = []
 	end
+    
+    def connect
+        @connected = true
+        @button.show
+        @server.parent.redraw
+        #server.redraw
+    end
 	
     #add this channel to the server
 	def add(name)
@@ -775,7 +804,7 @@ end
 
 #buffer used for 2 person chats
 class ChatBuffer < Buffer
-	attr_reader :name, :server
+	attr_reader :name, :server, :connected
 	def initialize(name, server)
 		super(name)
 		@server = server
@@ -789,12 +818,18 @@ class ChatBuffer < Buffer
 		@topic = ''
 		@button.label= @name.gsub('_', '__')
 		@button.active = false
-		@button.show
+		#@button.show
 		@users = UserList.new
-		@connected = true
+		@connected = nil
 		
 		@useriters = []
 	end
+    
+    def connect
+        @connected = true
+        @button.show
+        @server.parent.redraw
+    end
     
     #get the username
 	def username

@@ -232,10 +232,6 @@ class MainWindow
 		@messageinput.text = @currentbuffer.currentcommand
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
-		#@messageinput.delete_selection
-		#~ selection = Gdk::EventSelection.new(Gdk::Event::SELECTION_CLEAR)
-		#~ @messageinput.signal_emit('selection_clear_event', selection)
-		#~ @messageinput.signal_emit('selection_notify_event', selection)
 		@messages.buffer = @currentbuffer.activate
 		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
@@ -495,9 +491,10 @@ class MainWindow
 		start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
 		stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
 		if @currentbuffer.buffer.get_text(start, stop).length <= 0
+            position = @messageinput.position
 			@messageinput.grab_focus
 			@messageinput.select_region(0, 0)
-			@messageinput.position=-1
+			@messageinput.position= position
 		else
 			@messages.grab_focus
 		end

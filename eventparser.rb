@@ -28,6 +28,11 @@ module EventParser
         if !@serverlist[event['network'], event['presence']]
             network = @serverlist.add(event['network'], event['presence'])
             switchchannel(network)
+        elsif @serverlist[event['network'], event['presence']].connected.nil?
+            network = @serverlist[event['network'], event['presence']]
+            network.connect
+            @window.redraw_channellist
+            switchchannel(network)
         elsif !@serverlist[event['network'], event['presence']].connected
             puts 'server exists but is not connected, reconnecting'
             network = @serverlist[event['network'], event['presence']]
@@ -58,17 +63,29 @@ module EventParser
         if !@serverlist[event['network'], event['presence']]
             puts 'Error, non existant channel init event caught for non existant network, ignoring'
             return
-        elsif @serverlist[event['network'], event['presence']][event['channel']] and ! @serverlist[event['network'], event['presence']][event['channel']].connected
-            puts 'channel exists, but is not connected, reconnecting'
-            @serverlist[event['network'], event['presence']][event['channel']].reconnect
-            
         elsif @serverlist[event['network'], event['presence']][event['channel']]
             puts 'request to create already existing channel, ignoring'
             return
         else
             channel = @serverlist[event['network'], event['presence']].add(event['channel'])
             channel.usersync = channel.eventsync = true
+        end
+    end
+    
+    def event_channel_join(event, network, channel)
+        #return unless network
+        puts 'trying to join '+event['channel']
+        if !@serverlist[event['network'], event['presence']]
+            puts 'Error, non existant channel init event caught for non existant network, ignoring'
+            return
+        elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and channel.connected.nil?
+            puts 'connecting '+event['channel']
+            channel.connect
+            @window.redraw_channellist
             switchchannel(channel)
+        elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and !channel.connected
+            puts 'channel exists, but is not connected, reconnecting'
+            channel.reconnect
         end
     end
     
@@ -102,12 +119,12 @@ module EventParser
         channel.clearusers
     end
     
-    #user joined a channel
-    def event_channel_join(event, network, channel)
-        return unless channel
-        channel.reconnect
-        channel.send_event(event, USERJOIN)
-    end
+    #~ #user joined a channel
+    #~ def event_channel_join(event, network, channel)
+        #~ return unless channel
+        #~ channel.reconnect
+        #~ channel.send_event(event, USERJOIN)
+    #~ end
     
     #another user joined the channel
     def event_channel_presence_added(event, network, channel)
@@ -251,8 +268,13 @@ module EventParser
     #failed to connect to a server
     def event_gateway_connect_failed(event, network, channel)
         return unless network
-        err = "Connection to "+event['ip']+':'+event['port']+" failed : "+event['error']
-        event['err'] = err
+        if event['ip']
+            err = "Connection to "+event['ip']+':'+event['port']+" failed : "+event['error']
+            event['err'] = err
+        else
+            event['err'] = event['error']
+        end
+        
         network.send_event(event, ERROR)
     end
     

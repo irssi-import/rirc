@@ -81,38 +81,75 @@ module ReplyParser
     
     #list the connected presences
     def reply_presence_list(line, network, channel, reply)
-        if line['network'] and line['presence'] and line['connected']
-            network = createnetworkifnot(line['network'], line['presence'])
+        if line['network'] and line['presence']
+            unless network = @serverlist[line['network'], line['presence']]
+                network = @serverlist.add(line['network'], line['presence'])
+            end
+            #network = createnetworkifnot(line['network'], line['presence'])
             network.set_username(line['name'] ) if line['name']
-            send_command('channels', "channel list")
+            if line['connected']
+                puts 'connecting '+line['network']
+                network.connect
+                @window.redraw_channellist
+                switchchannel(network)
+            end
+            #network.connect
+            #send_command('channels', "channel list")
         end
         
-        if line['network'] and line['presence']
+        #if line['network'] and line['presence']
             #something
-            @networks.push(line['network'])
-            @presences.push([line['presence'], line['network']])
+            #@networks.push(line['network'])
+            #@presences.push([line['presence'], line['network']])
+        #end
+        if line['status'] == '+'
+            @serverlist.servers.each do |server|
+                puts server.name+', '+server.presence
+                send_command('channels', "channel list")
+            end
         end
     end
     
     #list the connected channels
     def reply_channel_list(line, network, channel, reply)
         
-        if line['network'] and line['presence'] and line['name']
-            if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['name']]
-                channel = @serverlist[line['network'], line['presence']].add(line['name'])
-                if line['topic']
-                    channel.topic = line['topic']
-                end
-                switchchannel(channel)
+        if line['network'] and line['presence'] and line['channel']
+            if !@serverlist[line['network'], line['presence']]
+                puts 'network does not exist '+line['network']+', '+line['presence']
             else
-                puts 'channel call for existing network, ignoring '+line['network']+' '+line['presence']+' '+line['name']
-                return
+                unless channel = @serverlist[line['network'], line['presence']][line['channel']]
+                    channel = @serverlist[line['network'], line['presence']].add(line['channel'])
+                end
+                
+                if line['joined'] and channel
+                    puts 'connecting '+line['channel']
+                    channel.connect
+                    @window.redraw_channellist
+                    switchchannel(channel)
+                end
             end
+            #~ if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['channel']]
+                #~ channel = @serverlist[line['network'], line['presence']].add(line['name'])
+                #~ if line['topic']
+                    #~ channel.topic = line['topic']
+                #~ end
+                #~ switchchannel(channel)
+            #~ else
+                #~ puts 'channel call for existing network, ignoring '+line['network']+' '+line['presence']+' '+line['name']
+                #~ return
+            #~ end
+        
         elsif line['status'] == '+'
             syncchannels unless @syncchannels
         end
         
     end
+    
+    #~ def reply_channel_init(line, network, channel, reply)
+        #~ if line['network'] and line['presence'] and line['channel']
+            #~ send_command('join', 'channel join;network='+line['network']+';presence='+line['presence']+';channel='+line['channel'])
+        #~ end
+    #~ end
     
     #list of users on the channel
     def reply_channel_names(line, network, channel, reply)

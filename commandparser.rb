@@ -40,9 +40,14 @@ module CommandParser
         end
     end
     
+    #~ def cmd_channel(arguments, channel, network, presence)
+        #~ channel_add(network, presence, arguments)
+    #~ end
+    
     #/join command
     def cmd_join(arguments, channel, network, presence)
-        send_command('join', "channel join;network="+network+";channel="+arguments)
+        return unless network
+        send_command('join', 'channel join;network='+network+';presence='+presence+';channel='+arguments)
     end
     
     #/server command

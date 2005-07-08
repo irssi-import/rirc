@@ -1,3 +1,7 @@
+2005-07-08 01:02 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Channel list and presence list are now used to create all available channels, on join/connect those channels or presences are activated.
+
 2005-07-07 20:25 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Event get events no longer color the chat tabs.
