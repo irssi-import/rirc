@@ -110,6 +110,15 @@ module ReplyParser
         end
     end
     
+    def reply_network_list(line, network, channel, reply)
+        if line['network'] and !@networks.include?(line['network'])
+            @networks.push(line['network'])
+            #puts 'added network '+line['network']
+        elsif line['status'] == '+'
+            send_command('presences', 'presence list')
+        end
+    end
+    
     #list the connected channels
     def reply_channel_list(line, network, channel, reply)
         
@@ -162,7 +171,7 @@ module ReplyParser
                         @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].usersync = true
         end
     end
-                    
+
     #handle past events here
     def reply_event_get(line, network, channel, reply)
         reply.network ||= network if network

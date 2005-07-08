@@ -24,40 +24,40 @@ class SSHConnection
 	end
 	
 	def send(data)
-		#begin
+		begin
 			@input.puts(data)
 		#~ rescue SystemCallError
 			#~ puts 'Write error: '+$!
 			#~ return false
-		#~ rescue IOError
-			#~ puts 'Write error: '+$!
-			#~ return false
-		#~ end
+		rescue IOError
+			puts 'Write error: '+$!
+			return false
+		end
 		return true
 	end
 	
 	def listen(object)
 		@listenthread = Thread.new do
 			loop do
-				#begin
+				begin
 					while line = @output.gets
 						#puts 'o: '+line
 						object.parse_lines(line)
 					end
 				
-				#~ rescue IOError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
+				rescue IOError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
 				#~ rescue StandardError
 					#~ puts 'listen: closed stream, disconnecting '+$!
 					#~ close
 					#~ object.disconnect
 					#~ object.connect
 					#~ break
-				#~ end
+				end
 			end
 		end
 	end
@@ -92,40 +92,40 @@ class LocalConnection
 	end
 	
 	def send(data)
-	#	begin
+		begin
 			@input.puts(data)
 		#~ rescue SystemCallError
 			#~ puts 'Write error: '+$!
 			#~ return false
-		#~ rescue IOError
-			#~ puts 'Write error: '+$!
-			#~ return false
-		#~ end
+		rescue IOError
+			puts 'Write error: '+$!
+			return false
+		end
 		return true
 	end
 	
 	def listen(object)
 		@listenthread = Thread.new do
 			loop do
-				#begin
+				begin
 					while line = @output.gets
 						#puts 'o: '+line
 						object.parse_lines(line)
 					end
 				
-				#~ rescue IOError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
+				rescue IOError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
 				#~ rescue StandardError
 					#~ puts 'listen: closed stream, disconnecting '+$!
 					#~ close
 					#~ object.disconnect
 					#~ object.connect
 					#~ break
-				#~ end
+				end
 			end
 		end
 	end

@@ -220,9 +220,10 @@ class Main
 			$config.set_value('presence', @connectionwindow.presence)
 			@connectionwindow.destroy
 			
-			if @serverlist.servers.length == 0
-				send_command('presences', 'presence list')
-			end
+			#if @serverlist.servers.length == 0
+            send_command('networks', 'network list')
+				#send_command('presences', 'presence list')
+			#end
 	end
 	
 	#what do do when we get disconnected from irssi2
@@ -245,6 +246,8 @@ class Main
             send_command('addhost', temp)
             @networks.push(name)
         else
+            line= {'err' => 'Network '+network+' is already defined'}
+            @window.currentbuffer.send_event(line, ERROR)
             puts 'Network exists'
         end
 	end
@@ -252,7 +255,7 @@ class Main
     def network_connect(network, presence)
         if !@serverlist.get_network_by_name(network)  and !@networks.include?(network)
             puts 'undefined network '+network
-        elsif !@serverlist[network, presence]
+        elsif !@serverlist[network, presence] and !@presences.include?([network, presence])
             puts 'undefined presence '+presence
         else
             send_command('connect', "presence connect;network="+network+";presence="+presence)
@@ -263,7 +266,7 @@ class Main
         @networks.each {|network| puts network}
         if !@serverlist.get_network_by_name(network) and !@networks.include?(network)
             puts 'Undefined network '+network
-        elsif @serverlist[network, presence]
+        elsif @serverlist[network, presence] or @presences.include?([network, presence])
             puts 'Presence exists'
         else
             cmdstring = "presence add;presence="+presence+";network="+network
@@ -275,7 +278,8 @@ class Main
             #cmdstring.gsub!("\n", "\\n")
             #puts cmdstring
             send_command('addpres', cmdstring)
-            #@presences.push([presence, network])
+            @presences.push([network, presence])
+            @presences.each {|presence| puts presence[0]+' - '+presence[1]}
         end
     end
     

@@ -204,6 +204,61 @@ module CommandParser
         end
     end
     
+    def cmd_networks(*args)
+        lines = ['Defined networks:']
+        @networks.each {|network| lines.push(network)}
+        
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, NOTICE)
+        end
+    end
+    
+    def cmd_presences(*args)
+        lines = ['Defined Presences:']
+        
+        @serverlist.servers.each do |server|
+            network, presence = server.getnetworkpresencepair
+            if server.connected
+                lines.push(network+' - '+presence+' - Connected')
+            else
+                lines.push(network+' - '+presence)
+            end
+        end
+        
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, NOTICE)
+        end
+        
+        #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
+    end
+    
+    def cmd_channels(*args)
+        lines = ['Defined Channels:']
+        
+        @serverlist.servers.each do |server|
+            server.channels.each do |channel|
+                if channel.connected
+                    lines.push(server.name+' - '+server.presence+' - '+channel.name+' - Connected')
+                else
+                    lines.push(server.name+' - '+server.presence+' - '+channel.name)
+                end
+            end
+        end
+        
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, NOTICE)
+        end
+    end
+    
     def cmd_load(arguments, channel, network, presence)
         plugin_load(arguments)
     end

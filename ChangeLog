@@ -1,3 +1,9 @@
+2005-07-08 15:07 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added /channels /presences and /networks commands
+    Added call to network list to get the available networks
+    Fixed checks to see if presences are defined
+
 2005-07-08 01:02 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Channel list and presence list are now used to create all available channels, on join/connect those channels or presences are activated.
