@@ -51,6 +51,8 @@ class MainWindow
 		
 		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
 		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
+        
+        @glade['window1'].signal_connect('key_press_event') { |widget, event| window_buttons(widget, event)}
 		
 		@me = self
 		
@@ -61,6 +63,7 @@ class MainWindow
 		@defaultmenu = Gtk::Menu.new
 		@defaultmenu.append(Gtk::MenuItem.new("thing1"))
 		@defaultmenu.append(Gtk::MenuItem.new("thing2"))
+        @keyintmap = {'q' => 11, 'w' => 12, 'e' => 13, 'r' => 14, 't'=> 15, 'y' => 16, 'u' => 17, 'i' => 18, 'o' => 19, 'p' => 20}
 	end
 	
 	def draw_from_config(unhide=true)
@@ -95,7 +98,7 @@ class MainWindow
 	
 	def redraw_channellist
 		 if @channellist
-			@channellist.remove(@serverlist.box)
+			@channellist.remove(@serverlist.box) if @serverlist.box
 			@channellist.destroy
 		end
 		
@@ -218,6 +221,7 @@ class MainWindow
 
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
+        return unless channel 
         update_dimensions
 		if !channel.button.active? or channel == @currentbuffer
 			if @currentbuffer == channel and @currentbuffer.button.active? == false
@@ -486,6 +490,23 @@ class MainWindow
 		network, presence = @currentbuffer.getnetworkpresencepair
 		$main.send_command('whois'+user, 'presence status;network='+network+';presence='+presence+';name='+user)
 	end
+    
+    def window_buttons(widget, event)
+    
+        if event.state == Gdk::Window::MOD1_MASK
+            key = Gdk::Keyval.to_name(event.keyval)
+            if key =~ /\d/
+                key = 10 if key.to_i == 0
+                tab = @serverlist.number2tab(key.to_i)
+                switchchannel(tab)
+                return true
+            elsif key =~ /[qwertyuiop]+/
+                tab = @serverlist.number2tab(@keyintmap[key].to_i)
+                switchchannel(tab)
+                return true
+            end
+        end
+    end
 	
 	def focus_input
 		start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)

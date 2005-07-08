@@ -1,7 +1,6 @@
 module CommandParser    
     def command_parse(message, network, presence, channel)
-    
-        puts network, network.loggedin, message if network
+
         if network and !network.loggedin
             puts 'buffering command '+message
             network.bufferedcommands.push(message)

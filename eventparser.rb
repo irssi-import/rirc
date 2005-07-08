@@ -98,7 +98,7 @@ module EventParser
             puts 'Error, non existant channel init event caught for non existant network, ignoring'
             return
         elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and channel.connected.nil?
-            puts 'connecting '+event['channel']
+           # puts 'connecting '+event['channel']
             channel.connect
             @window.redraw_channellist
             switchchannel(channel)

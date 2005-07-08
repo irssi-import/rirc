@@ -98,12 +98,18 @@ class Buffer
     #disconnect a channel
 	def disconnect
 		@button.label = '('+@name+')'
+        if $config['number_tabs']
+            @button.label = @number.to_s+':'+@button.label
+        end
         @connected = false
 	end
 	
     #reconnect a channel
 	def reconnect
 		@button.label = @name
+        if $config['number_tabs']
+            @button.label = @number.to_s+':'+@button.label
+        end
 		@connected = true
 	end
 	
@@ -412,22 +418,22 @@ class RootBuffer < Buffer
 		@servers.sort
 		
 		@servers.each do |server|
-            puts 'trying to redraw '+server.name
             unless server.connected.nil?
-                puts 'redrawing '+server.name
                 server.redraw
                 insertintobox(server)
             end
 		end
 		
 		@box.show_all
+        renumber
 		return @box
 	end
 	
     #remove all the buttons from a box
 	def empty_box
         return unless @box
-		@box.remove(@button)
+       # puts @box, @button
+		@box.remove(@button) if @button
 		@servers.each do |server|
 			@box.remove(server.box)
 		end
@@ -516,6 +522,32 @@ class RootBuffer < Buffer
 		end
 		return nil
 	end
+    
+    def renumber
+        i = 1
+        @tabs = []
+        servers.each do |server|
+            next if server.connected.nil?
+            server.channels.each do |channel|
+                next if channel.connected.nil?
+                channel.set_number(i)
+                @tabs[i] = channel
+                i += 1
+            end
+            
+            server.chats.each do |chat|
+                next if chat.connected.nil?
+                chat.set_number(i)
+                @tabs[i] = chat
+                i += 1
+            end
+        end
+    end
+    
+    def number2tab(number)
+        return @tabs[number.to_i]
+    end
+    
 end
 
 #buffer used for networks
@@ -533,13 +565,13 @@ class ServerBuffer < Buffer
 		@chats = Array.new
 		@users = UserList.new
 		@button.active = false
-		if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
-			@box = Gtk::VBox.new
-		else
-			@box = Gtk::HBox.new
-		end
-		@box.pack_start(@button, false, false)
-		@box.show
+		#~ if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
+			#~ @box = Gtk::VBox.new
+		#~ else
+			#~ @box = Gtk::HBox.new
+		#~ end
+		#~ @box.pack_start(@button, false, false)
+		#~ @box.show
 		@status = INACTIVE
 		#if($config.serverbuttons)
 			@button.show
@@ -550,7 +582,7 @@ class ServerBuffer < Buffer
 	end
 	
     def connect
-        puts 'connected '+@name
+        #puts 'connected '+@name
         @connected = true
         @button.show
         @parent.redraw
@@ -563,7 +595,6 @@ class ServerBuffer < Buffer
     
     #redraw the button box
 	def redraw
-        puts 'in redraw of '+@name
 		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
 			empty_box
 			@box = Gtk::VBox.new
@@ -602,6 +633,7 @@ class ServerBuffer < Buffer
 		@channels.push(newchannel)
 		@channels = @channels.sort
 		insertintobox(newchannel)
+        @parent.renumber
 		return newchannel
 	end
 	
@@ -713,6 +745,7 @@ class ChannelBuffer < Buffer
 		#@button.show
 		@users = UserList.new
 		@connected = nil
+        @number = nil
 		
 		@useriters = []
 	end
@@ -720,10 +753,20 @@ class ChannelBuffer < Buffer
     def connect
         @connected = true
         @button.show
-        @server.parent.redraw
+        @server.insertintobox(self)
+        #@server.parent.redraw
         #server.redraw
     end
 	
+    def set_number(num)
+        @number = num
+        if $config['number_tabs']
+            md = /^(\d+:).+$/.match(@button.label)
+            @button.label = @button.label.gsub(md[1], '') if md
+            @button.label = @number.to_s+':'+@button.label
+        end
+    end
+    
     #add this channel to the server
 	def add(name)
 		@server.add(name)
@@ -829,14 +872,25 @@ class ChatBuffer < Buffer
 		#@button.show
 		@users = UserList.new
 		@connected = nil
+        @number = nil
 		
 		@useriters = []
 	end
     
+    def set_number(num)
+        @number = num
+        if $config['number_tabs']
+            md = /^(\d+:).+$/.match(@button.label)
+            @button.label = @button.label.gsub(md[1], '') if md
+            @button.label = @number.to_s+':'+@button.label
+        end
+    end
+    
     def connect
         @connected = true
         @button.show
-        @server.parent.redraw
+        @server.insertintobox(self)
+        #@server.parent.redraw
     end
     
     #get the username

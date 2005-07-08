@@ -217,9 +217,9 @@ class Main
 			
 			$config.get_config
 			@window.draw_from_config
-            puts 'setting presence to '+@connectionwindow.presence
+            #puts 'setting presence to '+@connectionwindow.presence
 			$config.set_value('presence', @connectionwindow.presence)
-            puts $config['presence']
+            #puts $config['presence']
 			@connectionwindow.destroy
 			
 			#if @serverlist.servers.length == 0
@@ -281,7 +281,7 @@ class Main
             #puts cmdstring
             send_command('addpres', cmdstring)
             @presences.push([network, presence])
-            @presences.each {|presence| puts presence[0]+' - '+presence[1]}
+            #@presences.each {|presence| puts presence[0]+' - '+presence[1]}
         end
     end
     

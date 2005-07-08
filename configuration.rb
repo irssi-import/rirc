@@ -53,6 +53,8 @@ class Configuration
 		@values['tabcompletesort'] = 'activity'
         
         @values['main_font'] = 'monospace 9'
+        
+        @values['number_tabs'] = true
 		
 		@oldvalues = {}
 	end

@@ -88,7 +88,7 @@ module ReplyParser
             #network = createnetworkifnot(line['network'], line['presence'])
             network.set_username(line['name'] ) if line['name']
             if line['connected']
-                puts 'connecting '+line['network']
+                #puts 'connecting '+line['network']
                 network.connect
                 network.loggedin = true
                 @window.redraw_channellist
@@ -132,9 +132,12 @@ module ReplyParser
                 end
                 
                 if line['joined'] and channel
-                    puts 'connecting '+line['channel']
+                    if line['topic']
+                        channel.topic = line['topic']
+                    end
+                    #puts 'connecting '+line['channel']
                     channel.connect
-                    @window.redraw_channellist
+                    #@window.redraw_channellist
                     switchchannel(channel)
                 end
             end

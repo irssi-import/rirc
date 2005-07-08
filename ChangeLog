@@ -1,3 +1,7 @@
+2005-07-08 20:32 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Tab Numbering and switching
+
 2005-07-08 18:10 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Commands are now buffered until gateway_logged_in event is sent
