@@ -13,4 +13,5 @@ Little things:
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
     Word wrap seems to flake out unless I use character splitting instead of word splitting (which I want) (this doesn't seem to be a problem anymore...)
-	
+	Make rirc get a network list on connect
+    fix presence checking to allow presences defined this rirc session to be used to connect

@@ -24,15 +24,15 @@ class SSHConnection
 	end
 	
 	def send(data)
-		begin
+		#begin
 			@input.puts(data)
-		rescue SystemCallError
-			puts 'Write error: '+$!
-			return false
-		rescue IOError
-			puts 'Write error: '+$!
-			return false
-		end
+		#~ rescue SystemCallError
+			#~ puts 'Write error: '+$!
+			#~ return false
+		#~ rescue IOError
+			#~ puts 'Write error: '+$!
+			#~ return false
+		#~ end
 		return true
 	end
 	
@@ -92,15 +92,15 @@ class LocalConnection
 	end
 	
 	def send(data)
-		begin
+	#	begin
 			@input.puts(data)
-		rescue SystemCallError
-			puts 'Write error: '+$!
-			return false
-		rescue IOError
-			puts 'Write error: '+$!
-			return false
-		end
+		#~ rescue SystemCallError
+			#~ puts 'Write error: '+$!
+			#~ return false
+		#~ rescue IOError
+			#~ puts 'Write error: '+$!
+			#~ return false
+		#~ end
 		return true
 	end
 	
