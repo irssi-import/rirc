@@ -605,7 +605,7 @@ class ServerBuffer < Buffer
 
 		@box.pack_start(@button)
 		
-		@channels.sort
+		@channels.sort! {|x, y| x.name <=> y.name}
 		
 		@channels.each do |channel|
 			insertintobox(channel)
@@ -614,13 +614,13 @@ class ServerBuffer < Buffer
 	end
     
     #remove all the buttons from the box
-	def empty_box
+	def empty_box(destroy = true)
         return unless @box
 		@box.remove(@button)
 		@channels.each do |channel|
 			@box.remove(channel.button)
 		end
-		@box.destroy
+		@box.destroy if destroy
 	end
 	
     #add a channel to the network
@@ -631,7 +631,7 @@ class ServerBuffer < Buffer
 		end
 		newchannel = ChannelBuffer.new(name, self)
 		@channels.push(newchannel)
-		@channels = @channels.sort
+		@channels.sort! {|x, y| x.name <=> y.name}
 		insertintobox(newchannel)
         @parent.renumber
 		return newchannel
@@ -641,31 +641,58 @@ class ServerBuffer < Buffer
 	def addchat(name)
 		newchat = ChatBuffer.new(name, self)
 		@chats.push(newchat)
-		@chats.sort
+		@chats.sort! {|x, y| x.name <=> y.name}
 		insertintobox(newchat)
 		return newchat
 	end
-	
+    
     #insert the button into the box
 	def insertintobox(item)
         return if item.connected.nil?
+        #@channels.sort! {|x, y| x.name <=> y.name}
 		#insert the widget
+        #@channels.each {|channel| puts channel.name unless channel.connected.nil?}
+        #puts ''
 		if item.class == ChannelBuffer
 			@box.pack_start(item.button, true, true)
-			for i in 0...(@channels.length)
-				if @channels[i] == item
-					@box.reorder_child(item.button, i+1)
-					return
+            i = 0
+			@channels.each do |channel|
+                next if channel.connected.nil?
+                #puts @channels[i].name+' at '+i.to_s
+				if channel == item
+                    #puts i, @channels.length
+                    @box.reorder_child(item.button, i+1)
+                    #puts item.name+' goes after '+(i-1).to_s+' and before '+(i+1).to_s
+                    i+=1
+					next
 				end
+                i+=1
 			end
 		elsif item.class == ChatBuffer
+            i = 0
+            @channels.each {|channel| i+=1 unless channel.connected.nil?}
+            puts i
 			@box.pack_start(item.button, true, true)
-			for i in 0...(@chats.length)
-				if @chats[i] == item
-					@box.reorder_child(item.button, (i+@channels.length+1))
-					return
+			@chats.each do |chat|
+                next if chat.connected.nil?
+                #puts @channels[i].name+' at '+i.to_s
+				if chat== item
+                    #puts i, @channels.length
+                    @box.reorder_child(item.button, i+1)
+                    #puts item.name+' goes after '+(i-1).to_s+' and before '+(i+1).to_s
+                    i+=1
+					next
 				end
+                i+=1
 			end
+		#~ elsif item.class == ChatBuffer
+			#~ @box.pack_start(item.button, true, true)
+			#~ for i in 0...(@chats.length)
+				#~ if @chats[i] == item
+					#~ @box.reorder_child(item.button, (i+@channels.length+1))
+					#~ return
+				#~ end
+			#~ end
 		end
 	end
 	
@@ -753,7 +780,10 @@ class ChannelBuffer < Buffer
     def connect
         @connected = true
         @button.show
+        #@server.channels.sort
+        #@server.channels.each {|channel| puts channel.name unless channel.connected.nil?}
         @server.insertintobox(self)
+        @server.parent.renumber
         #@server.parent.redraw
         #server.redraw
     end
@@ -889,7 +919,9 @@ class ChatBuffer < Buffer
     def connect
         @connected = true
         @button.show
+        @server.chats.sort
         @server.insertintobox(self)
+        @server.parent.renumber
         #@server.parent.redraw
     end
     

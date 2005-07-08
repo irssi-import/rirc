@@ -254,8 +254,10 @@ module EventParser
         elsif !event['channel'] and event['nick']
             if !network.has_chat?(event['nick'])
                 chat = network.addchat(event['nick'])
+                chat.connect
             else
                 chat = network.has_chat?(event['nick'])
+                chat.connect unless chat.connected
             end
             chat.send_event(event, MESSAGE)
             return

@@ -88,33 +88,20 @@ module ReplyParser
             #network = createnetworkifnot(line['network'], line['presence'])
             network.set_username(line['name'] ) if line['name']
             if line['connected']
-                #puts 'connecting '+line['network']
                 network.connect
                 network.loggedin = true
                 @window.redraw_channellist
                 switchchannel(network)
             end
-            #network.connect
-            #send_command('channels', "channel list")
         end
-        
-        #if line['network'] and line['presence']
-            #something
-            #@networks.push(line['network'])
-            #@presences.push([line['presence'], line['network']])
-        #end
         if line['status'] == '+'
-            @serverlist.servers.each do |server|
-                puts server.name+', '+server.presence
                 send_command('channels', "channel list")
-            end
         end
     end
     
     def reply_network_list(line, network, channel, reply)
         if line['network'] and !@networks.include?(line['network'])
             @networks.push(line['network'])
-            #puts 'added network '+line['network']
         elsif line['status'] == '+'
             send_command('presences', 'presence list')
         end
@@ -122,7 +109,6 @@ module ReplyParser
     
     #list the connected channels
     def reply_channel_list(line, network, channel, reply)
-        
         if line['network'] and line['presence'] and line['channel']
             if !@serverlist[line['network'], line['presence']]
                 puts 'network does not exist '+line['network']+', '+line['presence']
@@ -135,22 +121,10 @@ module ReplyParser
                     if line['topic']
                         channel.topic = line['topic']
                     end
-                    #puts 'connecting '+line['channel']
                     channel.connect
-                    #@window.redraw_channellist
                     switchchannel(channel)
                 end
             end
-            #~ if @serverlist[line['network'], line['presence']] and !@serverlist[line['network'], line['presence']][line['channel']]
-                #~ channel = @serverlist[line['network'], line['presence']].add(line['name'])
-                #~ if line['topic']
-                    #~ channel.topic = line['topic']
-                #~ end
-                #~ switchchannel(channel)
-            #~ else
-                #~ puts 'channel call for existing network, ignoring '+line['network']+' '+line['presence']+' '+line['name']
-                #~ return
-            #~ end
         
         elsif line['status'] == '+'
             syncchannels unless @syncchannels

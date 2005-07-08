@@ -59,6 +59,9 @@ class MainWindow
 		@last = nil
 		
 		@highlighted = []
+        
+        @linkcursor = Gdk::Cursor.new(Gdk::Cursor::HAND2)
+        @normalcursor = Gdk::Cursor.new(Gdk::Cursor::LEFT_PTR)
 		
 		@defaultmenu = Gtk::Menu.new
 		@defaultmenu.append(Gtk::MenuItem.new("thing1"))
@@ -378,7 +381,6 @@ class MainWindow
 			next unless tag.name
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
-				#puts 'clicked tag linking to '+name[2]
                 link = to_uri(name[2])
 				system($config['linkclickaction'].sub('%s', link))
 				break
@@ -421,7 +423,6 @@ class MainWindow
 		iter = textview.get_iter_at_location(x, y)
 		
 		@highlighted.each do |tag|
-			#tag.foreground = 'black'
 			tag.underline = Pango::AttrUnderline::NONE
 		end
 		
@@ -443,18 +444,19 @@ class MainWindow
 			end
 			textview.signal_emit('populate_popup', @defaultmenu)
 		end
-		
-		#need to set the GdkWindowAttributesType for the gdk::window so the cursor change works
-		#~ if hovering != @hoveringoverlink
-			#~ @hoveringoverlink = hovering.deep_clone
-			#~ if @hoveringoverlink
-				#~ @textview.parent_window.cursor = @linkcursor
-			#~ else
-				#~ @textview.parent_window.cursor = @normalcursor
-			#~ end
-		#~ end
+
+        window = textview.get_window(Gtk::TextView::WINDOW_TEXT)
+		if hovering != @hoveringoverlink
+			@hoveringoverlink = hovering.deep_clone
+			if @hoveringoverlink
+				window.cursor = @linkcursor
+			else
+				window.cursor = @normalcursor
+			end
+		end
 		@glade['window1'].pointer
-		#I should probably change the GdkEventMask instead of this....
+		#I should probably change the GdkEventMask instead of this.... (or not...)
+        return false
 	end
 	
 	def create_link_popup(link)
@@ -476,7 +478,6 @@ class MainWindow
 			menu.append(Gtk::MenuItem.new('Last message: '+user.lastspoke.strftime('%H:%M')))
 			whois = Gtk::MenuItem.new("Whois "+ user.name)
 			whois.signal_connect('activate') do |w|
-				#puts 'requested whois for '+user.name
 				whois(user.name)
 			end
 			menu.append(whois)
