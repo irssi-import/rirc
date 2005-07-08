@@ -250,7 +250,7 @@ class Main
 	end
     
     def network_connect(network, presence)
-        if !@serverlist.get_network_by_name(network)
+        if !@serverlist.get_network_by_name(network)  and !@networks.include?(network)
             puts 'undefined network '+network
         elsif !@serverlist[network, presence]
             puts 'undefined presence '+presence
@@ -260,7 +260,8 @@ class Main
     end
     
     def presence_add(network, presence)
-        if !@serverlist.get_network_by_name(network)
+        @networks.each {|network| puts network}
+        if !@serverlist.get_network_by_name(network) and !@networks.include?(network)
             puts 'Undefined network '+network
         elsif @serverlist[network, presence]
             puts 'Presence exists'
