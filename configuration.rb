@@ -23,7 +23,7 @@ class Configuration
 		
 		@statuscolors = [Gdk::Color.new(0, 0, 0), @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
 		
-		@values['usetimestamp'] = false
+		@values['usetimestamp'] = true
 		@values['timestamp'] = "[%H:%M]"
 		@values['message'] = "%2<%2%u%2>%2 %m"
 		@values['usermessage'] = "%4<%4%u%4>%4 %m"
@@ -47,7 +47,7 @@ class Configuration
 		
 		@values['commandbuffersize'] = 10
 		
-		@values['presence'] = 'vag'
+		@values['presence'] = 'irssi2'
 		
 		@values['canonicaltime'] = 'client'
 		@values['tabcompletesort'] = 'activity'
