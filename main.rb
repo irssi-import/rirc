@@ -217,7 +217,9 @@ class Main
 			
 			$config.get_config
 			@window.draw_from_config
+            puts 'setting presence to '+@connectionwindow.presence
 			$config.set_value('presence', @connectionwindow.presence)
+            puts $config['presence']
 			@connectionwindow.destroy
 			
 			#if @serverlist.servers.length == 0

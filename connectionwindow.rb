@@ -41,14 +41,13 @@ class ConnectionWindow
         @option[@local_button] = @glade['local_table']
 		
 		@glade['presence'].text = 'irssi2'
+        @autoconnect = @config['autoconnect']
+		@presence = @config['presence']
 		
 		redraw_options
 		load_settings
 		@glade[@config['default_method']].active = true
 		fill_entries
-		@autoconnect = @config['autoconnect']
-		@presence = @config['presence']
-		
 	end
 	
 	def save_settings
@@ -153,6 +152,7 @@ class ConnectionWindow
 		end
 		
 		method = button.name
+        @presence = @glade['presence'].text
 		save_settings
 		Thread.new{$main.connect(method, settings)}
 		#destroy

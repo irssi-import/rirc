@@ -32,6 +32,9 @@ This is a list of the supported commands and their parameters:
 /server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
 /connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
 /disconnect <network> [<presence>] - Disconnect from the network
+/networks - List all defined networks.
+/presences - List all defined presences.
+/channels - list all defined channels.
 /join <channel>
 /part <channel>
 /msg <user> <message>

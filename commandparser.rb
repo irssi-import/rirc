@@ -5,7 +5,7 @@ module CommandParser
 		arguments = '' if ! arguments
         
         if command[0].chr == '/'
-            cmd = command[1, command.length]
+            cmd = command[1, command.length].downcase
         end
         
         if cmd and self.respond_to?('cmd_'+cmd)
@@ -24,17 +24,10 @@ module CommandParser
                     line = {}
                     line['nick'] = presence
                     line['msg'] = message
-                    #~ time = Time.new
-                    #~ time = time - @drift if $config['canonicaltime'] == 'server'
-                    #~ line['time'] = time
-                    #@serverlist[network, 'vag'].users[presence].lastspoke= time.to_i
                     @window.currentbuffer.send_user_event(line, USERMESSAGE)			}
             elsif !network
                 #line = {}
                 line = {'err' => 'Invalid server command'}
-                #~ time = Time.new
-                #~ time = time - @drift if $config['canonicaltime'] == 'server'
-                #~ line['time'] = time
                 @window.currentbuffer.send_user_event(line, ERROR)
             end
         end
@@ -269,6 +262,9 @@ module CommandParser
 /server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
 /connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
 /disconnect <network> [<presence>] - Disconnect from the network
+/networks - List all defined networks.
+/presences - List all defined presences.
+/channels - list all defined channels.
 /join <channel>
 /part <channel>
 /msg <user> <message>
