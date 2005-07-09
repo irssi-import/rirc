@@ -93,7 +93,7 @@ module EventParser
     
     def event_channel_join(event, network, channel)
         #return unless network
-        puts 'trying to join '+event['channel']
+        #puts 'trying to join '+event['channel']
         if !@serverlist[event['network'], event['presence']]
             puts 'Error, non existant channel init event caught for non existant network, ignoring'
             return
@@ -114,7 +114,7 @@ module EventParser
         network.send_event(event, NOTICE)
     end
     
-    #another user left the channel
+    #you left the channel
     def event_channel_presence_removed(event, network, channel)
         return unless channel
         if ! event['deinit']
@@ -130,7 +130,7 @@ module EventParser
         end
     end
     
-    #user left the channel
+    #you left the channel
     def event_channel_part(event, network, channel)
         return unless channel
         channel.send_event(event, USERPART)

@@ -9,6 +9,9 @@ Big things:
 	
 Little things:
     network buffers should also maybe do event get
+    Make the right click menus more useful
+    Make keybindings configurable
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
+    Slight issues with scrolling to end when tab switching.

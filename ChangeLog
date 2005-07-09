@@ -1,3 +1,12 @@
+2005-07-09 20:40 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added right click popup menu for channel tabs
+    Added the ability to close tabs via right click popup
+    Fixes to the tag numbering
+    Various cleanups
+    Attempt at improving the scroll to end on tab switching
+    Updated TODO
+
 2005-07-09 16:16 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Removed unecessary call to redraw_channellist

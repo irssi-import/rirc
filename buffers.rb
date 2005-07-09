@@ -41,7 +41,16 @@ class Buffer
 		@togglehandler = @button.signal_connect('toggled')do |w|
 			switchchannel(self)
 		end
+        
+        @button.signal_connect('button_press_event')do |w, event|
+            if event.button == 3
+                rightclickmenu(event)
+            end
+		end
 	end
+    
+    def rightclickmenu(event)
+    end
 	
     #trigger a channel switch...?
 	def switchchannel(channel)
@@ -101,7 +110,7 @@ class Buffer
         if $config['number_tabs']
             @button.label = @number.to_s+':'+@button.label
         end
-        @connected = false
+        @connected = false unless @connected.nil?
 	end
 	
     #reconnect a channel
@@ -530,7 +539,9 @@ class RootBuffer < Buffer
             next if server.connected.nil?
             server.channels.each do |channel|
                 next if channel.connected.nil?
+                #puts channel.connected
                 channel.set_number(i)
+                #puts 'numbering '+channel.name+' as '+i.to_s
                 @tabs[i] = channel
                 i += 1
             end
@@ -671,7 +682,7 @@ class ServerBuffer < Buffer
 		elsif item.class == ChatBuffer
             i = 0
             @channels.each {|channel| i+=1 unless channel.connected.nil?}
-            puts i
+            #puts i
 			@box.pack_start(item.button, true, true)
 			@chats.each do |chat|
                 next if chat.connected.nil?
@@ -695,7 +706,33 @@ class ServerBuffer < Buffer
 			#~ end
 		end
 	end
-	
+    
+    def removefrombox(button)
+        @box.remove(button)
+        $main.switchchannel(getnextchannel)
+        @parent.renumber
+    end
+    
+    def getnextchannel
+        nextchan = nil
+        @channels.each do |channel|
+            unless channel.connected.nil?
+                nextchan = channel
+                break
+            end
+        end
+        
+        if !nextchan
+            unless self.connected.nil?
+                nextchan = self
+            else
+                nextchan = @parent
+            end
+        end
+        
+        return nextchan
+    end
+
     #redraw the box
 	def redrawbox
 		for i in 0...(@channels.length)
@@ -787,6 +824,28 @@ class ChannelBuffer < Buffer
         #@server.parent.redraw
         #server.redraw
     end
+    
+    def close
+        if @connected
+            $main.send_command('part', "channel part;network="+@server.name+";presence="+@server.presence+";channel="+@name)
+        end
+        @connected = nil
+        @number = nil
+        @button.label = @name
+        @server.removefrombox(@button)
+    end
+    
+    def rightclickmenu(event)
+        menu = Gtk::Menu.new
+        item = Gtk::MenuItem.new('Close')
+        item.signal_connect('activate') do |w|
+            close
+        end
+        menu.append(item)
+        menu.show_all
+        menu.popup(nil, nil, event.button, event.time)
+        return true
+    end
 	
     def set_number(num)
         @number = num
@@ -836,6 +895,7 @@ class ChannelBuffer < Buffer
 					@useriters .push(iter)
 					return
 				end
+                #puts user, @useriters[i]
 				res = user.comparetostring(@useriters[i][0])
 				if res == 0
 				elsif res == 1
@@ -923,6 +983,12 @@ class ChatBuffer < Buffer
         @server.insertintobox(self)
         @server.parent.renumber
         #@server.parent.redraw
+    end
+    
+    def close
+        @server.removefrombox(@button)
+        @connected = nil
+        @number = nil
     end
     
     #get the username

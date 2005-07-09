@@ -16,8 +16,8 @@ module CommandParser
             arguments = $2
         end
         
-        puts '"'+command+'"' if command
-        puts '"'+arguments+'"' if arguments
+        #puts '"'+command+'"' if command
+        #puts '"'+arguments+'"' if arguments
         
         if command and command[0].chr == '/'
             cmd = command[1, command.length].downcase
@@ -112,7 +112,7 @@ module CommandParser
     def cmd_part(arguments, channel, network, presence)
         arguments = arguments.split(' ')
         if arguments[0]
-            send_command('part', "channel part;network="+network.name+";presence="+$config['presence']+";channel="+arguments[0])
+            send_command('part', "channel part;network="+network.name+";presence="+presence+";channel="+arguments[0])
         else
             #line = {}
             line = {'err' => 'Part requires a channel argument'}

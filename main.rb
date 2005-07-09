@@ -265,7 +265,7 @@ class Main
     end
     
     def presence_add(network, presence)
-        @networks.each {|network| puts network}
+        #@networks.each {|network| puts network}
         if !@serverlist.get_network_by_name(network) and !@networks.include?(network)
             puts 'Undefined network '+network
         elsif @serverlist[network, presence] or @presences.include?([network, presence])

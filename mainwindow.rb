@@ -141,7 +141,8 @@ class MainWindow
 		return if @currentbuffer != channel
 		#check if we were at the end before the message was sent, if so, move down again
 		if mark_onscreen?(@currentbuffer.oldendmark)
-			@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+			#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+            @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 		end
 	end
 	
@@ -224,14 +225,17 @@ class MainWindow
 
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
-        return unless channel 
+        return unless channel
         update_dimensions
-		if !channel.button.active? or channel == @currentbuffer
-			if @currentbuffer == channel and @currentbuffer.button.active? == false
-				@currentbuffer.activate
-				return
-			end
-		end
+        if channel.button.active? or channel == @channelbuffer
+            if !@currentbuffer.button.active? and channel == @currentbuffer
+                @currentbuffer.activate
+                return
+            elsif channel == @currentbuffer
+                return
+            end
+        end
+        #puts @currentbuffer.name, channel.name
 		@currentbuffer.currentcommand = @messageinput.text
 		@currentbuffer.deactivate
 		@userlist.remove_column(@currentbuffer.column) if @currentbuffer.class == ChannelBuffer
@@ -240,7 +244,8 @@ class MainWindow
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
 		@messages.buffer = @currentbuffer.activate
-		@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+		#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+        @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
@@ -297,7 +302,7 @@ class MainWindow
 		end
 		
 		message = widget.text
-        puts '"'+message+'"'
+        #puts '"'+message+'"'
 		$main.command_parse(message, network, presence, @currentbuffer)
 		widget.text = ''
 	end
