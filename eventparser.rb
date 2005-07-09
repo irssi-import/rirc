@@ -100,7 +100,7 @@ module EventParser
         elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and channel.connected.nil?
            # puts 'connecting '+event['channel']
             channel.connect
-            @window.redraw_channellist
+            #@window.redraw_channellist
             switchchannel(channel)
         elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and !channel.connected
             puts 'channel exists, but is not connected, reconnecting'

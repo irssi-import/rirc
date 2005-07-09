@@ -252,7 +252,7 @@ module ReplyParser
 			pattern['%m'] = msg if msg
 			pattern['%n'] = line['name'] if line['name']
 			line['msg'] = pattern
-			network.send_reply(line, NOTICE)
+			network.send_event(line, NOTICE)
 			time = line['time']
 		end
 	end

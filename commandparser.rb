@@ -6,12 +6,20 @@ module CommandParser
             network.bufferedcommands.push(message)
             return
         end
-    
-		command, arguments = message.split(' ', 2)
-		
-		arguments = '' if ! arguments
+        		
+        #arguments ||= ''
+        #command ||= ''
         
-        if command[0].chr == '/'
+		#command, arguments = message.split(' ', 2)
+        if /^(\/\w+)(?: (.+)|)/.match(message)
+            command = $1
+            arguments = $2
+        end
+        
+        puts '"'+command+'"' if command
+        puts '"'+arguments+'"' if arguments
+        
+        if command and command[0].chr == '/'
             cmd = command[1, command.length].downcase
         end
         

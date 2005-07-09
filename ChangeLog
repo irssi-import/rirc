@@ -1,3 +1,8 @@
+2005-07-09 16:16 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Removed unecessary call to redraw_channellist
+    More cleanups/bugfixes
+
 2005-07-09 00:21 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Fixed channel/chat sorting code

@@ -297,6 +297,7 @@ class MainWindow
 		end
 		
 		message = widget.text
+        puts '"'+message+'"'
 		$main.command_parse(message, network, presence, @currentbuffer)
 		widget.text = ''
 	end
