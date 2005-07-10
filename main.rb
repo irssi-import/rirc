@@ -272,12 +272,12 @@ class Main
             puts 'Presence exists'
         else
             cmdstring = "presence add;presence="+presence+";network="+network
-            #if protocol.downcase == 'silc' and @keys[presence] and @keys[presence]['silc_pub']
-            #	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
-            #	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
-            #end
+            if @keys[presence] and @keys[presence]['silc_pub']
+            	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
+            	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
+            end
             #send_command('addpres', "presence add;name="+presence+";network="+name)
-            #cmdstring.gsub!("\n", "\\n")
+            cmdstring.gsub!("\n", "\\n")
             #puts cmdstring
             send_command('addpres', cmdstring)
             @presences.push([network, presence])

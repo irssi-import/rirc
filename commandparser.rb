@@ -150,6 +150,8 @@ module CommandParser
             if File.file?(key_pub) and File.file?(key_priv)
                 @keys[$config['presence']] = {'silc_pub' => IO.read(key_pub),
                                             'silc_priv' => Base64.encode64(IO.read(key_priv))}
+                puts 'added public key '+key_pub
+                puts 'added private key '+key_priv
                 @keys[$config['presence']]['silc_pass'] = pass if pass.length > 0
             else
                 puts 'file not found'
