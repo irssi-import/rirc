@@ -153,7 +153,7 @@ module CommandParser
                                             'silc_priv' => Base64.encode64(IO.read(key_priv))}
                 puts 'added public key '+key_pub
                 puts 'added private key '+key_priv
-                if pass.length > 0
+                if pass and pass.length > 0
                     @keys[$config['presence']]['silc_pass'] = pass
                     puts 'using passphrase'
                 end
