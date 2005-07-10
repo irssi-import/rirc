@@ -139,10 +139,11 @@ module CommandParser
     
     #/silckey command
     def cmd_silckey(arguments, channel, network, presence)
-        if arguments =~ /^(.+) (.+)( (.+)|)$/
+        if arguments =~ /^([^\s]+) ([^\s]+)(?: (\w+)|)$/
         pub = $1
         priv = $2
         pass = $3
+        #puts pub, priv, pass
         if pub and priv
             key_pub = pub.to_s.sub('~', ENV['HOME'])
             key_priv = priv.to_s.sub('~', ENV['HOME'])
@@ -152,7 +153,10 @@ module CommandParser
                                             'silc_priv' => Base64.encode64(IO.read(key_priv))}
                 puts 'added public key '+key_pub
                 puts 'added private key '+key_priv
-                @keys[$config['presence']]['silc_pass'] = pass if pass.length > 0
+                if pass.length > 0
+                    @keys[$config['presence']]['silc_pass'] = pass
+                    puts 'using passphrase'
+                end
             else
                 puts 'file not found'
             end
