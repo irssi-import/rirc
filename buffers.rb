@@ -19,24 +19,19 @@ NOTICE = 7
 TOPIC = 8
 
 class Buffer
-	attr_reader :endmark, :oldendmark, :currentcommand, :buffer, :button
+	attr_reader :oldendmark, :currentcommand, :buffer, :button
 	attr_writer :currentcommand
+    extend Plugins
+    include PluginAPI
 	def initialize(name)
 		@buffer = Gtk::TextBuffer.new
         16.times do |x|
             @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
         end
-		#~ @buffer.create_tag('color0', {'foreground_gdk'=>$config['color0']})
-		#~ @buffer.create_tag('color1', {'foreground_gdk'=>$config['color1']})
-		#~ @buffer.create_tag('color2', {'foreground_gdk'=>$config['color2']})
-		#~ @buffer.create_tag('color3', {'foreground_gdk'=>$config['color3']})
-		#~ @buffer.create_tag('color4', {'foreground_gdk'=>$config['color4']})
-		#~ @buffer.create_tag('color5', {'foreground_gdk'=>$config['color5']})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
 		@button = Gtk::ToggleButton.new(name)
-		#@button.show
 		@button.active = false
 		@togglehandler = @button.signal_connect('toggled')do |w|
 			switchchannel(self)
@@ -47,9 +42,14 @@ class Buffer
                 rightclickmenu(event)
             end
 		end
+        @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic']
 	end
     
     def rightclickmenu(event)
+        menu = genmenu
+        menu.show_all
+        menu.popup(nil, nil, event.button, event.time)
+        return true
     end
 	
     #trigger a channel switch...?
@@ -107,7 +107,7 @@ class Buffer
     #disconnect a channel
 	def disconnect
 		@button.label = '('+@name+')'
-        if $config['number_tabs']
+        if $config['number_tabs'] and @number
             @button.label = @number.to_s+':'+@button.label
         end
         @connected = false unless @connected.nil?
@@ -116,7 +116,7 @@ class Buffer
     #reconnect a channel
 	def reconnect
 		@button.label = @name
-        if $config['number_tabs']
+        if $config['number_tabs'] and @number
             @button.label = @number.to_s+':'+@button.label
         end
 		@connected = true
@@ -162,92 +162,17 @@ class Buffer
 		
 		@oldlineend = @buffer.end_iter
 		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, false)
-		
-		if type == MESSAGE
-			setstatus(NEWMSG) if insert_location == BUFFER_END
-			pattern += $config['message'].deep_clone
-			if line['nick']
-				pattern['%u'] = line['nick']
-				users.push(line['nick'])
-			end
-			pattern['%m'] = line['msg'] if line['msg']
-			
-			
-		elsif type == USERMESSAGE
-			setstatus(NEWMSG) if insert_location == BUFFER_END
-			pattern += $config['usermessage'].deep_clone
-			if username
-				pattern['%u'] = username
-				users.push(username)
-			end
-			pattern['%m'] = line['msg'] if line['msg']
-			
-			
-		elsif type == JOIN
-			setstatus(NEWDATA) if insert_location == BUFFER_END
-			pattern += $config['join'].deep_clone
-			pattern['%u'] = line['name']
-			users.push(line['name'])
-			pattern['%c'] = line['channel']
-			if user = @users[line['name']] and user.hostname
-				pattern['%h'] = user.hostname
-			elsif line['address']
-				pattern['%h'] = line['address']
-			end
-			
-			
-		elsif type == USERJOIN
-			setstatus(NEWDATA) if insert_location == BUFFER_END
-			pattern += $config['userjoin'].deep_clone
-			pattern['%c'] = line['channel']
-			
-		elsif type == PART
-			setstatus(NEWDATA) if insert_location == BUFFER_END
-			pattern += $config['part'].deep_clone
-			pattern['%u'] = line['name']
-			users.push(line['name'])
-			pattern['%r'] = line['reason'] if line['reason']
-			pattern['%c'] = line['channel']
-			if user = @users[line['name']] and user.hostname
-				pattern['%h'] = user.hostname
-			elsif line['address']
-				pattern['%h'] = line['address']
-			end
-			
-		elsif type == USERPART
-			setstatus(NEWDATA) if insert_location == BUFFER_END
-			pattern += $config['userpart'].deep_clone
-			pattern['%c'] = line['channel']
-			
-		elsif type == ERROR
-			setstatus(NEWDATA) if insert_location == BUFFER_END
-			pattern += $config['error'].deep_clone
-			pattern['%m'] = line['err']
-			
-		elsif type == NOTICE
-			setstatus(NEWDATA) if insert_location == BUFFER_END
-			pattern += $config['notice'].deep_clone
-			pattern['%m'] = line['msg']
-			
-        elsif type == TOPIC
-            setstatus(NEWDATA) if insert_location == BUFFER_END
-            if line['topic'] and line['topic_set_by']
-                pattern += $config['topic_change'].deep_clone
-                pattern['%t'] = line['topic']
-                pattern['%u'] = line['topic_set_by']
-                users.push(line['topic_set_by'])
-            elsif line['topic']
-                pattern += $config['topic'].deep_clone
-                pattern['%c'] = line['channel']
-                pattern['%t'] = line['topic']
-            elsif line['topic_set_by']
-                pattern += $config['topic_setby'].deep_clone
-                pattern['%c'] = line['channel']
-                pattern['%u'] = line['topic_set_by']
-                pattern['%a'] = Time.at(line['topic_timestamp'].to_i).strftime('%c')
-                users.push(line['topic_set_by'])
-            end
-		end
+        
+        cmd = 'buffer_'+@modes[type]
+        if self.respond_to?(cmd)
+            #puts cmd
+            res = callback(cmd, line, pattern, users, insert_location)
+            return unless res
+            #res.each {|x| puts x}
+            pattern, users, insert_location = self.send(cmd, *res)
+        else
+            return
+        end
 		
 		if pattern.length > 0
 			recolor
@@ -262,11 +187,115 @@ class Buffer
 		end
 		
 		@newlineend = @buffer.end_iter
-		@endmark = @buffer.create_mark('end', @buffer.end_iter, false)
 		
 		$main.scroll_to_end(self)
 			
 	end
+    
+    def buffer_message(line, pattern, users, insert_location)
+        setstatus(NEWMSG) if insert_location == BUFFER_END
+        pattern += $config['message'].deep_clone
+        if line['nick']
+            pattern['%u'] = line['nick']
+            users.push(line['nick'])
+        end
+        pattern['%m'] = line['msg'] if line['msg']
+        return [pattern, users, insert_location]
+    end
+    
+    
+    def buffer_usermessage(line, pattern, users, insert_location)
+        setstatus(NEWMSG) if insert_location == BUFFER_END
+        pattern += $config['usermessage'].deep_clone
+        if username
+            pattern['%u'] = username
+            users.push(username)
+        end
+        pattern['%m'] = line['msg'] if line['msg']
+        return [pattern, users, insert_location]
+    end
+    
+    def buffer_join(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        pattern += $config['join'].deep_clone
+        pattern['%u'] = line['name']
+        users.push(line['name'])
+        pattern['%c'] = line['channel']
+        if user = @users[line['name']] and user.hostname
+            pattern['%h'] = user.hostname
+        elsif line['address']
+            pattern['%h'] = line['address']
+        end
+        return [pattern, users, insert_location]
+    end    
+        
+    def buffer_userjoin(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        pattern += $config['userjoin'].deep_clone
+        pattern['%c'] = line['channel']
+        return [pattern, users, insert_location]
+    end
+    
+    def buffer_part(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        pattern += $config['part'].deep_clone
+        pattern['%u'] = line['name']
+        users.push(line['name'])
+        pattern['%r'] = line['reason'] if line['reason']
+        pattern['%c'] = line['channel']
+        if user = @users[line['name']] and user.hostname
+            pattern['%h'] = user.hostname
+        elsif line['address']
+            pattern['%h'] = line['address']
+        end
+       return [pattern, users, insert_location]
+    end
+    
+    def buffer_userpart(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        pattern += $config['userpart'].deep_clone
+        pattern['%c'] = line['channel']
+        return [pattern, users, insert_location]
+    end
+
+    def buffer_error(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        pattern += $config['error'].deep_clone
+        pattern['%m'] = line['err']
+        return [pattern, users, insert_location]
+    end
+    
+    def buffer_notice(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        pattern += $config['notice'].deep_clone
+        pattern['%m'] = line['msg']
+        return [pattern, users, insert_location]
+    end
+    
+    def buffer_topic(line, pattern, users, insert_location)
+        setstatus(NEWDATA) if insert_location == BUFFER_END
+        if line['topic'] and line['topic_set_by']
+            pattern += $config['topic_change'].deep_clone
+            pattern['%t'] = line['topic']
+            pattern['%u'] = line['topic_set_by']
+            users.push(line['topic_set_by'])
+        elsif line['topic']
+            pattern += $config['topic'].deep_clone
+            pattern['%c'] = line['channel']
+            pattern['%t'] = line['topic']
+        elsif line['topic_set_by']
+            pattern += $config['topic_setby'].deep_clone
+            pattern['%c'] = line['channel']
+            pattern['%u'] = line['topic_set_by']
+            pattern['%a'] = Time.at(line['topic_timestamp'].to_i).strftime('%c')
+            users.push(line['topic_set_by'])
+        end
+       return [pattern, users, insert_location]
+    end
+    
+    def endmark
+        return @buffer.create_mark('end', @buffer.end_iter, false)
+    end
 	
 	#add a command to the command buffer
 	def addcommand(string)
@@ -636,8 +665,8 @@ class ServerBuffer < Buffer
 	
     #add a channel to the network
 	def add(name)
-		if name2index(name) != nil
-			puts 'You are already connected to #'+name+" on this server"
+		if channels.include?(name)
+			puts 'You are already connected to '+name+" on this server"
 			return
 		end
 		newchannel = ChannelBuffer.new(name, self)
@@ -783,6 +812,26 @@ class ServerBuffer < Buffer
 	def getnetworkpresencepair
 		return @name, @presence
 	end
+    
+    def genmenu
+        menu = Gtk::Menu.new
+        item = Gtk::MenuItem.new('Close')
+        item.signal_connect('activate') do |w|
+            close
+        end
+        menu.append(item)
+        return menu
+    end
+    
+    def close
+        if @connected
+            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
+        end
+        @connected = nil
+        @number = nil
+        @button.label = @name
+        @server.removefrombox(@button)
+    end
 	
 end
 
@@ -835,16 +884,14 @@ class ChannelBuffer < Buffer
         @server.removefrombox(@button)
     end
     
-    def rightclickmenu(event)
+    def genmenu
         menu = Gtk::Menu.new
         item = Gtk::MenuItem.new('Close')
         item.signal_connect('activate') do |w|
             close
         end
         menu.append(item)
-        menu.show_all
-        menu.popup(nil, nil, event.button, event.time)
-        return true
+        return menu
     end
 	
     def set_number(num)
@@ -866,7 +913,6 @@ class ChannelBuffer < Buffer
 		if @server.users[name]
 			if ! @users[name]
 				@users.add(@server.users[name])
-				@users.sort
 				if !init
 					drawusers
 				end
@@ -878,7 +924,7 @@ class ChannelBuffer < Buffer
 	
     #draw the user list
 	def drawusers
-		@users.sort
+		@users.sort!
 		
 		if @useriters.length == 0
 			@users.users.each{ |user|
@@ -989,6 +1035,16 @@ class ChatBuffer < Buffer
         @server.removefrombox(@button)
         @connected = nil
         @number = nil
+    end
+    
+    def genmenu
+        menu = Gtk::Menu.new
+        item = Gtk::MenuItem.new('Close')
+        item.signal_connect('activate') do |w|
+            close
+        end
+        menu.append(item)
+        return menu
     end
     
     #get the username

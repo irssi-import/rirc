@@ -21,36 +21,48 @@ module CommandParser
         
         if command and command[0].chr == '/'
             cmd = command[1, command.length].downcase
+        else
+            cmd = 'message'
+            arguments = message
         end
         
         if cmd and self.respond_to?('cmd_'+cmd)
-            self.send('cmd_'+cmd, arguments, channel, network, presence)
-        else
-            #its not a command, treat as a message
-            if network
-                messages = message.split("\n")
-                messages.each { |message|
-                    
-                    if channel.class == ChannelBuffer
-                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
-                    elsif channel.class == ChatBuffer
-                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';nick='+channel.name+';msg='+escape(message)+";presence="+presence)
-                    end
-                    line = {}
-                    line['nick'] = presence
-                    line['msg'] = message
-                    @window.currentbuffer.send_user_event(line, USERMESSAGE)			}
-            elsif !network
-                #line = {}
-                line = {'err' => 'Invalid server command'}
-                @window.currentbuffer.send_user_event(line, ERROR)
-            end
+            res = callback('cmd_'+cmd, arguments, channel, network, presence)
+           # puts res
+            #if res.class == Array and res.length > 0
+                self.send('cmd_'+cmd, *res)
+            #else
+            #    self.send('cmd_'+cmd, arguments, channel, network, presence)
+            #end
         end
     end
     
     #~ def cmd_channel(arguments, channel, network, presence)
         #~ channel_add(network, presence, arguments)
     #~ end
+    
+    def cmd_message(message, channel, network, presence)
+        #its not a command, treat as a message
+        if network
+            puts message
+            messages = message.split("\n")
+            messages.each { |message|
+                
+                if channel.class == ChannelBuffer
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
+                elsif channel.class == ChatBuffer
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';nick='+channel.name+';msg='+escape(message)+";presence="+presence)
+                end
+                line = {}
+                line['nick'] = presence
+                line['msg'] = message
+                @window.currentbuffer.send_user_event(line, USERMESSAGE)			}
+        elsif !network
+            #line = {}
+            line = {'err' => 'Invalid server command'}
+            @window.currentbuffer.send_user_event(line, ERROR)
+        end
+    end
     
     #/join command
     def cmd_join(arguments, channel, network, presence)
@@ -104,7 +116,8 @@ module CommandParser
         end
         
         if presence and servername
-            send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
+            #send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
+            @servers[servername, presence].close
         end
     end
     
@@ -277,6 +290,18 @@ module CommandParser
     
     def cmd_load(arguments, channel, network, presence)
         plugin_load(arguments)
+    end
+    
+    def cmd_spam(arguments, *args)
+        count = 500
+        if arguments =~ /[\d]+/
+            count = arguments.to_i
+        end
+        
+        count.times do |i|
+            event = {'msg' => 'This is testing spam'}
+            @window.currentbuffer.send_user_event(event, NOTICE)
+        end
     end
     
     def cmd_help(arguments, channel, network, presence)

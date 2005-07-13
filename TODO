@@ -6,6 +6,7 @@ Big things:
     Fixup the Net::SSH connection method for windows lusers
     Finish porting rirc to windows (if I can be bothered)
     Plugin support?
+    Network/Presence/channel config GUI
 	
 Little things:
     network buffers should also maybe do event get

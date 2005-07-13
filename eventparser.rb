@@ -18,7 +18,12 @@ module EventParser
         end
         
         if self.respond_to?('event_'+event['type'])
-            self.send('event_'+event['type'], event, network, channel)
+            res = callback('event_'+event['type'], event, network, channel)
+            #if res.class == Array and res.length > 0
+            self.send('event_'+event['type'], *res)
+            #else
+            #    self.send('event_'+event['type'], event, network, channel)
+            #end
         end
     end
     
@@ -136,6 +141,7 @@ module EventParser
         channel.send_event(event, USERPART)
         channel.disconnect
         channel.clearusers
+        @serverlist.renumber
     end
     
     #~ #user joined a channel

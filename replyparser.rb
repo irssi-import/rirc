@@ -30,11 +30,11 @@ module ReplyParser
 				next
 			end
 			
-			if line['status'] == '-'
-				line['err'] = 'Error: '+line['error']+' encountered when sending command '+reply.origcommand
-				@serverlist.send_event(line, ERROR)
-				return
-			end
+			#if line['status'] == '-'
+				#line['err'] = 'Error: '+line['error']+' encountered when sending command '+reply.origcommand
+				#@serverlist.send_event(line, ERROR)
+				#return
+			#end
             
             if line['network'] and line['presence']
                 if !@serverlist[line['network'], line['presence']]
@@ -42,7 +42,7 @@ module ReplyParser
                     network = @serverlist[line['network'], line['presence']]
                 end
                 
-                if line['channel']
+                if line['channel'] and @serverlist[line['network'], line['presence']]
                     if !@serverlist[line['network'], line['presence']][line['channel']]
                     else
                         channel = @serverlist[line['network'], line['presence']][line['channel']]
@@ -52,7 +52,12 @@ module ReplyParser
             
             cmd = 'reply_'+reply.command['command'].gsub(' ', '_')
             if self.respond_to?(cmd)
-                self.send(cmd, line, network, channel, reply)
+                res = callback(cmd, line, network, channel, reply)
+                #if res.class == Array and res.length > 0
+                    self.send(cmd, *res)
+                #else
+                #    self.send(cmd, line, network, channel, reply)
+                #end
             end
         end
     end

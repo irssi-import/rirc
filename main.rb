@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 require 'libglade2'
 require 'socket'
 require 'rbconfig'
@@ -90,7 +88,9 @@ require 'connectionwindow'
 
 class Main
 	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift
-    #include Plugins
+    @@test = 'no'
+    extend Plugins
+    include PluginAPI
     include EventParser
     include ReplyParser
     include CommandParser
@@ -107,6 +107,11 @@ class Main
         @networks = []
         @presences = []
 	end
+    
+    def test
+        puts self.class.cb_hash.length
+        #puts @@cb_hash.length
+    end
     
 	#start doing stuff
 	def start
@@ -125,16 +130,14 @@ class Main
             while true
                 sleep 5
                 @replies.each do |key, reply|
-                    if (Time.new - reply.start).to_i > 10
-                        if reply.complete
-                            puts 'REAPING - reply '+reply.name+' is complete, parsing'
-                             @replies.delete(key)
-                            reply_parse(reply)
-                        else
-                            puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
-                            @replies.delete(key)
-                            send_command(key, reply.origcommand)
-                        end
+                    if reply.complete
+                        puts 'REAPING - reply '+reply.name+' is complete, parsing'
+                        @replies.delete(key)
+                        reply_parse(reply)
+                    elsif (Time.new - reply.start).to_i > 10
+                        puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
+                        @replies.delete(key)
+                        send_command(key, reply.origcommand)
                     end
                 end
             end
@@ -475,11 +478,16 @@ class Main
 		exit
 	end
 end
+#Main.test
+
+Main.add_callback('a'){}
 
 #start the ball rolling...
 begin
 	$config = Configuration.new
 	$main = Main.new
+    $main.plugin_load('mpd')
+    #$main.test
 	$main.start
 rescue Interrupt
 	puts 'got keyboard interrupt'

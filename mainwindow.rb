@@ -12,6 +12,7 @@ class MainWindow
 		@messages = @glade["message_window"]
 		@messageinput = @glade["message_input"]
 		@messagescroll = @glade['message_scroll']
+        @messagevadjustment = @messagescroll.vadjustment
 		
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
@@ -244,7 +245,19 @@ class MainWindow
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
 		@messages.buffer = @currentbuffer.activate
+        #~ @messagevadjustment.value = @messagevadjustment.upper
+        #~ puts @messagevadjustment.lower
+        #~ puts @messagevadjustment.upper
+        #~ puts @messagevadjustment.value
+        #~ @messagevadjustment.clamp_page(0, 100)
+        #~ @messagevadjustment.changed
+        #~ @messagevadjustment.value_changed
+        #~ puts @messagevadjustment.lower
+        #~ puts @messagevadjustment.upper
+        #~ puts @messagevadjustment.value
+        #~ puts ''
 		#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+        @messages.scroll_mark_onscreen(@currentbuffer.endmark)
         @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)

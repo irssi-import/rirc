@@ -21,7 +21,9 @@ class User
 	end
 	
 	def lastspoke=(time)
+        time = time + $main.drift if $config['canonicaltime'] == 'client'
 		@lastspoke = Time.at(time.to_i)
+        #puts 'updated lastspoke for '+@name
 	end
 	
 	def comparetostring(string)
@@ -37,8 +39,6 @@ end
 class UserList < Monitor
 	attr_reader :users
 	def initialize
-        #@addqueue = Queue.new
-        #@delqueue = Queue.new
 		@users = []
         super
 	end
@@ -54,7 +54,6 @@ class UserList < Monitor
         new = User.new(name)
         new.hostname = hostname
         @users.push(new)
-        @users.sort!
         return new
 	end
 	
@@ -66,7 +65,6 @@ class UserList < Monitor
     
 	def do_add(user)
         @users.push(user)
-        @users.sort!
 	end
     
     def remove(name)
