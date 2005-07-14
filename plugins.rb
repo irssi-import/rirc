@@ -11,21 +11,32 @@ module Plugins
                 puts 'added callback for '+name
                 #puts @cb_hash[name.to_sym].length
                 resolve_cb_hash
+                return name
             end
         else
             puts 'no event function called '+name+', not adding callback'
+            return nil
         end
+    end
+    
+    def del_callback(name)
+        @cb_hash.delete(name.to_sym)
+    end
+    
+    def del_method(name)
+        self.send(:remove_method, name.to_sym)
     end
     
     #add a new input handler
     def add_method(name, &block)
         if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
             puts 'method '+name+' already defined, not redefining'
-            return
+            return nil
         end
         #puts self, self.class
         self.send(:define_method, name, &block)
         puts 'added '+name
+        return name
     end
     
     def cb_hash
@@ -74,7 +85,7 @@ module PluginAPI
             cb_hash[method.to_sym].each do |hash|
                 puts 'a callback'
                 ret = hash.call(*args)
-                if ret == true
+                if ret === true
                     break
                 elsif ret.class == Array
                     ret.each_with_index { |z, i| args[i]=z}
@@ -82,6 +93,10 @@ module PluginAPI
                     args[0] = ret
                 end
             end
+        end
+        if ret === true
+            puts 'returned true, disabling further callbacks or functions for '+method
+            return true
         end
         return args
     end
@@ -113,13 +128,74 @@ end
 
 class Plugin
     include Plugins
-    
-    def add_callback(classname, name, &block)
-        classname.add_callback(name, &block)
+    attr_reader :name
+    def initialize(name)
+        @name = name
     end
     
-    def add_method(classname, name, &block)
-        classname.add_method(name, &block)
+    def self.register(plugin)
+        unless plugin.class.superclass == Plugin
+            puts 'Plugin must be subclass of Plugin'
+            return
+        end
+        if lookup(plugin.name)
+            puts 'a plugin with this name is already registered'
+            return
+        end
+        
+        @@plugins ||= {}
+        @@plugins[plugin] = {'callbacks' => Array.new, 'methods' => Array.new} if plugin and !@@plugins[plugin]
+        plugin.load
+    end
+    
+    def self.unregister(plugin)
+        return unless @@plugins and @@plugins[plugin]
+        
+        @@plugins[plugin]['callbacks'].each do |c|
+            c[1].del_callback(c[0])
+            puts 'removed callback '+c[0]+' for class '+c[1].to_s
+        end
+        
+        @@plugins[plugin]['methods'].each do |c|
+            c[1].del_method(c[0])
+            puts 'removed method '+c[0]+' for class '+c[1].to_s
+        end
+        @@plugins.delete(plugin)
+    end
+    
+    def self.list
+        @@plugins ||= {}
+        return @@plugins
+    end
+    
+    def self.lookup(name)
+        @@plugins ||= {}
+        @@plugins.each do |plugin, values|
+            if plugin.name == name
+                return plugin
+            end
+        end
+        return nil
+    end
+    
+    def add_callback(plugin, classname, name, &block)
+        if @@plugins[plugin]
+            if callback = classname.add_callback(name, &block) and  !@@plugins[plugin]['callbacks'].include?([callback, classname])
+                @@plugins[plugin]['callbacks'].push([callback, classname])
+            end
+        else
+            puts 'plugin '+plugin.name+' not registered'
+        end
+    end
+    
+    def add_method(plugin, classname, name, &block)
+        if @@plugins[plugin]
+            if method = classname.add_method(name, &block) and  !@@plugins[plugin]['methods'].include?([method, classname])
+                @@plugins[plugin]['methods'].push([method, classname]) 
+            end
+        else
+            puts 'plugin '+plugin.name+' not registered'
+        end
     end
     
 end

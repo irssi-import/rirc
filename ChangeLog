@@ -1,4 +1,10 @@
-2005-07-14 12:45 - Andrew Thompson <vagabond@cataclysm-software.net>
+2005-07-14 12:47 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added plugin unloading
+    Added safety checks for loading plugins
+    Any callback which returns true will now halt execution of any subsequent callbacks or methods
+
+2005-07-14 00:45 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added right click close menus to all but the server tab
     Rework of the plugin system (still WIP)

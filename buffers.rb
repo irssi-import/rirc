@@ -167,7 +167,7 @@ class Buffer
         if self.respond_to?(cmd)
             #puts cmd
             res = callback(cmd, line, pattern, users, insert_location)
-            return unless res
+            return if res === true
             #res.each {|x| puts x}
             pattern, users, insert_location = self.send(cmd, *res)
         else

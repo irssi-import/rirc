@@ -19,6 +19,7 @@ module EventParser
         
         if self.respond_to?('event_'+event['type'])
             res = callback('event_'+event['type'], event, network, channel)
+            return if res === true
             #if res.class == Array and res.length > 0
             self.send('event_'+event['type'], *res)
             #else

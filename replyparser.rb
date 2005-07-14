@@ -53,6 +53,7 @@ module ReplyParser
             cmd = 'reply_'+reply.command['command'].gsub(' ', '_')
             if self.respond_to?(cmd)
                 res = callback(cmd, line, network, channel, reply)
+                return if res === true
                 #if res.class == Array and res.length > 0
                     self.send(cmd, *res)
                 #else

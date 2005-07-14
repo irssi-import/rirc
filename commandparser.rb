@@ -28,6 +28,7 @@ module CommandParser
         
         if cmd and self.respond_to?('cmd_'+cmd)
             res = callback('cmd_'+cmd, arguments, channel, network, presence)
+            return if res === true
            # puts res
             #if res.class == Array and res.length > 0
                 self.send('cmd_'+cmd, *res)
@@ -47,7 +48,7 @@ module CommandParser
     def cmd_message(message, channel, network, presence)
         #its not a command, treat as a message
         if network
-            puts message
+            #puts message
             messages = message.split("\n")
             messages.each { |message|
                 
@@ -293,6 +294,36 @@ module CommandParser
     
     def cmd_load(arguments, channel, network, presence)
         plugin_load(arguments)
+    end
+    
+    def cmd_unload(arguments, *args)
+        if plugin = Plugin.lookup(arguments)
+            Plugin.unregister(plugin)
+        else
+            puts 'no plugin found called '+arguments
+        end
+    end
+    
+    def cmd_pluginlist(*args)
+        lines = ['Loaded Plugins:']
+        plugins = Plugin.list
+        plugins.each do |k, v|
+            v.each do |key, values|
+                temp = k.name+' '+key+':'
+                values.each do |value|
+                    #puts k.name, key, value
+                    temp += ' '+value[1].to_s+'#'+value[0]
+                end
+                lines.push(temp)
+            end
+        end
+        
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, NOTICE)
+        end
     end
     
     def cmd_spam(arguments, *args)
