@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'libglade2'
 require 'socket'
 require 'rbconfig'
@@ -480,13 +481,11 @@ class Main
 end
 #Main.test
 
-Main.add_callback('a'){}
-
 #start the ball rolling...
 begin
 	$config = Configuration.new
 	$main = Main.new
-    $main.plugin_load('mpd')
+    #$main.plugin_load('mpd')
     #$main.test
 	$main.start
 rescue Interrupt

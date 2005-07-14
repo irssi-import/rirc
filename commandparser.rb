@@ -21,9 +21,9 @@ module CommandParser
         
         if command and command[0].chr == '/'
             cmd = command[1, command.length].downcase
-        else
-            cmd = 'message'
-            arguments = message
+        #~ else
+            #~ cmd = 'message'
+            #~ arguments = message
         end
         
         if cmd and self.respond_to?('cmd_'+cmd)
@@ -34,6 +34,9 @@ module CommandParser
             #else
             #    self.send('cmd_'+cmd, arguments, channel, network, presence)
             #end
+        else
+            res = callback('cmd_message', message, channel, network, presence)
+            self.send('cmd_message', *res)
         end
     end
     
