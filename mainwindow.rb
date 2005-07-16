@@ -239,7 +239,10 @@ class MainWindow
         #puts @currentbuffer.name, channel.name
 		@currentbuffer.currentcommand = @messageinput.text
 		@currentbuffer.deactivate
-		@userlist.remove_column(@currentbuffer.column) if @currentbuffer.class == ChannelBuffer
+        if @currentbuffer.class == ChannelBuffer
+            @userlist.remove_column(@currentbuffer.modecolumn)
+            @userlist.remove_column(@currentbuffer.usercolumn)
+        end
 		@currentbuffer = channel
 		@messageinput.text = @currentbuffer.currentcommand
 		@messageinput.select_region(0, 0)
@@ -276,7 +279,8 @@ class MainWindow
 			@panel.add1(@messagebox)
 			@messageinput.grab_focus
 			@userlist.model = @currentbuffer.userlist
-			@userlist.append_column(@currentbuffer.column)
+			@userlist.append_column(@currentbuffer.modecolumn)
+            @userlist.append_column(@currentbuffer.usercolumn)
 			@userlist.show_all
 			@topic.show
 			@topic.text =@currentbuffer.topic

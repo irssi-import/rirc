@@ -359,6 +359,7 @@ class Main
 			return
 		end
 		line['type'] = $1
+        line['original'] = string
 		
 		items = $2.split(';')
 		
@@ -485,7 +486,11 @@ end
 begin
 	$config = Configuration.new
 	$main = Main.new
-    #$main.plugin_load('mpd')
+    #~ 10.times do
+        #~ $main.plugin_load('osd')
+        #~ sleep 2
+        #~ Plugin.unregister(Plugin.lookup('osd'))
+    #~ end
     #$main.test
 	$main.start
 rescue Interrupt

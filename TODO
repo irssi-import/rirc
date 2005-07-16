@@ -12,6 +12,7 @@ Little things:
     network buffers should also maybe do event get
     Make the right click menus more useful
     Make keybindings configurable
+    NetSplit detection (might be better in irssi2 itself)
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.

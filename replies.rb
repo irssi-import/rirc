@@ -39,7 +39,7 @@ class Reply
 		temp = {}
 		vars = line.split(";", 3)
 		temp['tagname'] = vars[0]
-		temp['status'] = vars[1]
+		temp['reply_status'] = vars[1]
 		temp['original'] = line
 		
 		if !vars[2]
@@ -69,11 +69,11 @@ class Reply
 			temp['time'] = Time.at(temp['time'].to_i + $main.drift)
 		end
 		
-		if temp['status'] == '+'
+		if temp['reply_status'] == '+'
 			@complete = true
 		end
 		
-		if temp['status'] == '-'
+		if temp['reply_status'] == '-'
 			error = line.gsub(temp['tagname']+';-;', '')
 			temp['error'] = error
 			@complete = true

@@ -29,7 +29,7 @@ class SSHConnection
 		#~ rescue SystemCallError
 			#~ puts 'Write error: '+$!
 			#~ return false
-		rescue IOError
+		rescue SystemCallError
 			puts 'Write error: '+$!
 			return false
 		end
@@ -45,7 +45,7 @@ class SSHConnection
 						object.parse_lines(line)
 					end
 				
-				rescue IOError
+				rescue SystemCallError
 					puts 'listen: closed stream, disconnecting '+$!
 					close
 					object.disconnect
@@ -97,7 +97,7 @@ class LocalConnection
 		#~ rescue SystemCallError
 			#~ puts 'Write error: '+$!
 			#~ return false
-		rescue IOError
+		rescue SystemCallError
 			puts 'Write error: '+$!
 			return false
 		end
@@ -113,7 +113,7 @@ class LocalConnection
 						object.parse_lines(line)
 					end
 				
-				rescue IOError
+				rescue SystemCallError
 					puts 'listen: closed stream, disconnecting '+$!
 					close
 					object.disconnect

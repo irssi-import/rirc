@@ -4,7 +4,7 @@ module ReplyParser
     
         if reply.error
             reply.lines.each do |line|
-                if line['status'] == '-'
+                if line['reply_status'] == '-'
                     handle_error(line, reply)
                 end
             end
@@ -100,7 +100,7 @@ module ReplyParser
                 switchchannel(network)
             end
         end
-        if line['status'] == '+'
+        if line['reply_status'] == '+'
                 send_command('channels', "channel list")
         end
     end
@@ -108,7 +108,7 @@ module ReplyParser
     def reply_network_list(line, network, channel, reply)
         if line['network'] and !@networks.include?(line['network'])
             @networks.push(line['network'])
-        elsif line['status'] == '+'
+        elsif line['reply_status'] == '+'
             send_command('presences', 'presence list')
         end
     end
@@ -132,7 +132,7 @@ module ReplyParser
                 end
             end
         
-        elsif line['status'] == '+'
+        elsif line['reply_status'] == '+'
             syncchannels unless @syncchannels
         end
         
@@ -148,11 +148,16 @@ module ReplyParser
     def reply_channel_names(line, network, channel, reply)
         if line['network'] and line['presence'] and line['channel'] and line['name']
             network.users.create(line['name'])
-            channel.adduser(line['name'], true)
-        elsif line['status'] == '+'
+            chuser = channel.users.add(network.users[line['name']])
+            #channel.adduser(line['name'], true)
+            if line['status']
+                chuser.add_mode(line['status'])
+                puts 'set '+chuser.name+'\'s status to '+line['status']
+            end
+        elsif line['reply_status'] == '+'
             @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].drawusers
             @window.updateusercount
-                        @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].usersync = true
+            @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].usersync = true
         end
     end
 
@@ -203,10 +208,10 @@ module ReplyParser
         
         elsif line['event'] == 'channel_part'
             channel.send_event(line, USERPART, BUFFER_START)
-            channel.disconnect
+            #channel.disconnect
             
         elsif line['event'] == 'channel_join'
-            channel.reconnect
+            #channel.reconnect
             channel.send_event(line, USERJOIN, BUFFER_START)
             
         elsif line['event'] == 'channel_presence_added'
@@ -217,7 +222,7 @@ module ReplyParser
             else
                 channel.send_event(line, JOIN, BUFFER_START)
             end
-        elsif line['status'] == '+'
+        elsif line['reply_status'] == '+'
             #event.command
             reply.channel.eventsync = true if reply.channel
             #Thread.new{syncchannels}
@@ -247,7 +252,7 @@ module ReplyParser
 				msg = line['channels']
 			elsif line['extra']
 				msg = line['extra']
-			elsif line['status'] == '+'
+			elsif line['reply_status'] == '+'
 				msg = 'End of /whois'
 				line['name'] = reply.command['name']
 			else

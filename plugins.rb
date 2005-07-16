@@ -1,3 +1,4 @@
+#extend this on any classes you want plugins
 module Plugins
     #attr_accessor :cb_hash
     #define input callbacks
@@ -70,6 +71,7 @@ module Plugins
     end
 end
 
+#include this in any classes where you want plugins
 module PluginAPI
     #calls all the blocks associated with method, should exit if a block returns true
     def callback(method, *args)
@@ -78,7 +80,7 @@ module PluginAPI
             puts 'empty hash for '+self.class.to_s
             return *args 
         end
-        cb_hash.each{|k, v| puts k}
+        #cb_hash.each{|k, v| puts k}
         if cb_hash.has_key?(method.to_sym)
             #puts 'callbacks for '+method
             ret = nil
@@ -126,6 +128,7 @@ module PluginAPI
     
 end
 
+#the plugin class, all plugins are derivatives of this class
 class Plugin
     include Plugins
     attr_reader :name
@@ -134,6 +137,10 @@ class Plugin
     end
     
     def self.register(plugin)
+        unless plugin.name
+            puts 'plugin must have a name'
+            return
+        end
         unless plugin.class.superclass == Plugin
             puts 'Plugin must be subclass of Plugin'
             return
@@ -161,6 +168,7 @@ class Plugin
             puts 'removed method '+c[0]+' for class '+c[1].to_s
         end
         @@plugins.delete(plugin)
+        plugin.unload
     end
     
     def self.list
@@ -198,4 +206,6 @@ class Plugin
         end
     end
     
+    def unload
+    end
 end

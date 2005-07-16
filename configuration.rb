@@ -38,6 +38,8 @@ class Configuration
         @values['topic_change'] = 'Topic set to %6%t%6 by %6%u%6'
         @values['topic'] ='Topic for %6%c%6 is %6%t%6'
 		@values['topic_setby'] = 'Topic for %6%c%6 set by %6%u%6 at %6%a%6'
+        @values['add_mode'] = '%s gave %m to %u'
+        @values['remove_mode'] = '%s removed %m from %u'
         
 		@values['linkclickaction'] = 'firefox -remote "openURL(%s,new-tab)"'
 		

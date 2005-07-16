@@ -17,6 +17,7 @@ USERPART = 5
 ERROR = 6
 NOTICE = 7
 TOPIC = 8
+MODECHANGE = 9
 
 class Buffer
 	attr_reader :oldendmark, :currentcommand, :buffer, :button
@@ -42,7 +43,7 @@ class Buffer
                 rightclickmenu(event)
             end
 		end
-        @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic']
+        @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic', 'modechange']
 	end
     
     def rightclickmenu(event)
@@ -106,6 +107,7 @@ class Buffer
 	
     #disconnect a channel
 	def disconnect
+        #puts caller
 		@button.label = '('+@name+')'
         if $config['number_tabs'] and @number
             @button.label = @number.to_s+':'+@button.label
@@ -291,6 +293,22 @@ class Buffer
             users.push(line['topic_set_by'])
         end
        return [pattern, users, insert_location]
+    end
+    
+    def buffer_modechange(line, pattern, users, insert_location)
+        if line['add']
+            pattern += $config['add_mode'].deep_clone
+        elsif line['remove']
+            pattern += $config['remove_mode'].deep_clone
+        else
+            return
+        end
+        pattern['%s'] = line['source_presence']
+        pattern['%m'] = line['status']
+        pattern['%u'] = line['name']
+        users.push(line['source_presence'], line['name'])
+        
+        return [pattern, users, insert_location]
     end
     
     def endmark
@@ -838,7 +856,7 @@ end
 #buffer for channels
 class ChannelBuffer < Buffer
 	include TabCompleteModule
-	attr_reader :name, :server, :config, :userlist, :renderer, :column, :connected, :users, :topic, :usersync, :eventsync
+	attr_reader :name, :server, :config, :userlist, :renderer, :modecolumn, :usercolumn, :connected, :users, :topic, :usersync, :eventsync
 	attr_writer :topic, :usersync, :eventsync
 	def initialize(name, server)
 		super(name)
@@ -846,17 +864,17 @@ class ChannelBuffer < Buffer
         @eventsync = false
 		@server = server
 		@name = name
-		@userlist = Gtk::ListStore.new(String)
+		@userlist = Gtk::ListStore.new(String, String)
 		@renderer = Gtk::CellRendererText.new
-		@column = Gtk::TreeViewColumn.new("Users", @renderer)
-		@column.add_attribute(@renderer, "text",  0)
+		@modecolumn = Gtk::TreeViewColumn.new("Mode", @renderer, :text=>0)
+        @usercolumn = Gtk::TreeViewColumn.new("Users", @renderer, :text=>1)
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
 		@button.label= @name
 		@button.active = false
 		#@button.show
-		@users = UserList.new
+		@users = ChannelUserList.new
 		@connected = nil
         @number = nil
 		
@@ -909,47 +927,49 @@ class ChannelBuffer < Buffer
 	end
 	
     #add a user
-	def adduser(name, init = true)
-		if @server.users[name]
-			if ! @users[name]
-				@users.add(@server.users[name])
-				if !init
-					drawusers
-				end
-			end
-		else
-			puts 'Unknown user '+name
-		end
-	end
+	#~ def adduser(name, init = true)
+		#~ if @server.users[name]
+			#~ if ! @users[name]
+				#~ @users.add(@server.users[name])
+				#~ if !init
+					#~ drawusers
+				#~ end
+			#~ end
+		#~ else
+			#~ puts 'Unknown user '+name
+		#~ end
+	#~ end
 	
     #draw the user list
 	def drawusers
 		@users.sort!
 		
 		if @useriters.length == 0
-			@users.users.each{ |user|
+			@users.users.each do |user|
 				iter = @userlist.append
-				iter[0] = user.name
+				iter[0] = user.get_modes
+                iter[1] = user.name
 				@useriters .push(iter)
-			}
+			end
 		else
 			i = 0
 			@users.users.each do |user|
 				if !@useriters[i]
 					iter = @userlist.append
-					iter[0] = user.name
+                    iter[0] = user.get_modes
+					iter[1] = user.name
 					@useriters .push(iter)
 					return
 				end
-                #puts user, @useriters[i]
-				res = user.comparetostring(@useriters[i][0])
+				res = user.comparetostring(@useriters[i][1], @useriters[i][0])
 				if res == 0
 				elsif res == 1
-					@userlist.remove(@useriters[i])
-					@useriters.delete_at(i)
+                    @userlist.remove(@useriters[i])
+                    @useriters.delete_at(i)
 				elsif res == -1
 					iter = @userlist.insert_before(@useriters[i])
-					iter[0] = user.name
+                    iter[0] = user.get_modes
+					iter[1] = user.name
 					@useriters[i] = [iter, @useriters.at(i)]
 					@useriters.flatten!
 				end
@@ -969,15 +989,15 @@ class ChannelBuffer < Buffer
 	end
 	
     #remove a user
-	def deluser(user, deinit = false)
-		if @users[user]
-			@users.remove(user)
-			@users.sort
-			if !deinit
-				drawusers
-			end
-		end
-	end
+	#~ def deluser(user, deinit = false)
+		#~ if @users[user]
+			#~ @users.remove(user)
+			#~ @users.sort
+			#~ if !deinit
+				#~ drawusers
+			#~ end
+		#~ end
+	#~ end
 	
     #get the username
 	def username

@@ -1,3 +1,8 @@
+2005-07-17 00:40 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added support for irssi2's new channel user mode stuff
+    Worked a bit on plugin support, osd plugin still locks up, but may be an osd binding issue.
+
 2005-07-14 12:47 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added plugin unloading

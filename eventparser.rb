@@ -17,6 +17,8 @@ module EventParser
 			end
         end
         
+        #puts event['original']
+        
         if self.respond_to?('event_'+event['type'])
             res = callback('event_'+event['type'], event, network, channel)
             return if res === true
@@ -145,26 +147,33 @@ module EventParser
         @serverlist.renumber
     end
     
-    #~ #user joined a channel
-    #~ def event_channel_join(event, network, channel)
-        #~ return unless channel
-        #~ channel.reconnect
-        #~ channel.send_event(event, USERJOIN)
-    #~ end
-    
     #another user joined the channel
     def event_channel_presence_added(event, network, channel)
         return unless channel
-        if !event['init']
-            channel.adduser(event['name'], false)
-            if event['name'] == network.username
-                channel.send_event(event, USERJOIN)
+        if user = network.users[event['name']]
+            if !event['init']
+                chuser = channel.users.add(user)
+                channel.drawusers
+                #channel.adduser(event['name'], false)
+                if event['name'] == network.username
+                    channel.send_event(event, USERJOIN)
+                else
+                    channel.send_event(event, JOIN)
+                    @window.updateusercount
+                end
             else
-                channel.send_event(event, JOIN)
-                @window.updateusercount
+                chuser = channel.users.add(user)
+                #channel.adduser(event['name'], true)
             end
-        elsif
-            channel.adduser(event['name'], true)
+            if event['status']
+                chuser.add_mode(event['status'])
+                puts 'set '+chuser.name+'\'s status to '+event['status']
+                #~ if !event['init']
+                    #~ channel.drawusers
+                #~ end
+            end
+        else
+            puts 'unknown user '+user['name']
         end
     end
     
@@ -272,8 +281,8 @@ module EventParser
             return
         end
     
-        if event['address'] and network.users[event['name']] and network.users[event['name']].hostname == 'hostname'
-            network.users[event['name']].hostname = event['address']
+        if event['address'] and network.users[event['nick']] and network.users[event['nick']].hostname == 'hostname'
+            network.users[event['nick']].hostname = event['address']
         end
         
         return unless channel
@@ -312,7 +321,7 @@ module EventParser
     end
     
     #the gateway has changed
-    def gateway_changed(event, network, channel)
+    def event_gateway_changed(event, network, channel)
         return unless network
         if event['irc_mode']
             msg = event['presence']+" sets mode +"+event['irc_mode']+" "+event['presence']
@@ -361,6 +370,19 @@ module EventParser
     end
     
     def event_silc_event(event, network, channel)
+    end
+    
+    def event_channel_presence_status_changed(event, network, channel)
+        if event['status']
+            if event['add']
+                channel.users[event['name']].add_mode(event['status'])
+                puts event['source_presence']+' gave '+event['status']+' to '+event['name']
+            elsif event['remove']
+                channel.users[event['name']].remove_mode(event['status'])
+                puts event['source_presence']+' removed '+event['status']+' from '+event['name']
+            end
+            channel.drawusers
+        end
     end
     
     def event_presence_status_changed(event, network, channel)
