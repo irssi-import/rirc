@@ -1,7 +1,14 @@
+2005-07-17 23:04 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Added support for CTCP actions
+    Refined event get to ignore client_command_reply events
+    Various fixes
+
 2005-07-17 00:40 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added support for irssi2's new channel user mode stuff
     Worked a bit on plugin support, osd plugin still locks up, but may be an osd binding issue.
+    Various stuff I've forgotten
 
 2005-07-14 12:47 - Andrew Thompson <vagabond@cataclysm-software.net>
 

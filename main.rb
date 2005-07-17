@@ -184,7 +184,7 @@ class Main
                 
                 server.channels.each do |channel|
                     if !channel.eventsync and channel.connected
-                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')')
+                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(presence='+server.presence+')(!(event=client_command_reply))')
                         while channel.eventsync != true
                             sleep 1
                         end
@@ -358,7 +358,7 @@ class Main
 			puts "Failed to match: "+string+"\n"
 			return
 		end
-		line['type'] = $1
+		line['event_type'] = $1
         line['original'] = string
 		
 		items = $2.split(';')

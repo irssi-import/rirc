@@ -1,7 +1,6 @@
 module EventParser
     #handle normal output from irssi2
 	def event_parse(event)
-        
 		#trap for events that refer to a channel that does not exist
 		if event['network'] and event['presence']
 			if !@serverlist[event['network'], event['presence']]
@@ -17,13 +16,11 @@ module EventParser
 			end
         end
         
-        #puts event['original']
-        
-        if self.respond_to?('event_'+event['type'])
-            res = callback('event_'+event['type'], event, network, channel)
+        if self.respond_to?('event_'+event['event_type'])
+            res = callback('event_'+event['event_type'], event, network, channel)
             return if res === true
             #if res.class == Array and res.length > 0
-            self.send('event_'+event['type'], *res)
+            self.send('event_'+event['event_type'], *res)
             #else
             #    self.send('event_'+event['type'], event, network, channel)
             #end
@@ -131,10 +128,11 @@ module EventParser
             else
                 channel.send_event(event, PART)
             end
-            channel.deluser(event['name'])
+            channel.users.remove(event['name'])
             @window.updateusercount
+            channel.drawusers
         else
-            channel.deluser(event['name'], true)
+            channel.users.remove(event['name'])
         end
     end
     
@@ -173,7 +171,7 @@ module EventParser
                 #~ end
             end
         else
-            puts 'unknown user '+user['name']
+            puts 'unknown user '+event['name']
         end
     end
     
@@ -196,8 +194,8 @@ module EventParser
                 network.channels.each do |channel|
                     if channel.users[user.name]
                         #remove the user and readd him before the redraw
-                        channel.deluser(user.name)
-                        channel.adduser(user.name)
+                        #channel.deluser(user.name)
+                        #channel.adduser(user.name)
                         channel.drawusers
                     end
                 end
@@ -284,7 +282,7 @@ module EventParser
         if event['address'] and network.users[event['nick']] and network.users[event['nick']].hostname == 'hostname'
             network.users[event['nick']].hostname = event['address']
         end
-        
+
         return unless channel
         if event['own']
             channel.send_event(event, USERMESSAGE)
@@ -292,6 +290,14 @@ module EventParser
             channel.send_event(event, MESSAGE)
         end
     end
+    
+    #~ def event_irc_ctcp(event, network, channel)
+        #~ puts 'CTCP'
+        
+        #~ if event['name'] == 'action' and event['args']
+            #~ channel.send_event(event, CTCP)
+        #~ end
+    #~ end
     
     #connected to a server
 	def event_gateway_connected(event, network, channel)
@@ -355,8 +361,17 @@ module EventParser
         #~ end
         #~ event['msg'] = pattern
         
-        if event['topic'] or event['topic_set_by']
-            channel.topic = event['topic'] if event['topic']
+        if event['topic'] and event['init']
+            puts 'initial topic'
+            #send the topic stuff as 2 lines
+            channel.topic = event['topic']
+            event['line'] = 1
+            channel.send_event(event, TOPIC)
+            event['line'] = 2
+            channel.send_event(event, TOPIC)
+            @window.updatetopic
+        elsif event['topic']
+            channel.topic = event['topic']
             channel.send_event(event, TOPIC)
             @window.updatetopic
         end
@@ -376,10 +391,12 @@ module EventParser
         if event['status']
             if event['add']
                 channel.users[event['name']].add_mode(event['status'])
-                puts event['source_presence']+' gave '+event['status']+' to '+event['name']
+                #puts event['source_presence']+' gave '+event['status']+' to '+event['name']
+                channel.send_user_event(event, MODECHANGE)
             elsif event['remove']
                 channel.users[event['name']].remove_mode(event['status'])
-                puts event['source_presence']+' removed '+event['status']+' from '+event['name']
+                #puts event['source_presence']+' removed '+event['status']+' from '+event['name']
+                channel.send_user_event(event, MODECHANGE)
             end
             channel.drawusers
         end

@@ -269,7 +269,28 @@ class MainWindow
 	
 	def updateusercount
 		return unless @currentbuffer.class == ChannelBuffer
-		@usercount.text = @currentbuffer.users.users.length.to_s+" users"
+        modes = {}
+        modeorder = []
+        @currentbuffer.users.users.each do |user|
+            mode = user.get_mode
+            if modes[mode]
+                modes[mode] += 1
+            elsif mode != ''
+                modes[mode] = 1
+                modeorder[user.decodemode(mode)] = mode
+            end
+        end
+        
+        modeorder.reverse!
+        text = ''
+        modeorder.each do |m|
+            next if m == nil
+            text +=modes[m].to_s+m+', '
+        end
+        
+        text += @currentbuffer.users.users.length.to_s+' total'
+        @usercount.text = text
+		#@usercount.text = @currentbuffer.users.users.length.to_s+" users"
 	end
 	
 	def drawuserlist(toggle)

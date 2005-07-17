@@ -86,7 +86,7 @@ class ChannelUser < User
     def comparetostring(string, mode)
         #puts 'comparing '+string+' '+mode
         #puts 'to '+name+' '+get_modes
-        puts decodemode(mode), get_modenumber
+        #puts decodemode(mode), get_modenumber
         res = decodemode(mode)<=>get_modenumber
         if res == 0
             #puts 'going down the stack'
@@ -121,6 +121,10 @@ class ChannelUser < User
         end
         return modestring
         #return SymbolMode[@mode]
+    end
+    
+    def get_mode
+        return ModeSymbols[@modes[-1]]
     end
     
     #convert to int for easy comparison

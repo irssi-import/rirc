@@ -152,7 +152,7 @@ module ReplyParser
             #channel.adduser(line['name'], true)
             if line['status']
                 chuser.add_mode(line['status'])
-                puts 'set '+chuser.name+'\'s status to '+line['status']
+                #puts 'set '+chuser.name+'\'s status to '+line['status']
             end
         elsif line['reply_status'] == '+'
             @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].drawusers
@@ -186,12 +186,25 @@ module ReplyParser
                 #~ pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
             #~ end
             #~ line['msg'] = pattern
-
-            if line['topic'] or line['topic_set_by']
+            if line['topic'] and line['init']
+                #puts 'initial topic', line['id']
+                #send the topic stuff as 2 lines
+                channel.topic = line['topic']
+                line['line'] = 1
                 channel.send_event(line, TOPIC, BUFFER_START)
-                channel.topic = line['topic'] if line['topic']
+                line['line'] = 2
+                channel.send_event(line, TOPIC, BUFFER_START)
+                @window.updatetopic
+            elsif line['topic']
+                channel.topic = line['topic']
+                channel.send_event(line, TOPIC, BUFFER_START)
                 @window.updatetopic
             end
+            #~ if line['topic'] or line['topic_set_by']
+                #~ channel.send_event(line, TOPIC, BUFFER_START)
+                #~ channel.topic = line['topic'] if line['topic']
+                #~ @window.updatetopic
+            #~ end
             
             #~ if pattern
                 #~ channel.send_event(line, NOTICE, BUFFER_START)
@@ -222,6 +235,15 @@ module ReplyParser
             else
                 channel.send_event(line, JOIN, BUFFER_START)
             end
+            
+        #~ elsif line['event'] == 'irc_ctcp'
+            #~ puts 'CTCP', line['original']
+        
+            #~ if line['name'] == 'action' and line['args']
+                #~ puts 'action'
+                #~ channel.send_event(line, CTCP, BUFFER_START)
+            #~ end
+            
         elsif line['reply_status'] == '+'
             #event.command
             reply.channel.eventsync = true if reply.channel

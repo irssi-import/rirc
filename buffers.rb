@@ -18,6 +18,7 @@ ERROR = 6
 NOTICE = 7
 TOPIC = 8
 MODECHANGE = 9
+CTCP = 10
 
 class Buffer
 	attr_reader :oldendmark, :currentcommand, :buffer, :button
@@ -43,7 +44,7 @@ class Buffer
                 rightclickmenu(event)
             end
 		end
-        @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic', 'modechange']
+        @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic', 'modechange', 'ctcp']
 	end
     
     def rightclickmenu(event)
@@ -196,15 +197,31 @@ class Buffer
     
     def buffer_message(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
-        pattern += $config['message'].deep_clone
-        if line['nick']
+        if line['type'] == 'action' and line['nick']
+            pattern += $config['action'].deep_clone
             pattern['%u'] = line['nick']
-            users.push(line['nick'])
+            pattern['%m'] = line['msg'] if line['msg']
+        else
+            pattern += $config['message'].deep_clone
+            if line['nick']
+                pattern['%u'] = line['nick']
+                users.push(line['nick'])
+            end
+            pattern['%m'] = line['msg'] if line['msg']
         end
-        pattern['%m'] = line['msg'] if line['msg']
         return [pattern, users, insert_location]
     end
     
+    def buffer_ctcp(line, pattern, users, insert_location)
+        puts 'ctcp line'
+        if line['name'] == 'action' and line['nick']
+            puts 'an action'
+            pattern += $config['action'].deep_clone
+            pattern['%u'] = line['nick']
+            pattern['%m'] = line['args'] if line['args']
+        end
+        return [pattern, users, insert_location]
+    end
     
     def buffer_usermessage(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
@@ -276,20 +293,26 @@ class Buffer
     
     def buffer_topic(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        if line['topic'] and line['topic_set_by']
-            pattern += $config['topic_change'].deep_clone
-            pattern['%t'] = line['topic']
-            pattern['%u'] = line['topic_set_by']
-            users.push(line['topic_set_by'])
-        elsif line['topic']
-            pattern += $config['topic'].deep_clone
-            pattern['%c'] = line['channel']
-            pattern['%t'] = line['topic']
-        elsif line['topic_set_by']
+        if line['init'] and line['line'] == 2
             pattern += $config['topic_setby'].deep_clone
             pattern['%c'] = line['channel']
             pattern['%u'] = line['topic_set_by']
             pattern['%a'] = Time.at(line['topic_timestamp'].to_i).strftime('%c')
+            users.push(line['topic_set_by'])
+        elsif line['init'] and line['line'] == 1
+            pattern += $config['topic'].deep_clone
+            pattern['%c'] = line['channel']
+            pattern['%t'] = line['topic']
+            #~ line2 = line.deep_clone
+            #~ line2['line'] = 2
+            #~ Thread.new{
+            #~ sleep 0.5
+            #~ send_event(line2, TOPIC, insert_location)
+            #~ }
+        elsif line['topic']
+            pattern += $config['topic_change'].deep_clone
+            pattern['%t'] = line['topic']
+            pattern['%u'] = line['topic_set_by']
             users.push(line['topic_set_by'])
         end
        return [pattern, users, insert_location]

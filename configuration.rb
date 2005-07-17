@@ -27,7 +27,7 @@ class Configuration
 		@values['timestamp'] = "[%H:%M]"
 		@values['message'] = "%2<%2%u%2>%2 %m"
 		@values['usermessage'] = "%4<%4%u%4>%4 %m"
-		@values['action'] = "%1*%1%u %m"
+		@values['action'] = "%1*%1 %u %m"
 		@values['notice'] = "-%1--%1 %m"
 		@values['error'] = "%0***%0 %m"
 		@values['join'] = "-%1->%1 %u (%1%h%1) has joined %c"
@@ -35,11 +35,11 @@ class Configuration
 		@values['part'] = "<%1--%1 %u (%1%h%1) has left %c (%r)"
 		@values['userpart'] = "<%1--%1 You have left %c"
 		@values['whois'] = "%2[%2%n%2]%2 %m"
-        @values['topic_change'] = 'Topic set to %6%t%6 by %6%u%6'
-        @values['topic'] ='Topic for %6%c%6 is %6%t%6'
-		@values['topic_setby'] = 'Topic for %6%c%6 set by %6%u%6 at %6%a%6'
-        @values['add_mode'] = '%s gave %m to %u'
-        @values['remove_mode'] = '%s removed %m from %u'
+        @values['topic_change'] = '-%1--%1 Topic set to %6%t%6 by %6%u%6'
+        @values['topic'] ='-%1--%1 Topic for %6%c%6 is %6%t%6'
+		@values['topic_setby'] = '-%1--%1 Topic for %6%c%6 set by %6%u%6 at %6%a%6'
+        @values['add_mode'] = '-%1--%1 %s gave %m to %u'
+        @values['remove_mode'] = '-%1--%1 %s removed %m from %u'
         
 		@values['linkclickaction'] = 'firefox -remote "openURL(%s,new-tab)"'
 		

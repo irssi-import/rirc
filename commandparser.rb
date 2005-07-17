@@ -70,7 +70,7 @@ module CommandParser
     
     #/join command
     def cmd_join(arguments, channel, network, presence)
-        return unless network
+        return unless network and arguments
         send_command('join', 'channel join;network='+network.name+';presence='+presence+';channel='+arguments)
     end
     
@@ -121,7 +121,8 @@ module CommandParser
         
         if presence and servername
             #send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
-            @servers[servername, presence].close
+            server = @serverlist[servername, presence]
+            server.close if server
         end
     end
     
@@ -234,7 +235,13 @@ module CommandParser
             #~ time = time - @drift if $config['canonicaltime'] == 'server'
             #~ line['time'] = time
             @window.currentbuffer.send_user_event(line, ERROR)
+            
         end
+    end
+    
+    def cmd_me(message, channel, network, presence)
+       send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
+       #user
     end
     
     def cmd_networks(*args)
