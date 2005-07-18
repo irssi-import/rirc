@@ -190,9 +190,9 @@ module ReplyParser
                 #puts 'initial topic', line['id']
                 #send the topic stuff as 2 lines
                 channel.topic = line['topic']
-                line['line'] = 1
-                channel.send_event(line, TOPIC, BUFFER_START)
                 line['line'] = 2
+                channel.send_event(line, TOPIC, BUFFER_START)
+                line['line'] = 1
                 channel.send_event(line, TOPIC, BUFFER_START)
                 @window.updatetopic
             elsif line['topic']

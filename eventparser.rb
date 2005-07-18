@@ -93,6 +93,7 @@ module EventParser
         else
             channel = @serverlist[event['network'], event['presence']].add(event['channel'])
             channel.usersync = channel.eventsync = true
+            #send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(presence='+network.presence+')(!(event=client_command_reply))')
         end
     end
     
@@ -107,6 +108,7 @@ module EventParser
             channel.connect
             #@window.redraw_channellist
             switchchannel(channel)
+            send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(presence='+network.presence+')(!(event=client_command_reply))')
         elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and !channel.connected
             puts 'channel exists, but is not connected, reconnecting'
             channel.reconnect
@@ -399,6 +401,7 @@ module EventParser
                 channel.send_user_event(event, MODECHANGE)
             end
             channel.drawusers
+            @window.updateusercount
         end
     end
     

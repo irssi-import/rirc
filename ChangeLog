@@ -1,3 +1,7 @@
+2005-07-18 18:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Channels now do event get on channel join, since we have the event buffer now, why not?
+
 2005-07-17 23:04 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Added support for CTCP actions
