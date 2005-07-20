@@ -41,7 +41,7 @@ module EventParser
             @window.redraw_channellist
             switchchannel(network)
         elsif !@serverlist[event['network'], event['presence']].connected
-            puts 'server exists but is not connected, reconnecting'
+            puts 'network '+event['network']+' exists but is not connected, reconnecting'
             network = @serverlist[event['network'], event['presence']]
             network.reconnect
         else
@@ -77,8 +77,7 @@ module EventParser
     end
     
     def event_network_init(event, network, channel)
-        event['msg'] = 'Added '+event['protocol']+' server '+event['network']
-        @window.currentbuffer.send_event(event, NOTICE)
+        throw_message('Added '+event['protocol']+' server '+event['network'])
     end
     
     #joined a channel

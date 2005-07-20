@@ -861,6 +861,12 @@ class ServerBuffer < Buffer
     
     def genmenu
         menu = Gtk::Menu.new
+        item = Gtk::MenuItem.new('Disconnect')
+        item.signal_connect('activate') do |w|
+            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
+            disconnect
+        end
+        menu.append(item)
         item = Gtk::MenuItem.new('Close')
         item.signal_connect('activate') do |w|
             close
@@ -932,6 +938,12 @@ class ChannelBuffer < Buffer
     
     def genmenu
         menu = Gtk::Menu.new
+        item = Gtk::MenuItem.new('Part')
+        item.signal_connect('activate') do |w|
+            $main.send_command('part', "channel part;network="+@server.name+";presence="+@server.presence+";channel="+@name)
+            disconnect
+        end
+        menu.append(item)
         item = Gtk::MenuItem.new('Close')
         item.signal_connect('activate') do |w|
             close
@@ -971,13 +983,14 @@ class ChannelBuffer < Buffer
     #draw the user list
 	def drawusers
 		@users.sort!
-		
+        
 		if @useriters.length == 0
 			@users.users.each do |user|
 				iter = @userlist.append
 				iter[0] = user.get_modes
                 iter[1] = user.name
-				@useriters .push(iter)
+                uiter = Gtk::TreeRowReference.new(@userlist, iter.path)
+				@useriters.push(uiter)
 			end
 		else
 			i = 0
@@ -986,26 +999,35 @@ class ChannelBuffer < Buffer
 					iter = @userlist.append
                     iter[0] = user.get_modes
 					iter[1] = user.name
-					@useriters .push(iter)
+                    uiter = Gtk::TreeRowReference.new(@userlist, iter.path)
+                    @useriters.push(uiter)
 					return
 				end
-				res = user.comparetostring(@useriters[i][1], @useriters[i][0])
+                
+                unless @useriters[i].valid?
+                    i+=1
+                    next
+                end
+                
+                 iter = @userlist.get_iter(@useriters[i].path)
+				res = user.comparetostring(iter[1], iter[0])
 				if res == 0
 				elsif res == 1
-                    @userlist.remove(@useriters[i])
+                    @userlist.remove(iter)
                     @useriters.delete_at(i)
 				elsif res == -1
-					iter = @userlist.insert_before(@useriters[i])
-                    iter[0] = user.get_modes
-					iter[1] = user.name
-					@useriters[i] = [iter, @useriters.at(i)]
+					niter = @userlist.insert_before(iter)
+                    niter[0] = user.get_modes
+					niter[1] = user.name
+                    uiter = Gtk::TreeRowReference.new(@userlist, niter.path)
+					@useriters[i] = [uiter, @useriters.at(i)]
 					@useriters.flatten!
 				end
 				
 				i += 1
 			end
 			while @users.length < @useriters.length
-				@userlist.remove(@useriters[@useriters.length-1])
+				@userlist.remove(@userlist.get_iter(@useriters[@useriters.length-1].path))
 				@useriters.delete_at(@useriters.length-1)
 			end
 		end
@@ -1014,6 +1036,7 @@ class ChannelBuffer < Buffer
     #remove all the users
 	def clearusers
 		@userlist.clear
+        @useriters.clear
 	end
 	
     #remove a user

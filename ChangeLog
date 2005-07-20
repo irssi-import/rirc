@@ -1,3 +1,8 @@
+2005-07-20 14:25 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Changed userlist to use Gtk::TreeRowReference instead of storing the TreeIters to eliminate bugs associated with TreeIters going stale
+    Added throw_error and throw_message functions for reporting errors/messages to the client using the server tab.
+
 2005-07-20 12:45 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed bugs when right clicking on server tab and doing /whois with no arguments. (thanks phyber)

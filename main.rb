@@ -252,17 +252,17 @@ class Main
             send_command('addhost', temp)
             @networks.push(name)
         else
-            line= {'err' => 'Network '+network+' is already defined'}
-            @window.currentbuffer.send_event(line, ERROR)
-            puts 'Network exists'
+            #line= {'err' => 'Network '+network+' is already defined'}
+            #@window.currentbuffer.send_event(line, ERROR)
+            throw_error('Network '+network+' is already defined')
         end
 	end
     
     def network_connect(network, presence)
         if !@serverlist.get_network_by_name(network)  and !@networks.include?(network)
-            puts 'undefined network '+network
+            throw_error('undefined network '+network)
         elsif !@serverlist[network, presence] and !@presences.include?([network, presence])
-            puts 'undefined presence '+presence
+            throw_error('undefined presence '+presence)
         else
             send_command('connect', "presence connect;network="+network+";presence="+presence)
         end
@@ -271,9 +271,9 @@ class Main
     def presence_add(network, presence)
         #@networks.each {|network| puts network}
         if !@serverlist.get_network_by_name(network) and !@networks.include?(network)
-            puts 'Undefined network '+network
+            throw_error('Undefined network '+network)
         elsif @serverlist[network, presence] or @presences.include?([network, presence])
-            puts 'Presence exists'
+            throw_error('Presence exists')
         else
             cmdstring = "presence add;presence="+presence+";network="+network
             if @keys[presence] and @keys[presence]['silc_pub']
@@ -293,8 +293,18 @@ class Main
         if @serverlist[network, presence] and channel
             send_command('add', 'channel add;network='+network+';presence='+presence+';channel='+channel)
         else
-            puts 'invalid network'
+            throw_error('Invalid Network')
         end
+    end
+    
+    def throw_error(error)
+        line = {'err' => 'Client Error: '+error}
+        @serverlist.send_user_event(line, ERROR)
+    end
+    
+    def throw_message(message)
+        line = {'err' => 'Client Message: '+message}
+        @serverlist.send_user_event(line, NOTICE)
     end
 	
 	#split by line and parse each line

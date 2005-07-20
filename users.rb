@@ -96,6 +96,9 @@ class ChannelUser < User
     end
     
     def decodemode(mode)
+        if mode.class == Fixnum
+            mode = mode.chr
+        end
         #return ModeSymbol[mode]
         modenumber = 0
         mode.each_byte do |b|

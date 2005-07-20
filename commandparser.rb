@@ -2,7 +2,7 @@ module CommandParser
     def command_parse(message, network, presence, channel)
 
         if network and !network.loggedin
-            puts 'buffering command '+message
+            throw_message('buffering command '+message)
             network.bufferedcommands.push(message)
             return
         end
@@ -108,9 +108,9 @@ module CommandParser
                 results.delete_if {|server| !server.connected}
             end
             
-            if results.length == 1
+            if results and results.length == 1
                 presence = results[0].presence
-            elsif results.length > 1
+            elsif results and results.length > 1
                 line = {'err' => 'Multiple networks named '+servername+' please specify a presence'}
                 @window.currentbuffer.send_user_event(line, ERROR)
             else
@@ -120,9 +120,11 @@ module CommandParser
         end
         
         if presence and servername
-            #send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
+            send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
             server = @serverlist[servername, presence]
-            server.close if server
+            server.disconnect
+            #
+            #server.close if server
         end
     end
     
@@ -311,7 +313,7 @@ module CommandParser
         if plugin = Plugin.lookup(arguments)
             Plugin.unregister(plugin)
         else
-            puts 'no plugin found called '+arguments
+         throw_error('no plugin found called '+arguments)
         end
     end
     
