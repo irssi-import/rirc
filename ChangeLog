@@ -1,3 +1,7 @@
+2005-07-20 20:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed file send so it doesn't crash, still is b0rked otherwise
+
 2005-07-20 17:20 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Fixed file send command so at least it can be called again

@@ -65,24 +65,27 @@ module ReplyParser
 
     #sending a file
     def reply_file_send(line, network, channel, reply)
-        if line['closed'] and @filehandles[line['handle'].to_i]
-            puts 'file sent'
-            @filehandles[line['handle'].to_i].close
-            @filehandles.delete_at(line['handle'].to_i)
+        if line['handle']
+            if line['closed'] and @filehandles[line['handle'].to_i]
+                puts 'file sent'
+                @filehandles[line['handle'].to_i].close
+                @filehandles.delete_at(line['handle'].to_i)
+                return
+            end
+            if reply.command['name']
+                @filehandles[line['handle'].to_i] = @filedescriptors[reply.command['name']]
+            end
+            
+            file = @filehandles[line['handle'].to_i]
+            
+            puts line['handle']
+            length = line['end'].to_i - line['start'].to_i
+            send_command('1', 'file send;handle='+line['handle'], length)
+            file.seek(line['start'].to_i)
+            data = file.read(length)
+            @connection.send(data)
             return
         end
-        if reply.command['name']
-            @filehandles[line['handle'].to_i] = @filedescriptors[reply.command['name']]
-        end
-        
-        file = @filehandles[line['handle'].to_i]
-
-        length = line['end'].to_i - line['start'].to_i
-        send_command('1', 'file send;handle='+line['handle'], length)
-        file.seek(line['start'].to_i)
-        data = file.read(length)
-        @connection.send(data)
-        return
     end
     
     #list the connected presences

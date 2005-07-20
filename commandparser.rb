@@ -193,8 +193,12 @@ module CommandParser
         name.reverse!
         path = '' if !path
         path.reverse!
-        @filedescriptors[name] = File.open(arguments, 'r') # create a file descriptor with a key the same as the filename sent to server
-        send_command('file send '+name, 'file send;resume;name='+name+';size='+File.size(arguments).to_s)
+        if File.exists?(arguments)
+            @filedescriptors[name] = File.open(arguments, 'r') # create a file descriptor with a key the same as the filename sent to server
+            send_command('file send '+name, 'file send;resume;name='+name+';size='+File.size(arguments).to_s)
+        else
+            throw_error('File '+arguments+' does not exist')
+        end
     end
     
     #/ruby command

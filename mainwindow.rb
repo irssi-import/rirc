@@ -398,7 +398,7 @@ class MainWindow
     def userlist_popup_menu(event)
         selection = @userlist.selection.selected
         if selection
-            menu = create_user_popup(selection[0])
+            menu = create_user_popup(selection[1])
             menu.show_all
             menu.popup(nil, nil, event.button, event.time)
         end
