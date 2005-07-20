@@ -58,6 +58,11 @@ class Buffer
     def genmenu
         return nil
     end
+    
+    def set_tab_label(label)
+        r = Regexp.new('([^_])(_)([^_])')
+        @button.label = label.gsub(r) {|x| $1+$2+'_'+$3}
+    end
 	
     #trigger a channel switch...?
 	def switchchannel(channel)
@@ -114,18 +119,18 @@ class Buffer
     #disconnect a channel
 	def disconnect
         #puts caller
-		@button.label = '('+@name+')'
+		set_tab_label('('+@name+')')
         if $config['number_tabs'] and @number
-            @button.label = @number.to_s+':'+@button.label
+            set_tab_label(@number.to_s+':'+@button.label)
         end
         @connected = false unless @connected.nil?
 	end
 	
     #reconnect a channel
 	def reconnect
-		@button.label = @name
+		set_tab_label(@name)
         if $config['number_tabs'] and @number
-            @button.label = @number.to_s+':'+@button.label
+            set_tab_label(@number.to_s+':'+@button.label)
         end
 		@connected = true
 	end
@@ -350,21 +355,24 @@ class Buffer
 		while @commandbuffer.length > $config['commandbuffersize'].to_i
 			@commandbuffer.delete_at(0)
 		end
-		@commandindex = @commandbuffer.length
+		@commandindex = @commandbuffer.length-1
 	end
 	
 	#get the last command in the command buffer
 	def getlastcommand
+        puts @commandindex
+        command = @commandbuffer[@commandindex]
 		@commandindex -=1 if @commandindex != 0
-		return @commandbuffer[@commandindex]
+		return command
 	end
 	
 	#get the next command in the command buffer
 	def getnextcommand
-		@commandindex +=1
-		 if @commandindex > @commandbuffer.length-1
+        puts @commandindex
+		 if @commandindex >= @commandbuffer.length-1
 			return ''
 		else
+            @commandindex +=1
 			return @commandbuffer[@commandindex]
 		end
 	end
@@ -864,7 +872,7 @@ class ServerBuffer < Buffer
         item = Gtk::MenuItem.new('Disconnect')
         item.signal_connect('activate') do |w|
             $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
-            disconnect
+            #disconnect
         end
         menu.append(item)
         item = Gtk::MenuItem.new('Close')
@@ -881,7 +889,7 @@ class ServerBuffer < Buffer
         end
         @connected = nil
         @number = nil
-        @button.label = @name
+        set_tab_label(@name)
         @server.removefrombox(@button)
     end
 	
@@ -905,7 +913,7 @@ class ChannelBuffer < Buffer
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
-		@button.label= @name
+		set_tab_label(@name)
 		@button.active = false
 		#@button.show
 		@users = ChannelUserList.new
@@ -921,6 +929,7 @@ class ChannelBuffer < Buffer
         #@server.channels.sort
         #@server.channels.each {|channel| puts channel.name unless channel.connected.nil?}
         @server.insertintobox(self)
+        set_tab_label(@name)
         @server.parent.renumber
         #@server.parent.redraw
         #server.redraw
@@ -932,7 +941,8 @@ class ChannelBuffer < Buffer
         end
         @connected = nil
         @number = nil
-        @button.label = @name
+        #@button.label = @name.gsub('_', '__')
+        set_tab_label(@name)
         @server.removefrombox(@button)
     end
     
@@ -941,7 +951,7 @@ class ChannelBuffer < Buffer
         item = Gtk::MenuItem.new('Part')
         item.signal_connect('activate') do |w|
             $main.send_command('part', "channel part;network="+@server.name+";presence="+@server.presence+";channel="+@name)
-            disconnect
+            #disconnect
         end
         menu.append(item)
         item = Gtk::MenuItem.new('Close')
@@ -956,8 +966,8 @@ class ChannelBuffer < Buffer
         @number = num
         if $config['number_tabs']
             md = /^(\d+:).+$/.match(@button.label)
-            @button.label = @button.label.gsub(md[1], '') if md
-            @button.label = @number.to_s+':'+@button.label
+            set_tab_label(@button.label.gsub(md[1], '')) if md
+            set_tab_label(@number.to_s+':'+@button.label)
         end
     end
     
@@ -1074,7 +1084,7 @@ class ChatBuffer < Buffer
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
-		@button.label= @name.gsub('_', '__')
+		set_tab_label(@name)
 		@button.active = false
 		#@button.show
 		@users = UserList.new
@@ -1088,8 +1098,8 @@ class ChatBuffer < Buffer
         @number = num
         if $config['number_tabs']
             md = /^(\d+:).+$/.match(@button.label)
-            @button.label = @button.label.gsub(md[1], '') if md
-            @button.label = @number.to_s+':'+@button.label
+            set_tab_label(@button.label.gsub(md[1], '')) if md
+            set_tab_label(@number.to_s+':'+@button.label)
         end
     end
     
@@ -1125,6 +1135,7 @@ class ChatBuffer < Buffer
     
     def rename(name)
         @name = name
-        @button.label = name.gsub('_', '__')
+        #@button.label = name.gsub('_', '__')
+        set_tab_label(name)
     end
 end

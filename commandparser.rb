@@ -89,9 +89,9 @@ module CommandParser
             presence = $config['presence']
         end
         
-        presence_add(network, presence)
-        
-        network_connect(network, presence)
+        if presence_add(network, presence)
+            network_connect(network, presence)
+        end
     end
     
     #/disconnect command
@@ -245,10 +245,10 @@ module CommandParser
         end
     end
     
-    def cmd_me(message, channel, network, presence)
-       send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
-       #user
-    end
+    #~ def cmd_me(message, channel, network, presence)
+       #~ send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
+       #~ #user
+    #~ end
     
     def cmd_networks(*args)
         lines = ['Defined networks:']

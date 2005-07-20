@@ -260,9 +260,9 @@ class Main
     
     def network_connect(network, presence)
         if !@serverlist.get_network_by_name(network)  and !@networks.include?(network)
-            throw_error('undefined network '+network)
+            throw_error('Undefined network '+network)
         elsif !@serverlist[network, presence] and !@presences.include?([network, presence])
-            throw_error('undefined presence '+presence)
+            throw_error('Undefined presence '+presence)
         else
             send_command('connect', "presence connect;network="+network+";presence="+presence)
         end
@@ -280,13 +280,13 @@ class Main
             	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
             	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
             end
-            #send_command('addpres', "presence add;name="+presence+";network="+name)
+            
             cmdstring.gsub!("\n", "\\n")
-            #puts cmdstring
             send_command('addpres', cmdstring)
             @presences.push([network, presence])
-            #@presences.each {|presence| puts presence[0]+' - '+presence[1]}
+            return true
         end
+        return false
     end
     
     def channel_add(network, presence, channel)

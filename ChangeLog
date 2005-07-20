@@ -1,3 +1,9 @@
+2005-07-20 16:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed Command history
+    Fixed escaping of _ in tab names.
+    Fixed channel status setting on reconnect. (thanks phyber for these 3 bugreports)
+
 2005-07-20 14:25 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Changed userlist to use Gtk::TreeRowReference instead of storing the TreeIters to eliminate bugs associated with TreeIters going stale

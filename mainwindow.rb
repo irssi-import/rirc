@@ -260,12 +260,30 @@ class MainWindow
         #~ puts @messagevadjustment.value
         #~ puts ''
 		#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+        
+        
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
         @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
+        #~ win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
+        #~ x, y = win.size
+        #~ puts y
+        #~ x2, y2 = @messages.window_to_buffer_coords(Gtk::TextView::WINDOW_TEXT, 0, y)
+        #~ puts y2
 	end
-	
+    
+    def crazyness
+        Thread.new{
+        sleep 0.05
+        win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
+        x, y = win.size
+        puts y
+        x2, y2 = @messages.window_to_buffer_coords(Gtk::TextView::WINDOW_TEXT, 0, y)
+        puts y2
+        }
+	end
+    
 	def updateusercount
 		return unless @currentbuffer.class == ChannelBuffer
         modes = {}

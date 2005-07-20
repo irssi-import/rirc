@@ -97,6 +97,7 @@ module EventParser
     end
     
     def event_channel_join(event, network, channel)
+        puts 'channel join'
         #return unless network
         #puts 'trying to join '+event['channel']
         if !@serverlist[event['network'], event['presence']]
@@ -111,6 +112,8 @@ module EventParser
         elsif channel = @serverlist[event['network'], event['presence']][event['channel']] and !channel.connected
             puts 'channel exists, but is not connected, reconnecting'
             channel.reconnect
+        else
+            puts channel.name, channel.connected
         end
     end
     
