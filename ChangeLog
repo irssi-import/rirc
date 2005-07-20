@@ -1,3 +1,8 @@
+2005-07-20 12:45 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed bugs when right clicking on server tab and doing /whois with no arguments. (thanks phyber)
+    Connections now only rescue broken pipes, no longer mask other errors.
+
 2005-07-18 18:00 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Channels now do event get on channel join, since we have the event buffer now, why not?

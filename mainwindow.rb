@@ -260,11 +260,10 @@ class MainWindow
         #~ puts @messagevadjustment.value
         #~ puts ''
 		#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
-        @messages.scroll_mark_onscreen(@currentbuffer.endmark)
+        @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
         @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
-        @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 	end
 	
 	def updateusercount

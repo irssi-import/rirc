@@ -217,7 +217,11 @@ module CommandParser
     
     #/whois command
     def cmd_whois(arguments, channel, network, presence)
-        name, bleh = arguments.split(' ', 2)
+        if arguments
+            name, bleh = arguments.split(' ', 2)
+        else
+            name = network.username
+        end
         send_command('whois'+name, 'presence status;network='+network.name+';presence='+presence+';name='+name)
     end
     

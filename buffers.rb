@@ -49,9 +49,14 @@ class Buffer
     
     def rightclickmenu(event)
         menu = genmenu
+        return unless menu
         menu.show_all
         menu.popup(nil, nil, event.button, event.time)
         return true
+    end
+    
+    def genmenu
+        return nil
     end
 	
     #trigger a channel switch...?
