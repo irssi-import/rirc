@@ -303,7 +303,7 @@ class Main
     end
     
     def throw_message(message)
-        line = {'err' => 'Client Message: '+message}
+        line = {'msg' => 'Client Message: '+message}
         @serverlist.send_user_event(line, NOTICE)
     end
 	

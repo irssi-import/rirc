@@ -185,7 +185,7 @@ module CommandParser
     end
     
     #/send command
-    def cms_send(arguments, channel, network, presence)
+    def cmd_send(arguments, channel, network, presence)
         if arguments[0] == '~'[0]
             arguments.sub!('~', ENV['HOME'])#expand ~
         end

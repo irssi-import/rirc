@@ -1,3 +1,10 @@
+2005-07-20 17:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Fixed file send command so at least it can be called again
+    Fixed bug in throw_message
+    Added guards in event_channel_presence_status_changed (these 3 again from phyber)
+    Tried a new approach to fixing scroll to end bug
+
 2005-07-20 16:20 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed Command history

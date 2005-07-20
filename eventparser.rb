@@ -392,18 +392,26 @@ module EventParser
     end
     
     def event_channel_presence_status_changed(event, network, channel)
-        if event['status']
-            if event['add']
-                channel.users[event['name']].add_mode(event['status'])
-                #puts event['source_presence']+' gave '+event['status']+' to '+event['name']
-                channel.send_user_event(event, MODECHANGE)
-            elsif event['remove']
-                channel.users[event['name']].remove_mode(event['status'])
-                #puts event['source_presence']+' removed '+event['status']+' from '+event['name']
-                channel.send_user_event(event, MODECHANGE)
+        if channel and channel.users[event['name']]
+            if event['status']
+                if event['add']
+                    channel.users[event['name']].add_mode(event['status'])
+                    #puts event['source_presence']+' gave '+event['status']+' to '+event['name']
+                    channel.send_user_event(event, MODECHANGE)
+                elsif event['remove']
+                    channel.users[event['name']].remove_mode(event['status'])
+                    #puts event['source_presence']+' removed '+event['status']+' from '+event['name']
+                    channel.send_user_event(event, MODECHANGE)
+                end
+                channel.drawusers
+                @window.updateusercount
             end
-            channel.drawusers
-            @window.updateusercount
+        else
+            if !channel
+                puts 'no such channel as '+event['channel']
+            elsif !channel.users[event['name']]
+                    puts 'no such user '+event['name']+' on '+event['channel']
+            end
         end
     end
     

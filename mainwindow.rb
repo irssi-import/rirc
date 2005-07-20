@@ -137,17 +137,32 @@ class MainWindow
 		@messageinput.text = ""
 		return
 	end
-
-	def scroll_to_end(channel)
+    
+    def recalculate_buffer_length
+        sleep 0.05
+        win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
+        x, y = win.size
+        #puts y
+        x2, y2 = @messages.window_to_buffer_coords(Gtk::TextView::WINDOW_TEXT, 0, y)
+        #puts y2
+        #puts @messagevadjustment.upper
+        @messagevadjustment.clamp_page(0, y2)
+        @messagevadjustment.value = y2 - @messagevadjustment.page_size
+    end
+    
+	def scroll_to_end(channel, force = false)
 		return if @currentbuffer != channel
 		#check if we were at the end before the message was sent, if so, move down again
-		if mark_onscreen?(@currentbuffer.oldendmark)
+		if mark_onscreen?(@currentbuffer.oldendmark) or force
 			#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
+            #@messages.scroll_mark_onscreen(@currentbuffer.endmark)
+
             @messages.scroll_mark_onscreen(@currentbuffer.endmark)
-		end
+        end
 	end
 	
 	def mark_onscreen?(mark)
+        return false unless mark
 		return iter_onscreen?(@currentbuffer.buffer.get_iter_at_mark(mark))
 	end
 	
@@ -248,40 +263,13 @@ class MainWindow
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
 		@messages.buffer = @currentbuffer.activate
-        #~ @messagevadjustment.value = @messagevadjustment.upper
-        #~ puts @messagevadjustment.lower
-        #~ puts @messagevadjustment.upper
-        #~ puts @messagevadjustment.value
-        #~ @messagevadjustment.clamp_page(0, 100)
-        #~ @messagevadjustment.changed
-        #~ @messagevadjustment.value_changed
-        #~ puts @messagevadjustment.lower
-        #~ puts @messagevadjustment.upper
-        #~ puts @messagevadjustment.value
-        #~ puts ''
-		#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
-        
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
-        @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
 		drawuserlist(@currentbuffer.class == ChannelBuffer)
-        #~ win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
-        #~ x, y = win.size
-        #~ puts y
-        #~ x2, y2 = @messages.window_to_buffer_coords(Gtk::TextView::WINDOW_TEXT, 0, y)
-        #~ puts y2
-	end
-    
-    def crazyness
-        Thread.new{
-        sleep 0.05
-        win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
-        x, y = win.size
-        puts y
-        x2, y2 = @messages.window_to_buffer_coords(Gtk::TextView::WINDOW_TEXT, 0, y)
-        puts y2
-        }
+        recalculate_buffer_length
+        @messages.scroll_mark_onscreen(@currentbuffer.endmark)
+        #scroll_to_end(@currentbuffer)
 	end
     
 	def updateusercount
