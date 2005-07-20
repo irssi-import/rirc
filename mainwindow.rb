@@ -148,6 +148,7 @@ class MainWindow
         #puts @messagevadjustment.upper
         @messagevadjustment.clamp_page(0, y2)
         @messagevadjustment.value = y2 - @messagevadjustment.page_size
+        @messagevadjustment.value_changed
     end
     
 	def scroll_to_end(channel, force = false)
