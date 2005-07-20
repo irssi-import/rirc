@@ -140,6 +140,7 @@ class MainWindow
     
     def recalculate_buffer_length
         sleep 0.05
+        return unless @messages.realized?
         win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
         x, y = win.size
         #puts y
