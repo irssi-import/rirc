@@ -1,7 +1,7 @@
 2005-07-21 21:15 - Andrew Thompson <vagabond@cataclysm-software.net>
     
-    Added checks and error messages for invalid command arguments.
-    Fixed escaping bug in event get results
+    Added checks and error messages for invalid command arguments. (thanks phyber for reports and fixes)
+    Fixed escaping bug in event get results (thanks phyber)
 
 2005-07-20 20:20 - Andrew Thompson <vagabond@cataclysm-software.net>
 

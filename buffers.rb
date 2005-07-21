@@ -791,16 +791,15 @@ class ServerBuffer < Buffer
 	end
     
     def removefrombox(button)
-        #@box.remove(button)
-        @box.each_forall do |x|
-            puts x
-        end
+        @box.remove(button)
+        #~ @box.each_forall do |x|
+            #~ puts x
+        #~ end
         #children = @box.children
         #puts children
-        puts ''
         #children.each { |x| puts x}
-        #$main.switchchannel(getnextchannel)
-        #@parent.renumber
+        $main.switchchannel(getnextchannel)
+        @parent.renumber
     end
     
     def getnextchannel
@@ -892,7 +891,7 @@ class ServerBuffer < Buffer
     
     def close
         if @connected
-            #$main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
+            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
         end
         @connected = nil
         @number = nil
