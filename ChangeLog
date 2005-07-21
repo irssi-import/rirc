@@ -1,3 +1,7 @@
+2005-07-21 21:50 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added ^b parsing for bold text in IRC
+
 2005-07-21 21:15 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Added checks and error messages for invalid command arguments. (thanks phyber for reports and fixes)

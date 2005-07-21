@@ -30,6 +30,7 @@ class Buffer
         16.times do |x|
             @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
         end
+        @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -401,6 +402,23 @@ class Buffer
 			#go around again
 			md = re.match(string)
 		end
+        
+        re = /((\x02).+?\2)/
+		md = re.match(string)
+        re2 = /\x02/
+        
+        while md.class == MatchData
+            text = md[0].gsub(re2, '')
+            
+            string[md[0]] = text
+            
+            start, stop = md.offset(1)
+            
+            stop -= (md[2].length)*2
+			tags[Range.new(start, stop)] = 'bold'
+            
+            md = re.match(string)
+        end
 		
 		links = []
 		

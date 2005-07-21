@@ -273,7 +273,7 @@ class Main
         if !@serverlist.get_network_by_name(network) and !@networks.include?(network)
             throw_error('Undefined network '+network)
         elsif @serverlist[network, presence] or @presences.include?([network, presence])
-            throw_error('Presence '+presence+' exists')
+            #throw_error('Presence '+presence+' exists')
             return true #non-fatal
         else
             cmdstring = "presence add;presence="+presence+";network="+network
