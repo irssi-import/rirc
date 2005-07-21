@@ -298,14 +298,14 @@ class Main
         end
     end
     
-    def throw_error(error)
+    def throw_error(error, buffer=@serverlist)
         line = {'err' => 'Client Error: '+error}
-        @serverlist.send_user_event(line, ERROR)
+        buffer.send_user_event(line, ERROR)
     end
     
-    def throw_message(message)
+    def throw_message(message, buffer=@serverlist)
         line = {'msg' => 'Client Message: '+message}
-        @serverlist.send_user_event(line, NOTICE)
+        buffer.send_user_event(line, NOTICE)
     end
 	
 	#split by line and parse each line

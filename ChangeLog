@@ -1,3 +1,8 @@
+2005-07-21 21:15 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Added checks and error messages for invalid command arguments.
+    Fixed escaping bug in event get results
+
 2005-07-20 20:20 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed file send so it doesn't crash, still is b0rked otherwise

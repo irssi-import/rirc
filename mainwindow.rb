@@ -139,8 +139,9 @@ class MainWindow
 	end
     
     def recalculate_buffer_length
-        sleep 0.05
         return unless @messages.realized?
+        Thread.new {
+        sleep 0.05
         win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
         x, y = win.size
         #puts y
@@ -150,6 +151,7 @@ class MainWindow
         @messagevadjustment.clamp_page(0, y2)
         @messagevadjustment.value = y2 - @messagevadjustment.page_size
         @messagevadjustment.value_changed
+        }
     end
     
 	def scroll_to_end(channel, force = false)

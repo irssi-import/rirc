@@ -41,16 +41,12 @@ module CommandParser
         end
     end
     
-    #~ def cmd_channel(arguments, channel, network, presence)
-        #~ channel_add(network, presence, arguments)
-    #~ end
-    
     def cmd_message(message, channel, network, presence)
         #its not a command, treat as a message
         if network
             #puts message
             messages = message.split("\n")
-            messages.each { |message|
+            messages.each do |message|
                 
                 if channel.class == ChannelBuffer
                     send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
@@ -60,11 +56,11 @@ module CommandParser
                 line = {}
                 line['nick'] = presence
                 line['msg'] = message
-                @window.currentbuffer.send_user_event(line, USERMESSAGE)			}
+                @window.currentbuffer.send_user_event(line, USERMESSAGE)
+            end
         elsif !network
             #line = {}
-            line = {'err' => 'Invalid server command'}
-            @window.currentbuffer.send_user_event(line, ERROR)
+            throw_error('Invalid server command')
         end
     end
     
@@ -77,12 +73,18 @@ module CommandParser
     #/server command
     def cmd_server(arguments, channel, network, presence)
         if arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
-        network_add($1, $2, $3, $4)
+            network_add($1, $2, $3, $4)
+        else
+            errror_throw('Usage: /server <name>:<protocol>:<address>[:<port>]')
         end
     end
     
     #/connect command
     def cmd_connect(arguments, channel, network, presence)
+        unless arguments
+                throw_error('Specify a network to connect to.')
+                return
+        end
         network, presence = arguments.split(' ', 2)
         
         unless presence
@@ -96,7 +98,17 @@ module CommandParser
     
     #/disconnect command
     def cmd_disconnect(arguments, *args)
-        servername, presence = arguments.split(' ', 2)
+        unless network and arguments
+            throw_error('/disconnect does not function in this tab without a network argument')
+            return
+        end
+        
+        if network and !arguments
+            servername = network.name
+            presence = network.presence
+        else
+            servername, presence = arguments.split(' ', 2)
+        end
         
         if presence
         elsif @window.currentbuffer.server.name == servername
@@ -111,11 +123,9 @@ module CommandParser
             if results and results.length == 1
                 presence = results[0].presence
             elsif results and results.length > 1
-                line = {'err' => 'Multiple networks named '+servername+' please specify a presence'}
-                @window.currentbuffer.send_user_event(line, ERROR)
+                throw_error('Multiple networks named '+servername+' please specify a presence')
             else
-                line = {'err' => 'No network names '+servernames}
-                @window.currentbuffer.send_user_event(line, ERROR)
+               throw_error('No network named '+servernames)
             end
         end
         
@@ -130,16 +140,20 @@ module CommandParser
     
     #/part command
     def cmd_part(arguments, channel, network, presence)
-        arguments = arguments.split(' ')
-        if arguments[0]
-            send_command('part', "channel part;network="+network.name+";presence="+presence+";channel="+arguments[0])
+        unless network
+            throw_error('/part does not function in this tab.')
+            return
+        end
+        if arguments
+                channame = arguments.split(' ')
+        end
+        
+        if channame
+            send_command('part', "channel part;network="+network.name+";presence="+presence+";channel="+channame[0])
+        elsif channel
+            send_command('part', "channel part;network="+network.name+";presence="+presence+";channel="+channel.name)
         else
-            #line = {}
-            line = {'err' => 'Part requires a channel argument'}
-            #~ time = Time.new
-            #~ time = time - @drift if $config['canonicaltime'] == 'server'
-            #~ line['time'] = time
-            @window.currentbuffer.send_user_event(line, ERROR)
+            error_throw('Part requires a channel argument or it must be called from a channel tab.')
         end
     end
     
@@ -203,26 +217,46 @@ module CommandParser
     
     #/ruby command
     def cmd_ruby(arguments, channel, network, presence)
-        puts 'possibly evil ruby code inputted, blindly executing'
+        unless arguments
+                throw_error('Give me some code to execute')
+                return
+        end
+        throw_message('possibly evil ruby code inputted, blindly executing')
         eval(arguments)
     end
     
     #/raw command
     def cmd_raw(arguments, channel, network, presence)
-        output = {}
-        output['msg'] = 'Sent raw command "'+arguments+'" to irssi2 directly'
-        @serverlist.send_event(output, NOTICE)
+        unless arguments
+            throw_error('Specify a string to send to the server')
+            return
+        end
+        throw_message('Sent raw command "'+arguments+'" to irssi2 directly')
         send_command('raw', arguments)
     end
     
     #/nick command
     def cmd_nick(arguments, channel, network, presence)
+        unless network and arguments
+            if !network
+                throw_error('/nick command does not function in this tab.')
+                return
+            end
+            if !arguments
+                throw_error('Usage: /nick <nickname>')
+                return
+            end
+        end
         name, bleh = arguments.split(' ', 2)
         send_command('nick'+name, 'presence change;network='+network.name+';presence='+presence+';new_name='+name)
     end
     
     #/whois command
     def cmd_whois(arguments, channel, network, presence)
+        unless network
+            throw_error('/whois command does not function in this tab.')
+            return
+        end
         if arguments
             name, bleh = arguments.split(' ', 2)
         else
@@ -233,18 +267,22 @@ module CommandParser
     
     #/msg command
     def cmd_msg(arguments, channel, network, presence)
-        arguments = arguments.split(' ', 2)
-        if arguments[0] and arguments[1]
+        unless network
+            throw_error('/msg does not function in this tab')
+            return
+        end
+        
+        if arguments
+                nick,msgs = arguments.split(' ', 2)
+        end
+        
+        if nick and msgs
             messages = arguments[1].split("\n")
             messages.each { |message|
                 send_command('msg'+rand(100).to_s, 'msg;network='+network.name+';nick='+arguments[0]+';msg='+message+";presence="+presence)
             }
         else
-            line ={'err' => '/msg requires a username and a message'}
-            #~ time = Time.new
-            #~ time = time - @drift if $config['canonicaltime'] == 'server'
-            #~ line['time'] = time
-            @window.currentbuffer.send_user_event(line, ERROR)
+            throw_error('/msg requires a username and a message')
             
         end
     end
@@ -310,14 +348,22 @@ module CommandParser
     end
     
     def cmd_load(arguments, channel, network, presence)
+        unless arguments
+            throw_error('Specify a plugin to load.')
+            return
+        end
         plugin_load(arguments)
     end
     
     def cmd_unload(arguments, *args)
+        unless arguments
+            throw_error('Specify a plugin to unload.')
+            return
+        end
         if plugin = Plugin.lookup(arguments)
             Plugin.unregister(plugin)
         else
-         throw_error('no plugin found called '+arguments)
+         throw_error('No plugin found called '+arguments)
         end
     end
     
