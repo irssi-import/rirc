@@ -97,10 +97,12 @@ module CommandParser
     end
     
     #/disconnect command
-    def cmd_disconnect(arguments, *args)
-        unless network and arguments
-            throw_error('/disconnect does not function in this tab without a network argument')
-            return
+    def cmd_disconnect(arguments, channel, network,  *args)
+        unless network
+            if !arguments
+                throw_error('/disconnect does not function in this tab without a network argument')
+                return
+            end
         end
         
         if network and !arguments
