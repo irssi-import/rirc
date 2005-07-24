@@ -250,7 +250,7 @@ module CommandParser
             end
         end
         name, bleh = arguments.split(' ', 2)
-        send_command('nick'+name, 'mypresence change;network='+network.name+';mypresence='+presence+';new_name='+name)
+        send_command('nick'+name, 'presence change;network='+network.name+';mypresence='+presence+';new_name='+name)
     end
     
     #/whois command
