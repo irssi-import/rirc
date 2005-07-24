@@ -51,10 +51,10 @@ module CommandParser
                 if channel.class == ChannelBuffer
                     send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
                 elsif channel.class == ChatBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';nick='+channel.name+';msg='+escape(message)+";presence="+presence)
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(message)+";presence="+presence)
                 end
                 line = {}
-                line['nick'] = presence
+                line['presence'] = presence
                 line['msg'] = message
                 @window.currentbuffer.send_user_event(line, USERMESSAGE)
             end
@@ -67,7 +67,7 @@ module CommandParser
     #/join command
     def cmd_join(arguments, channel, network, presence)
         return unless network and arguments
-        send_command('join', 'channel join;network='+network.name+';presence='+presence+';channel='+arguments)
+        send_command('join', 'channel join;network='+network.name+';mypresence='+presence+';channel='+arguments)
     end
     
     #/server command
@@ -132,7 +132,7 @@ module CommandParser
         end
         
         if presence and servername
-            send_command('disconnect'+servername, "presence disconnect;network="+servername+";presence="+presence)
+            send_command('disconnect'+servername, "presence disconnect;network="+servername+";mypresence="+presence)
             server = @serverlist[servername, presence]
             server.disconnect
             #
@@ -151,9 +151,9 @@ module CommandParser
         end
         
         if channame
-            send_command('part', "channel part;network="+network.name+";presence="+presence+";channel="+channame[0])
+            send_command('part', "channel part;network="+network.name+";mypresence="+presence+";channel="+channame[0])
         elsif channel
-            send_command('part', "channel part;network="+network.name+";presence="+presence+";channel="+channel.name)
+            send_command('part', "channel part;network="+network.name+";mypresence="+presence+";channel="+channel.name)
         else
             error_throw('Part requires a channel argument or it must be called from a channel tab.')
         end
@@ -250,7 +250,7 @@ module CommandParser
             end
         end
         name, bleh = arguments.split(' ', 2)
-        send_command('nick'+name, 'presence change;network='+network.name+';presence='+presence+';new_name='+name)
+        send_command('nick'+name, 'mypresence change;network='+network.name+';mypresence='+presence+';new_name='+name)
     end
     
     #/whois command
@@ -264,7 +264,7 @@ module CommandParser
         else
             name = network.username
         end
-        send_command('whois'+name, 'presence status;network='+network.name+';presence='+presence+';name='+name)
+        send_command('whois'+name, 'presence status;network='+network.name+';mypresence='+presence+';name='+name)
     end
     
     #/msg command
@@ -279,9 +279,9 @@ module CommandParser
         end
         
         if nick and msgs
-            messages = arguments[1].split("\n")
+            messages = msgs.split("\n")
             messages.each { |message|
-                send_command('msg'+rand(100).to_s, 'msg;network='+network.name+';nick='+arguments[0]+';msg='+message+";presence="+presence)
+                send_command('msg'+rand(100).to_s, 'msg;network='+network.name+';presence='+nick+';msg='+message+";mypresence="+presence)
             }
         else
             throw_error('/msg requires a username and a message')

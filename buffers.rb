@@ -208,15 +208,15 @@ class Buffer
     
     def buffer_message(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
-        if line['type'] == 'action' and line['nick']
+        if line['type'] == 'action' and line['presence']
             pattern += $config['action'].deep_clone
-            pattern['%u'] = line['nick']
+            pattern['%u'] = line['presence']
             pattern['%m'] = line['msg'] if line['msg']
         else
             pattern += $config['message'].deep_clone
-            if line['nick']
-                pattern['%u'] = line['nick']
-                users.push(line['nick'])
+            if line['presence']
+                pattern['%u'] = line['presence']
+                users.push(line['presence'])
             end
             pattern['%m'] = line['msg'] if line['msg']
         end
@@ -225,10 +225,10 @@ class Buffer
     
     def buffer_ctcp(line, pattern, users, insert_location)
         puts 'ctcp line'
-        if line['name'] == 'action' and line['nick']
+        if line['name'] == 'action' and line['presence']
             puts 'an action'
             pattern += $config['action'].deep_clone
-            pattern['%u'] = line['nick']
+            pattern['%u'] = line['presence']
             pattern['%m'] = line['args'] if line['args']
         end
         return [pattern, users, insert_location]
@@ -248,10 +248,10 @@ class Buffer
     def buffer_join(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config['join'].deep_clone
-        pattern['%u'] = line['name']
-        users.push(line['name'])
+        pattern['%u'] = line['presence']
+        users.push(line['presence'])
         pattern['%c'] = line['channel']
-        if user = @users[line['name']] and user.hostname
+        if user = @users[line['presence']] and user.hostname
             pattern['%h'] = user.hostname
         elsif line['address']
             pattern['%h'] = line['address']
@@ -269,11 +269,11 @@ class Buffer
     def buffer_part(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config['part'].deep_clone
-        pattern['%u'] = line['name']
-        users.push(line['name'])
+        pattern['%u'] = line['presence']
+        users.push(line['presence'])
         pattern['%r'] = line['reason'] if line['reason']
         pattern['%c'] = line['channel']
-        if user = @users[line['name']] and user.hostname
+        if user = @users[line['presence']] and user.hostname
             pattern['%h'] = user.hostname
         elsif line['address']
             pattern['%h'] = line['address']
@@ -332,15 +332,17 @@ class Buffer
     def buffer_modechange(line, pattern, users, insert_location)
         if line['add']
             pattern += $config['add_mode'].deep_clone
+	    pattern['%m'] = line['add']
         elsif line['remove']
             pattern += $config['remove_mode'].deep_clone
+	    pattern['%m'] = line['remove']
         else
             return
         end
-        pattern['%s'] = line['source_presence']
-        pattern['%m'] = line['status']
-        pattern['%u'] = line['name']
-        users.push(line['source_presence'], line['name'])
+        pattern['%s'] = line['source_presence'] if line['source_presence']
+        #pattern['%m'] = line['mode']
+        pattern['%u'] = line['presence']
+        users.push(line['source_presence'], line['presence'])
         
         return [pattern, users, insert_location]
     end
@@ -895,7 +897,7 @@ class ServerBuffer < Buffer
         menu = Gtk::Menu.new
         item = Gtk::MenuItem.new('Disconnect')
         item.signal_connect('activate') do |w|
-            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
+            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";mypresence="+@presence)
             #disconnect
         end
         menu.append(item)
@@ -909,7 +911,7 @@ class ServerBuffer < Buffer
     
     def close
         if @connected
-            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";presence="+@presence)
+            $main.send_command('disconnect'+@name, "presence disconnect;network="+@name+";mypresence="+@presence)
         end
         @connected = nil
         @number = nil
@@ -961,7 +963,7 @@ class ChannelBuffer < Buffer
     
     def close
         if @connected
-            $main.send_command('part', "channel part;network="+@server.name+";presence="+@server.presence+";channel="+@name)
+            $main.send_command('part', "channel part;network="+@server.name+";mypresence="+@server.presence+";channel="+@name)
         end
         @connected = nil
         @number = nil
@@ -974,7 +976,7 @@ class ChannelBuffer < Buffer
         menu = Gtk::Menu.new
         item = Gtk::MenuItem.new('Part')
         item.signal_connect('activate') do |w|
-            $main.send_command('part', "channel part;network="+@server.name+";presence="+@server.presence+";channel="+@name)
+            $main.send_command('part', "channel part;network="+@server.name+";mypresence="+@server.presence+";channel="+@name)
             #disconnect
         end
         menu.append(item)

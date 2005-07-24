@@ -36,16 +36,16 @@ module ReplyParser
 				#return
 			#end
             
-            if line['network'] and line['presence']
-                if !@serverlist[line['network'], line['presence']]
+            if line['network'] and line['mypresence']
+                if !@serverlist[line['network'], line['mypresence']]
                 else
-                    network = @serverlist[line['network'], line['presence']]
+                    network = @serverlist[line['network'], line['mypresence']]
                 end
                 
-                if line['channel'] and @serverlist[line['network'], line['presence']]
-                    if !@serverlist[line['network'], line['presence']][line['channel']]
+                if line['channel'] and @serverlist[line['network'], line['mypresence']]
+                    if !@serverlist[line['network'], line['mypresence']][line['channel']]
                     else
-                        channel = @serverlist[line['network'], line['presence']][line['channel']]
+                        channel = @serverlist[line['network'], line['mypresence']][line['channel']]
                     end
                 end
             end
@@ -72,8 +72,8 @@ module ReplyParser
                 @filehandles.delete_at(line['handle'].to_i)
                 return
             end
-            if reply.command['name']
-                @filehandles[line['handle'].to_i] = @filedescriptors[reply.command['name']]
+            if reply.command['presence']
+                @filehandles[line['handle'].to_i] = @filedescriptors[reply.command['presence']]
             end
             
             file = @filehandles[line['handle'].to_i]
@@ -90,12 +90,12 @@ module ReplyParser
     
     #list the connected presences
     def reply_presence_list(line, network, channel, reply)
-        if line['network'] and line['presence']
-            unless network = @serverlist[line['network'], line['presence']]
-                network = @serverlist.add(line['network'], line['presence'])
+        if line['network'] and line['mypresence']
+            unless network = @serverlist[line['network'], line['mypresence']]
+                network = @serverlist.add(line['network'], line['mypresence'])
             end
             #network = createnetworkifnot(line['network'], line['presence'])
-            network.set_username(line['name'] ) if line['name']
+            network.set_username(line['presence'] ) if line['presence']
             if line['connected']
                 network.connect
                 network.loggedin = true
@@ -118,12 +118,12 @@ module ReplyParser
     
     #list the connected channels
     def reply_channel_list(line, network, channel, reply)
-        if line['network'] and line['presence'] and line['channel']
-            if !@serverlist[line['network'], line['presence']]
-                puts 'network does not exist '+line['network']+', '+line['presence']
+        if line['network'] and line['mypresence'] and line['channel']
+            if !@serverlist[line['network'], line['mypresence']]
+                puts 'network does not exist '+line['network']+', '+line['mypresence']
             else
-                unless channel = @serverlist[line['network'], line['presence']][line['channel']]
-                    channel = @serverlist[line['network'], line['presence']].add(line['channel'])
+                unless channel = @serverlist[line['network'], line['mypresence']][line['channel']]
+                    channel = @serverlist[line['network'], line['mypresence']].add(line['channel'])
                 end
                 
                 if line['joined'] and channel
@@ -149,18 +149,18 @@ module ReplyParser
     
     #list of users on the channel
     def reply_channel_names(line, network, channel, reply)
-        if line['network'] and line['presence'] and line['channel'] and line['name']
-            network.users.create(line['name'])
-            chuser = channel.users.add(network.users[line['name']])
+        if line['network'] and line['mypresence'] and line['channel'] and line['presence']
+            network.users.create(line['presence'])
+            chuser = channel.users.add(network.users[line['presence']])
             #channel.adduser(line['name'], true)
-            if line['status']
-                chuser.add_mode(line['status'])
+            if line['mode']
+                chuser.add_mode(line['mode'])
                 #puts 'set '+chuser.name+'\'s status to '+line['status']
             end
         elsif line['reply_status'] == '+'
-            @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].drawusers
+            @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].drawusers
             @window.updateusercount
-            @serverlist[reply.command['network'], reply.command['presence']][reply.command['channel']].usersync = true
+            @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].usersync = true
         end
     end
 
@@ -169,12 +169,13 @@ module ReplyParser
         reply.network ||= network if network
         reply.channel ||= channel if channel
         if line['event'] == 'msg'
-            if line['address'] and network.users[line['name']] and network.users[line['name']].hostname == 'hostname'
-                network.users[line['name']].hostname = line['address']
+            if line['address'] and network.users[line['presence']] and network.users[line['presence']].hostname == 'hostname'
+                network.users[line['presence']].hostname = line['address']
             end
                 
             if line['own']
-                line['nick'] = line['presence']
+		#I don't know why I did this, but I'm fixing something else ATM so 'll come back to it
+                line['presence'] = network.username #line['mypresence']
                 channel.send_event(line, USERMESSAGE, BUFFER_START)
             else
                 channel.send_event(line, MESSAGE, BUFFER_START)
@@ -216,7 +217,7 @@ module ReplyParser
         elsif line['event'] == 'channel_presence_removed'
             return if line['deinit']
             
-            if line['name'] == network.username
+            if line['presence'] == network.username
                 channel.send_event(line, USERPART, BUFFER_START)
             else
                 channel.send_event(line, PART, BUFFER_START)
@@ -233,7 +234,7 @@ module ReplyParser
         elsif line['event'] == 'channel_presence_added'
             return if line['init']
             
-            if line['name'] == network.username
+            if line['presence'] == network.username
                 channel.send_event(line, USERJOIN, BUFFER_START)
             else
                 channel.send_event(line, JOIN, BUFFER_START)
@@ -256,7 +257,7 @@ module ReplyParser
     
 	#output the result of a whois
 	def reply_presence_status(reply)
-		network = @serverlist[reply.command['network'], reply.command['presence']]
+		network = @serverlist[reply.command['network'], reply.command['mypresence']]
 		
 		reply.lines.each do |line|
 		
@@ -279,14 +280,14 @@ module ReplyParser
 				msg = line['extra']
 			elsif line['reply_status'] == '+'
 				msg = 'End of /whois'
-				line['name'] = reply.command['name']
+				line['presence'] = reply.command['presence']
 			else
 				next
 			end
 			
 			pattern = $config['whois'].deep_clone
 			pattern['%m'] = msg if msg
-			pattern['%n'] = line['name'] if line['name']
+			pattern['%n'] = line['presence'] if line['presence']
 			line['msg'] = pattern
 			network.send_event(line, NOTICE)
 			time = line['time']

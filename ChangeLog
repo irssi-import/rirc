@@ -1,3 +1,7 @@
+2005-07-24 18:58 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Updated to reflect cras' changes to irssi2 (nick, name => presence, presence => mypresence, mode=>status)
+
 2005-07-21 21:50 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added ^b parsing for bold text in IRC

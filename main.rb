@@ -175,7 +175,7 @@ class Main
             @serverlist.servers.each do |server|
                 server.channels.each do |channel|
                     if !channel.usersync and channel.connected
-                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";presence="+server.presence)
+                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
                         while channel.usersync != true
                             sleep 1
                         end
@@ -184,7 +184,7 @@ class Main
                 
                 server.channels.each do |channel|
                     if !channel.eventsync and channel.connected
-                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(presence='+server.presence+')(!(event=client_command_reply))')
+                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(event=client_command_reply))')
                         while channel.eventsync != true
                             sleep 1
                         end
@@ -264,7 +264,7 @@ class Main
         elsif !@serverlist[network, presence] and !@presences.include?([network, presence])
             throw_error('Undefined presence '+presence)
         else
-            send_command('connect', "presence connect;network="+network+";presence="+presence)
+            send_command('connect', "presence connect;network="+network+";mypresence="+presence)
         end
     end
     
@@ -276,7 +276,7 @@ class Main
             #throw_error('Presence '+presence+' exists')
             return true #non-fatal
         else
-            cmdstring = "presence add;presence="+presence+";network="+network
+            cmdstring = "presence add;mypresence="+presence+";network="+network
             if @keys[presence] and @keys[presence]['silc_pub']
             	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
             	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
@@ -292,7 +292,7 @@ class Main
     
     def channel_add(network, presence, channel)
         if @serverlist[network, presence] and channel
-            send_command('add', 'channel add;network='+network+';presence='+presence+';channel='+channel)
+            send_command('add', 'channel add;network='+network+';mypresence='+presence+';channel='+channel)
         else
             throw_error('Invalid Network')
         end
@@ -302,11 +302,11 @@ class Main
         line = {'err' => 'Client Error: '+error}
         buffer.send_user_event(line, ERROR)
     end
-    
-    def throw_message(message, buffer=@serverlist)
-        line = {'msg' => 'Client Message: '+message}
-        buffer.send_user_event(line, NOTICE)
-    end
+	
+	def throw_message(message, buffer=@serverlist)
+	line = {'msg' => 'Client Message: '+message}
+	buffer.send_user_event(line, NOTICE)
+	end
 	
 	#split by line and parse each line
 	def parse_lines(string)
@@ -429,7 +429,7 @@ class Main
     def handle_error(line, reply)
         channel ||= reply.command['channel']
         network ||= reply.command['network']
-        presence ||= reply.command['presence']
+        presence ||= reply.command['mypresence']
         
         if network = @serverlist[network, presence]
             target = network
@@ -459,7 +459,7 @@ class Main
             err += ' - '+reply.command['network'] if reply.command['network']
         elsif line['nopresence']
             err = 'Invalid or protected presence'
-            err += ' - '+reply.command['presence'] if reply.command['presence']
+            err += ' - '+reply.command['mypresence'] if reply.command['mypresence']
         elsif line['exists']
             err ='Already Exists'
         elsif line['notfound']
