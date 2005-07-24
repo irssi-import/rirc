@@ -5,6 +5,7 @@ require 'rbconfig'
 require 'base64'
 require 'thread'
 require 'monitor'
+require "rexml/document"
 $platform = RUBY_PLATFORM
 
 $args = {}
@@ -168,6 +169,13 @@ class Main
 		result.gsub!('\\\\', '\\')
 		return result
 	end
+    
+    def escape_xml(string)
+        #puts string
+        s = string.gsub('<', '&lt;').gsub('>', '&gt;')
+        #puts s
+        return s
+    end
 	
     def syncchannels
         @syncchannels = true

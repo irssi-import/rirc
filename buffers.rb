@@ -31,6 +31,7 @@ class Buffer
             @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
         end
         @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
+        @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -209,45 +210,56 @@ class Buffer
     def buffer_message(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line['type'] == 'action' and line['presence']
-            pattern += $config['action'].deep_clone
+            pattern += $config.get_pattern('action')
             pattern['%u'] = line['presence']
-            pattern['%m'] = line['msg'] if line['msg']
+            if line['msg-xhtml']
+                pattern['%m'] = line['msg-xhtml']
+            elsif line['msg']
+                pattern['%m'] = line['msg']
+                pattern = $main.escape_xml(pattern)
+            end
         else
-            pattern += $config['message'].deep_clone
+            pattern += $config.get_pattern('message')
             if line['presence']
                 pattern['%u'] = line['presence']
                 users.push(line['presence'])
             end
-            pattern['%m'] = line['msg'] if line['msg']
+            if line['msg-xhtml']
+                pattern['%m'] = line['msg-xhtml']
+            elsif line['msg']
+                pattern['%m'] = line['msg']
+                pattern = $main.escape_xml(pattern)
+            end
         end
         return [pattern, users, insert_location]
     end
     
-    def buffer_ctcp(line, pattern, users, insert_location)
-        puts 'ctcp line'
-        if line['name'] == 'action' and line['presence']
-            puts 'an action'
-            pattern += $config['action'].deep_clone
-            pattern['%u'] = line['presence']
-            pattern['%m'] = line['args'] if line['args']
-        end
-        return [pattern, users, insert_location]
-    end
+    #~ def buffer_ctcp(line, pattern, users, insert_location)
+        #~ puts 'ctcp line'
+        #~ if line['name'] == 'action' and line['presence']
+            #~ puts 'an action'
+            #~ pattern += $config.get_pattern('action')
+            #~ pattern['%u'] = line['presence']
+            #~ pattern['%m'] = line['args'] if line['args']
+        #~ end
+        #~ return [pattern, users, insert_location]
+    #~ end
     
     def buffer_usermessage(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
-        pattern += $config['usermessage'].deep_clone
+        pattern += $config.get_pattern('usermessage')
         if username
             pattern['%u'] = username
             users.push(username)
         end
         pattern['%m'] = line['msg'] if line['msg']
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
     def buffer_join(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config['join'].deep_clone
+        pattern += $config.get_pattern('join')
         pattern['%u'] = line['presence']
         users.push(line['presence'])
         pattern['%c'] = line['channel']
@@ -256,19 +268,21 @@ class Buffer
         elsif line['address']
             pattern['%h'] = line['address']
         end
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end    
         
     def buffer_userjoin(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config['userjoin'].deep_clone
+        pattern += $config.get_pattern('userjoin')
         pattern['%c'] = line['channel']
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
     def buffer_part(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config['part'].deep_clone
+        pattern += $config.get_pattern('part')
         pattern['%u'] = line['presence']
         users.push(line['presence'])
         pattern['%r'] = line['reason'] if line['reason']
@@ -278,63 +292,62 @@ class Buffer
         elsif line['address']
             pattern['%h'] = line['address']
         end
+        pattern = $main.escape_xml(pattern)
        return [pattern, users, insert_location]
     end
     
     def buffer_userpart(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config['userpart'].deep_clone
+        pattern += $config.get_pattern('userpart')
         pattern['%c'] = line['channel']
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
 
     def buffer_error(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config['error'].deep_clone
+        pattern += $config.get_pattern('error')
         pattern['%m'] = line['err']
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
     def buffer_notice(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config['notice'].deep_clone
+        pattern += $config.get_pattern('notice')
         pattern['%m'] = line['msg']
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
     def buffer_topic(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         if line['init'] and line['line'] == 2
-            pattern += $config['topic_setby'].deep_clone
+            pattern += $config.get_pattern('topic_setby')
             pattern['%c'] = line['channel']
             pattern['%u'] = line['topic_set_by']
             pattern['%a'] = Time.at(line['topic_timestamp'].to_i).strftime('%c')
             users.push(line['topic_set_by'])
         elsif line['init'] and line['line'] == 1
-            pattern += $config['topic'].deep_clone
+            pattern += $config.get_pattern('topic')
             pattern['%c'] = line['channel']
             pattern['%t'] = line['topic']
-            #~ line2 = line.deep_clone
-            #~ line2['line'] = 2
-            #~ Thread.new{
-            #~ sleep 0.5
-            #~ send_event(line2, TOPIC, insert_location)
-            #~ }
         elsif line['topic']
-            pattern += $config['topic_change'].deep_clone
+            pattern += $config.get_pattern('topic_change')
             pattern['%t'] = line['topic']
             pattern['%u'] = line['topic_set_by']
             users.push(line['topic_set_by'])
         end
+        pattern = $main.escape_xml(pattern)
        return [pattern, users, insert_location]
     end
     
     def buffer_modechange(line, pattern, users, insert_location)
         if line['add']
-            pattern += $config['add_mode'].deep_clone
+            pattern += $config.get_pattern('add_mode')
 	    pattern['%m'] = line['add']
         elsif line['remove']
-            pattern += $config['remove_mode'].deep_clone
+            pattern += $config.get_pattern('remove_mode')
 	    pattern['%m'] = line['remove']
         else
             return
@@ -343,7 +356,7 @@ class Buffer
         #pattern['%m'] = line['mode']
         pattern['%u'] = line['presence']
         users.push(line['source_presence'], line['presence'])
-        
+        pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -382,10 +395,12 @@ class Buffer
 	
 	#parse the colors in the text
 	def colortext(string, insert, users)
-		re = /((%\d).+?\2)/
-		md = re.match(string)
 		
-		tags = {}
+		#tags = {}
+        string, tags = parse_xml(string)
+        
+        re = /((%\d).+?\2)/
+		md = re.match(string)
 		
 		while md.class == MatchData
 			color = md[2].gsub!('%', 'color')
@@ -446,9 +461,81 @@ class Buffer
 				link_tags[Range.new(index, index+link.length)] = link
 			end
 		end
-		
+        
 		sendtobuffer(string, tags, insert, user_tags, link_tags)
 	end
+    
+    def get_tag(key, value)
+        if key == 'color'
+            if @buffer.tag_table.lookup('color_'+value)
+                return 'color_'+value
+            end
+            
+            while value.length < 7
+                value.sub!('0', '00')
+            end
+            
+            begin
+                color = Gdk::Color.parse(value)
+            rescue ArgumentError
+                $main.throw_error('Invalid color '+value)
+                return '0'
+            end
+            @buffer.create_tag('color_'+value, {'foreground_gdk'=>color})
+            return 'color_'+value
+        elsif key == 'font-weight'
+            if value == 'bold'
+                return 'bold'
+            end
+        elsif key == 'text-decoration'
+            if value == 'underline'
+                return 'underline'
+            end
+        end
+    end
+    
+    def parse_style(style)
+        styles = style.split(';')
+        tags = []
+        styles.each do |x|
+            k, v = x.split(':').map{|e| e.strip.downcase}
+            tags.push(get_tag(k, v))
+        end
+        return tags
+    end
+    
+    def parse_xml(istring)
+        puts istring if istring.include?('>')
+        doc = REXML::Document.new('<msg>'+istring+'</msg>')
+        string = ''
+        tags = {}
+        x = doc.root[0]
+        while x
+            if x.class == REXML::Text
+                string += x.value
+            elsif x.class == REXML::Element
+                if x.attributes['style']
+                    offset = 0
+                    re = Regexp.new('((%\d).+?\2)')
+                    string.scan(re){|z| puts $2; offset += ($2.length)*2}
+                    puts offset
+                    start = string.length-offset
+                    stop = x.text.length+start
+                    string += x.text
+                    taglist = parse_style(x.attributes['style'])
+                    taglist.each do |tag|
+                        tags[Range.new(start, stop)] = tag
+                    end
+                end
+            end
+            x = x.next_sibling
+        end
+        if string == ''
+            string = istring
+        end
+        
+        return [string, tags]
+    end
 	
 	#send the text to the buffer
 	def sendtobuffer(string, tags, insert, user_tags, link_tags)
@@ -457,7 +544,7 @@ class Buffer
 		iter = @buffer.get_iter_at_offset(offset)
 		start = iter.offset
 		tags.each do |k, v|
-			if @buffer.tag_table.lookup(v)
+			if v and @buffer.tag_table.lookup(v)
 				tag_start = @buffer.get_iter_at_offset(k.begin+start)
 				tag_end = @buffer.get_iter_at_offset(k.end+start)
 				@buffer.apply_tag(v, tag_start, tag_end)

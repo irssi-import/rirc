@@ -1,3 +1,7 @@
+2005-07-25 01:04 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Experimental XML rich text parser...
+
 2005-07-24 18:58 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Updated to reflect cras' changes to irssi2 (nick, name => presence, presence => mypresence, mode=>status)
