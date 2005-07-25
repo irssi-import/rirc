@@ -183,10 +183,10 @@ module EventParser
     def event_presence_changed(event, network, channel)
 	#why is this not in buffers.rb with all the other events like this?
         return unless network
-        if event[NEW_NAME]
+        if event[NAME]
         
             if event[PRESENCE] == network.username
-                network.set_username(event[NEW_NAME])
+                network.set_username(event[NAME])
                 @window.get_username
                 @window.show_username
             end
@@ -195,7 +195,7 @@ module EventParser
             user = network.users[event[PRESENCE]]
             
             if user
-                user.rename(event[NEW_NAME])
+                user.rename(event[NAME])
                 network.channels.each do |channel|
                     if channel.users[user.name]
                         #remove the user and readd him before the redraw
@@ -207,10 +207,10 @@ module EventParser
             end
             
             #more stuff to make patterns
-            if event[NEW_NAME] == network.username
-                pattern = 'You are now known as '+event[NEW_NAME]
-            elsif event[PRESENCE] != event[NEW_NAME]
-                pattern= event[PRESENCE]+' is now known as '+event[NEW_NAME]
+            if event[NAME] == network.username
+                pattern = 'You are now known as '+event[NAME]
+            elsif event[PRESENCE] != event[NAME]
+                pattern= event[PRESENCE]+' is now known as '+event[NAME]
             else
                 pattern = nil
             end
@@ -219,7 +219,7 @@ module EventParser
             
             if pattern
                 network.channels.each{ |c|
-                    if c.users[event[NEW_NAME]]
+                    if c.users[event[NAME]]
                         c.drawusers
                         c.send_event(event, EVENT_NOTICE)
                     end
@@ -227,7 +227,7 @@ module EventParser
             end
             
             if event[PRESENCE] and chat = network.has_chat?(event[PRESENCE])
-                chat.rename(event[NEW_NAME])
+                chat.rename(event[NAME])
             end
             
         end

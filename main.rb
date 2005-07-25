@@ -314,12 +314,12 @@ class Main
     
     def throw_error(error, buffer=@serverlist)
         line = {'err' => 'Client Error: '+error}
-        buffer.send_user_event(line, ERROR)
+        buffer.send_user_event(line, EVENT_ERROR)
     end
 	
 	def throw_message(message, buffer=@serverlist)
 	line = {'msg' => 'Client Message: '+message}
-	buffer.send_user_event(line, NOTICE)
+	buffer.send_user_event(line, EVENT_NOTICE)
 	end
 	
 	#split by line and parse each line
@@ -490,7 +490,7 @@ class Main
         time = Time.new
         time = time - @drift if $config['canonicaltime'] == 'server'
         line['time'] = time
-        target.send_event(line, ERROR)
+        target.send_event(line, EVENT_ERROR)
     end
     
 	#duh....
