@@ -452,7 +452,12 @@ class Buffer
             end
             
             while value.length < 7
-                value.sub!('0', '00')
+                if value.include?('0')
+                    value.sub!('0', '00')
+                else
+                    value += '0'
+                end
+                #puts 'fixing color '+value
             end
             
             begin
