@@ -90,6 +90,7 @@ module EventParser
             puts 'request to create already existing channel, ignoring'
             return
         else
+            puts 'channel added'
             channel = @serverlist[event[NETWORK], event[MYPRESENCE]].add(event[CHANNEL])
             channel.usersync = channel.eventsync = true
             #send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(presence='+network.presence+')(!(event=client_command_reply))')
@@ -167,9 +168,9 @@ module EventParser
                 chuser = channel.users.add(user)
                 #channel.adduser(event['name'], true)
             end
-            if event[STATUS]
-                chuser.add_mode(event[STATUS])
-                puts 'set '+chuser.name+'\'s status to '+event[STATUS]
+            if event[MODE]
+                chuser.add_mode(event[MODE])
+                puts 'set '+chuser.name+'\'s status to '+event[MODE]
                 #~ if !event[INIT]
                     #~ channel.drawusers
                 #~ end
@@ -395,12 +396,12 @@ module EventParser
     
     def event_channel_presence_mode_changed(event, network, channel)
         if channel and channel.users[event[PRESENCE]]
-		if event['add']
-		    channel.users[event[PRESENCE]].add_mode(event['add'])
+		if event[ADD]
+		    channel.users[event[PRESENCE]].add_mode(event[ADD])
 		    #puts event['source_presence']+' gave '+event[STATUS]+' to '+event['name']
 		    channel.send_user_event(event, EVENT_MODECHANGE)
-		elsif event['remove']
-		    channel.users[event[PRESENCE]].remove_mode(event['remove'])
+		elsif event[REMOVE]
+		    channel.users[event[PRESENCE]].remove_mode(event[REMOVE])
 		    #puts event['source_presence']+' removed '+event[STATUS]+' from '+event['name']
 		    channel.send_user_event(event, EVENT_MODECHANGE)
 		end

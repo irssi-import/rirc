@@ -130,7 +130,7 @@ class Buffer
     def send_user_event(line, type)
         time = Time.new
         time = time - $main.drift if $config['canonicaltime'] == 'server'
-        line['time'] = time
+        line[TIME] = time
         send_event(line, type)
     end
     
@@ -145,7 +145,7 @@ class Buffer
 		end
 		
 		if $config['usetimestamp']
-			pattern = Time.at(line['time'].to_i).strftime($config['timestamp'])
+			pattern = Time.at(line[TIME].to_i).strftime($config['timestamp'])
 		else
 			pattern = ''
 		end
@@ -193,8 +193,8 @@ class Buffer
             if line[MSG_XHTML]
                 pattern = $main.escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
-            elsif line['msg']
-                pattern['%m'] = line['msg']
+            elsif line[MSG]
+                pattern['%m'] = line[MSG]
                 pattern = $main.escape_xml(pattern)
             end
         else
@@ -206,8 +206,8 @@ class Buffer
             if line[MSG_XHTML]
                 pattern = $main.escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
-            elsif line['msg']
-                pattern['%m'] = line['msg']
+            elsif line[MSG]
+                pattern['%m'] = line[MSG]
                 pattern = $main.escape_xml(pattern)
             end
         end
@@ -232,7 +232,7 @@ class Buffer
             pattern['%u'] = username
             users.push(username)
         end
-        pattern['%m'] = line['msg'] if line['msg']
+        pattern['%m'] = line[MSG] if line[MSG]
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
@@ -265,7 +265,7 @@ class Buffer
         pattern += $config.get_pattern('part')
         pattern['%u'] = line[PRESENCE]
         users.push(line[PRESENCE])
-        pattern['%r'] = line['reason'] if line['reason']
+        pattern['%r'] = line[REASON] if line[REASON]
         pattern['%c'] = line[CHANNEL]
         if user = @users[line[PRESENCE]] and user.hostname
             pattern['%h'] = user.hostname
@@ -295,7 +295,7 @@ class Buffer
     def buffer_notice(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('notice')
-        pattern['%m'] = line['msg']
+        pattern['%m'] = line[MSG]
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end

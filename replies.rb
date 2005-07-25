@@ -1,6 +1,6 @@
 class Reply
-	attr_reader :complete, :lines, :name, :command, :origcommand, :error, :network, :channel, :start
-    attr_writer :network, :channel
+	attr_reader :complete, :lines, :name, :command, :origcommand, :error, :network, :channel, :start, :retries
+    attr_writer :network, :channel, :retries
 	def initialize(name, command)
         @start = Time.new
 		@name = name
@@ -12,6 +12,7 @@ class Reply
 		parsecommand(command)
         @network = nil
         @channel = nil
+        @retries = 0
 	end
 	
 	#get the info of the original command

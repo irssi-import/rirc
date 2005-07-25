@@ -4,7 +4,7 @@ module ReplyParser
     
         if reply.error
             reply.lines.each do |line|
-                if line['reply_status'] == '-'
+                if line[REPLY_STATUS] == '-'
                     handle_error(line, reply)
                 end
             end
@@ -36,16 +36,16 @@ module ReplyParser
 				#return
 			#end
             
-            if line['network'] and line['mypresence']
-                if !@serverlist[line['network'], line['mypresence']]
+            if line[NETWORK] and line[MYPRESENCE]
+                if !@serverlist[line[NETWORK], line[MYPRESENCE]]
                 else
-                    network = @serverlist[line['network'], line['mypresence']]
+                    network = @serverlist[line[NETWORK], line[MYPRESENCE]]
                 end
                 
-                if line['channel'] and @serverlist[line['network'], line['mypresence']]
-                    if !@serverlist[line['network'], line['mypresence']][line['channel']]
+                if line[CHANNEL] and @serverlist[line[NETWORK], line[MYPRESENCE]]
+                    if !@serverlist[line[NETWORK], line[MYPRESENCE]][line[CHANNEL]]
                     else
-                        channel = @serverlist[line['network'], line['mypresence']][line['channel']]
+                        channel = @serverlist[line[NETWORK], line[MYPRESENCE]][line[CHANNEL]]
                     end
                 end
             end
@@ -90,12 +90,12 @@ module ReplyParser
     
     #list the connected presences
     def reply_presence_list(line, network, channel, reply)
-        if line['network'] and line['mypresence']
-            unless network = @serverlist[line['network'], line['mypresence']]
-                network = @serverlist.add(line['network'], line['mypresence'])
+        if line[NETWORK] and line[MYPRESENCE]
+            unless network = @serverlist[line[NETWORK], line[MYPRESENCE]]
+                network = @serverlist.add(line[NETWORK], line[MYPRESENCE])
             end
-            #network = createnetworkifnot(line['network'], line['presence'])
-            network.set_username(line['presence'] ) if line['presence']
+            #network = createnetworkifnot(line[NETWORK], line[PRESENCE])
+            network.set_username(line[PRESENCE] ) if line[PRESENCE]
             if line['connected']
                 network.connect
                 network.loggedin = true
@@ -103,61 +103,61 @@ module ReplyParser
                 switchchannel(network)
             end
         end
-        if line['reply_status'] == '+'
+        if line[REPLY_STATUS] == '+'
                 send_command('channels', "channel list")
         end
     end
     
     def reply_network_list(line, network, channel, reply)
-        if line['network'] and !@networks.include?(line['network'])
-            @networks.push(line['network'])
-        elsif line['reply_status'] == '+'
+        if line[NETWORK] and !@networks.include?(line[NETWORK])
+            @networks.push(line[NETWORK])
+        elsif line[REPLY_STATUS] == '+'
             send_command('presences', 'presence list')
         end
     end
     
     #list the connected channels
     def reply_channel_list(line, network, channel, reply)
-        if line['network'] and line['mypresence'] and line['channel']
-            if !@serverlist[line['network'], line['mypresence']]
-                puts 'network does not exist '+line['network']+', '+line['mypresence']
+        if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL]
+            if !@serverlist[line[NETWORK], line[MYPRESENCE]]
+                puts 'network does not exist '+line[NETWORK]+', '+line[MYPRESENCE]
             else
-                unless channel = @serverlist[line['network'], line['mypresence']][line['channel']]
-                    channel = @serverlist[line['network'], line['mypresence']].add(line['channel'])
+                unless channel = @serverlist[line[NETWORK], line[MYPRESENCE]][line[CHANNEL]]
+                    channel = @serverlist[line[NETWORK], line[MYPRESENCE]].add(line[CHANNEL])
                 end
                 
                 if line['joined'] and channel
-                    if line['topic']
-                        channel.topic = line['topic']
+                    if line[TOPIC]
+                        channel.topic = line[TOPIC]
                     end
                     channel.connect
                     switchchannel(channel)
                 end
             end
         
-        elsif line['reply_status'] == '+'
+        elsif line[REPLY_STATUS] == '+'
             syncchannels unless @syncchannels
         end
         
     end
     
     #~ def reply_channel_init(line, network, channel, reply)
-        #~ if line['network'] and line['presence'] and line['channel']
-            #~ send_command('join', 'channel join;network='+line['network']+';presence='+line['presence']+';channel='+line['channel'])
+        #~ if line[NETWORK] and line[PRESENCE] and line[CHANNEL]
+            #~ send_command('join', 'channel join;network='+line[NETWORK]+';presence='+line[PRESENCE]+';channel='+line[CHANNEL])
         #~ end
     #~ end
     
     #list of users on the channel
     def reply_channel_names(line, network, channel, reply)
-        if line['network'] and line['mypresence'] and line['channel'] and line['presence']
-            network.users.create(line['presence'])
-            chuser = channel.users.add(network.users[line['presence']])
+        if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL] and line[PRESENCE]
+            network.users.create(line[PRESENCE])
+            chuser = channel.users.add(network.users[line[PRESENCE]])
             #channel.adduser(line['name'], true)
             if line['mode']
                 chuser.add_mode(line['mode'])
                 #puts 'set '+chuser.name+'\'s status to '+line['status']
             end
-        elsif line['reply_status'] == '+'
+        elsif line[REPLY_STATUS] == '+'
             @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].drawusers
             @window.updateusercount
             @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].usersync = true
@@ -168,45 +168,45 @@ module ReplyParser
     def reply_event_get(line, network, channel, reply)
         reply.network ||= network if network
         reply.channel ||= channel if channel
-        if line['event'] == 'msg'
-            if line['address'] and network.users[line['presence']] and network.users[line['presence']].hostname == 'hostname'
-                network.users[line['presence']].hostname = line['address']
+        if line[EVENT] == 'msg'
+            if line[ADDRESS] and network.users[line[PRESENCE]] and network.users[line[PRESENCE]].hostname == 'hostname'
+                network.users[line[PRESENCE]].hostname = line[ADDRESS]
             end
                 
-            if line['own']
+            if line[OWN]
 		#I don't know why I did this, but I'm fixing something else ATM so 'll come back to it
-                line['presence'] = network.username #line['mypresence']
+                line[PRESENCE] = network.username #line[MYPRESENCE]
                 channel.send_event(line, EVENT_USERMESSAGE, BUFFER_START)
             else
                 channel.send_event(line, EVENT_MESSAGE, BUFFER_START)
             end
             
-        elsif line['event'] == 'channel_changed'
-            #~ if line['topic'] and line['topic_set_by']
-                #~ pattern = "Topic set to %6"+line['topic']+ "%6 by %6"+line['topic_set_by']+'%6'
-            #~ elsif line['topic']
-                #~ pattern ="Topic for %6"+line['channel']+ "%6 is %6"+line['topic']+'%6'
+        elsif line[EVENT] == 'channel_changed'
+            #~ if line[TOPIC] and line['topic_set_by']
+                #~ pattern = "Topic set to %6"+line[TOPIC]+ "%6 by %6"+line['topic_set_by']+'%6'
+            #~ elsif line[TOPIC]
+                #~ pattern ="Topic for %6"+line[CHANNEL]+ "%6 is %6"+line[TOPIC]+'%6'
             #~ elsif line['topic_set_by']
-                #~ pattern = "Topic for %6"+line['channel']+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
+                #~ pattern = "Topic for %6"+line[CHANNEL]+ "%6 set by %6"+line['topic_set_by']+'%6 at %6'+line['topic_timestamp']+'%6'
             #~ end
             #~ line['msg'] = pattern
-            if line['topic'] and line['init']
+            if line[TOPIC] and line['init']
                 #puts 'initial topic', line['id']
                 #send the topic stuff as 2 lines
-                channel.topic = line['topic']
+                channel.topic = line[TOPIC]
                 line['line'] = 2
                 channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 line['line'] = 1
                 channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 @window.updatetopic
-            elsif line['topic']
-                channel.topic = line['topic']
+            elsif line[TOPIC]
+                channel.topic = line[TOPIC]
                 channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 @window.updatetopic
             end
-            #~ if line['topic'] or line['topic_set_by']
+            #~ if line[TOPIC] or line['topic_set_by']
                 #~ channel.send_event(line, TOPIC, BUFFER_START)
-                #~ channel.topic = line['topic'] if line['topic']
+                #~ channel.topic = line[TOPIC] if line[TOPIC]
                 #~ @window.updatetopic
             #~ end
             
@@ -214,33 +214,33 @@ module ReplyParser
                 #~ channel.send_event(line, NOTICE, BUFFER_START)
             #~ end
             
-        elsif line['event'] == 'channel_presence_removed'
+        elsif line[EVENT] == 'channel_presence_removed'
             return if line['deinit']
             
-            if line['presence'] == network.username
+            if line[PRESENCE] == network.username
                 channel.send_event(line, EVENT_USERPART, BUFFER_START)
             else
                 channel.send_event(line, EVENT_PART, BUFFER_START)
             end
         
-        elsif line['event'] == 'channel_part'
+        elsif line[EVENT] == 'channel_part'
             channel.send_event(line, EVENT_USERPART, BUFFER_START)
             #channel.disconnect
             
-        elsif line['event'] == 'channel_join'
+        elsif line[EVENT] == 'channel_join'
             #channel.reconnect
             channel.send_event(line, EVENT_USERJOIN, BUFFER_START)
             
-        elsif line['event'] == 'channel_presence_added'
+        elsif line[EVENT] == 'channel_presence_added'
             return if line['init']
             
-            if line['presence'] == network.username
+            if line[PRESENCE] == network.username
                 channel.send_event(line, EVENT_USERJOIN, BUFFER_START)
             else
                 channel.send_event(line, EVENT_JOIN, BUFFER_START)
             end
             
-        #~ elsif line['event'] == 'irc_ctcp'
+        #~ elsif line[EVENT] == 'irc_ctcp'
             #~ puts 'CTCP', line['original']
         
             #~ if line['name'] == 'action' and line['args']
@@ -248,7 +248,7 @@ module ReplyParser
                 #~ channel.send_event(line, CTCP, BUFFER_START)
             #~ end
             
-        elsif line['reply_status'] == '+'
+        elsif line[REPLY_STATUS] == '+'
             #event.command
             reply.channel.eventsync = true if reply.channel
             #Thread.new{syncchannels}
@@ -261,10 +261,10 @@ module ReplyParser
 		
 		reply.lines.each do |line|
 		
-			if line['address'] and line['real_name']
-				msg = '('+line['address']+') : '+line['real_name']
-			elsif line['address']
-				address = line['address']
+			if line[ADDRESS] and line['real_name']
+				msg = '('+line[ADDRESS]+') : '+line['real_name']
+			elsif line[ADDRESS]
+				address = line[ADDRESS]
 				next
 			elsif line['real_name'] and address
 				msg = address+' : '+line['real_name']
@@ -272,25 +272,25 @@ module ReplyParser
 				msg = line['server_address']+' : '+line['server_name']
 			elsif line['idle'] and line['login_time']
 				idletime = duration(line['idle'].to_i)
-				logintime = duration(Time.at(line['time'].to_i) - Time.at(line['login_time'].to_i))
+				logintime = duration(Time.at(line[TIME].to_i) - Time.at(line['login_time'].to_i))
 				msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
 			elsif line['channels']
 				msg = line['channels']
 			elsif line['extra']
 				msg = line['extra']
-			elsif line['reply_status'] == '+'
+			elsif line[REPLY_STATUS] == '+'
 				msg = 'End of /whois'
-				line['presence'] = reply.command['presence']
+				line[PRESENCE] = reply.command['presence']
 			else
 				next
 			end
 			
 			pattern = $config['whois'].deep_clone
 			pattern['%m'] = msg if msg
-			pattern['%n'] = line['presence'] if line['presence']
+			pattern['%n'] = line[PRESENCE] if line[PRESENCE]
 			line['msg'] = pattern
 			network.send_event(line, EVENT_NOTICE)
-			time = line['time']
+			time = line[TIME]
 		end
 	end
 

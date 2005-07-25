@@ -1,6 +1,7 @@
 2005-07-25 18:15 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed hex color code padding, had an infinite loop bug.
+    Also fixed /nick command
 
 2005-07-25 17:07 - Andrew Thompson <vagabond@cataclysm-software.net>
 
