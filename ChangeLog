@@ -1,3 +1,9 @@
+2005-07-25 17:07 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Reaper optimizations
+    fixes to xml escaping
+    Work to making more use of constants
+
 2005-07-25 01:04 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Experimental XML rich text parser...

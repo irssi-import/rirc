@@ -1,25 +1,3 @@
-#define some status constants
-INACTIVE = 0
-NEWDATA = 1
-NEWMSG = 2
-HIGHLIGHT = 3
-ACTIVE = 0
-
-BUFFER_START = 0
-BUFFER_END = 1
-
-MESSAGE = 0
-USERMESSAGE = 1
-JOIN = 2
-USERJOIN = 3
-PART = 4
-USERPART = 5
-ERROR = 6
-NOTICE = 7
-TOPIC = 8
-MODECHANGE = 9
-CTCP = 10
-
 class Buffer
 	attr_reader :oldendmark, :currentcommand, :buffer, :button
 	attr_writer :currentcommand
@@ -178,7 +156,7 @@ class Buffer
 		@oldlineend = @buffer.end_iter
 		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, false)
         
-        cmd = 'buffer_'+@modes[type]
+        cmd = 'buffer_'+type
         if self.respond_to?(cmd)
             #puts cmd
             res = callback(cmd, line, pattern, users, insert_location)
@@ -209,10 +187,11 @@ class Buffer
     
     def buffer_message(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
-        if line['type'] == 'action' and line['presence']
+        if line['type'] == 'action' and line[PRESENCE]
             pattern += $config.get_pattern('action')
-            pattern['%u'] = line['presence']
+            pattern['%u'] = line[PRESENCE]
             if line['msg-xhtml']
+                pattern = $main.escape_xml(pattern)
                 pattern['%m'] = line['msg-xhtml']
             elsif line['msg']
                 pattern['%m'] = line['msg']
@@ -220,11 +199,12 @@ class Buffer
             end
         else
             pattern += $config.get_pattern('message')
-            if line['presence']
-                pattern['%u'] = line['presence']
-                users.push(line['presence'])
+            if line[PRESENCE]
+                pattern['%u'] = line[PRESENCE]
+                users.push(line[PRESENCE])
             end
             if line['msg-xhtml']
+                pattern = $main.escape_xml(pattern)
                 pattern['%m'] = line['msg-xhtml']
             elsif line['msg']
                 pattern['%m'] = line['msg']
@@ -236,10 +216,10 @@ class Buffer
     
     #~ def buffer_ctcp(line, pattern, users, insert_location)
         #~ puts 'ctcp line'
-        #~ if line['name'] == 'action' and line['presence']
+        #~ if line['name'] == 'action' and line[PRESENCE]
             #~ puts 'an action'
             #~ pattern += $config.get_pattern('action')
-            #~ pattern['%u'] = line['presence']
+            #~ pattern['%u'] = line[PRESENCE]
             #~ pattern['%m'] = line['args'] if line['args']
         #~ end
         #~ return [pattern, users, insert_location]
@@ -260,13 +240,13 @@ class Buffer
     def buffer_join(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('join')
-        pattern['%u'] = line['presence']
-        users.push(line['presence'])
-        pattern['%c'] = line['channel']
-        if user = @users[line['presence']] and user.hostname
+        pattern['%u'] = line[PRESENCE]
+        users.push(line[PRESENCE])
+        pattern['%c'] = line[CHANNEL]
+        if user = @users[line[PRESENCE]] and user.hostname
             pattern['%h'] = user.hostname
-        elsif line['address']
-            pattern['%h'] = line['address']
+        elsif line[ADDRESS]
+            pattern['%h'] = line[ADDRESS]
         end
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
@@ -275,7 +255,7 @@ class Buffer
     def buffer_userjoin(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('userjoin')
-        pattern['%c'] = line['channel']
+        pattern['%c'] = line[CHANNEL]
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
@@ -283,14 +263,14 @@ class Buffer
     def buffer_part(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('part')
-        pattern['%u'] = line['presence']
-        users.push(line['presence'])
+        pattern['%u'] = line[PRESENCE]
+        users.push(line[PRESENCE])
         pattern['%r'] = line['reason'] if line['reason']
-        pattern['%c'] = line['channel']
-        if user = @users[line['presence']] and user.hostname
+        pattern['%c'] = line[CHANNEL]
+        if user = @users[line[PRESENCE]] and user.hostname
             pattern['%h'] = user.hostname
-        elsif line['address']
-            pattern['%h'] = line['address']
+        elsif line[ADDRESS]
+            pattern['%h'] = line[ADDRESS]
         end
         pattern = $main.escape_xml(pattern)
        return [pattern, users, insert_location]
@@ -299,7 +279,7 @@ class Buffer
     def buffer_userpart(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('userpart')
-        pattern['%c'] = line['channel']
+        pattern['%c'] = line[CHANNEL]
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
@@ -307,7 +287,7 @@ class Buffer
     def buffer_error(line, pattern, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('error')
-        pattern['%m'] = line['err']
+        pattern['%m'] = line[ERR]
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
@@ -324,38 +304,38 @@ class Buffer
         setstatus(NEWDATA) if insert_location == BUFFER_END
         if line['init'] and line['line'] == 2
             pattern += $config.get_pattern('topic_setby')
-            pattern['%c'] = line['channel']
-            pattern['%u'] = line['topic_set_by']
-            pattern['%a'] = Time.at(line['topic_timestamp'].to_i).strftime('%c')
-            users.push(line['topic_set_by'])
+            pattern['%c'] = line[CHANNEL]
+            pattern['%u'] = line[TOPIC_SET_BY]
+            pattern['%a'] = Time.at(line[TOPIC_TIMESTAMP].to_i).strftime('%c')
+            users.push(line[TOPIC_SET_BY])
         elsif line['init'] and line['line'] == 1
             pattern += $config.get_pattern('topic')
-            pattern['%c'] = line['channel']
-            pattern['%t'] = line['topic']
-        elsif line['topic']
+            pattern['%c'] = line[CHANNEL]
+            pattern['%t'] = line[TOPIC]
+        elsif line[TOPIC]
             pattern += $config.get_pattern('topic_change')
-            pattern['%t'] = line['topic']
-            pattern['%u'] = line['topic_set_by']
-            users.push(line['topic_set_by'])
+            pattern['%t'] = line[TOPIC]
+            pattern['%u'] = line[TOPIC_SET_BY]
+            users.push(line[TOPIC_SET_BY])
         end
         pattern = $main.escape_xml(pattern)
        return [pattern, users, insert_location]
     end
     
     def buffer_modechange(line, pattern, users, insert_location)
-        if line['add']
+        if line[ADD]
             pattern += $config.get_pattern('add_mode')
-	    pattern['%m'] = line['add']
-        elsif line['remove']
+	    pattern['%m'] = line[ADD]
+        elsif line[REMOVE]
             pattern += $config.get_pattern('remove_mode')
-	    pattern['%m'] = line['remove']
+	    pattern['%m'] = line[REMOVE]
         else
             return
         end
-        pattern['%s'] = line['source_presence'] if line['source_presence']
+        pattern['%s'] = line[SOURCE_PRESENCE] if line[SOURCE_PRESENCE]
         #pattern['%m'] = line['mode']
-        pattern['%u'] = line['presence']
-        users.push(line['source_presence'], line['presence'])
+        pattern['%u'] = line[PRESENCE]
+        users.push(line[SOURCE_PRESENCE], line[PRESENCE])
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
@@ -505,7 +485,7 @@ class Buffer
     end
     
     def parse_xml(istring)
-        puts istring if istring.include?('>')
+        #puts istring if istring.include?('>')
         doc = REXML::Document.new('<msg>'+istring+'</msg>')
         string = ''
         tags = {}
@@ -517,8 +497,8 @@ class Buffer
                 if x.attributes['style']
                     offset = 0
                     re = Regexp.new('((%\d).+?\2)')
-                    string.scan(re){|z| puts $2; offset += ($2.length)*2}
-                    puts offset
+                    string.scan(re){|z| offset += ($2.length)*2}
+                   # puts offset
                     start = string.length-offset
                     stop = x.text.length+start
                     string += x.text

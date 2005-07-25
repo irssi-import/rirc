@@ -26,7 +26,7 @@ module ReplyParser
 			if reply.name == 'raw'
 				output = {}
 				output['msg'] =  line['original']
-				@serverlist.send_event(output, NOTICE)
+				@serverlist.send_event(output, EVENT_NOTICE)
 				next
 			end
 			
@@ -176,9 +176,9 @@ module ReplyParser
             if line['own']
 		#I don't know why I did this, but I'm fixing something else ATM so 'll come back to it
                 line['presence'] = network.username #line['mypresence']
-                channel.send_event(line, USERMESSAGE, BUFFER_START)
+                channel.send_event(line, EVENT_USERMESSAGE, BUFFER_START)
             else
-                channel.send_event(line, MESSAGE, BUFFER_START)
+                channel.send_event(line, EVENT_MESSAGE, BUFFER_START)
             end
             
         elsif line['event'] == 'channel_changed'
@@ -195,13 +195,13 @@ module ReplyParser
                 #send the topic stuff as 2 lines
                 channel.topic = line['topic']
                 line['line'] = 2
-                channel.send_event(line, TOPIC, BUFFER_START)
+                channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 line['line'] = 1
-                channel.send_event(line, TOPIC, BUFFER_START)
+                channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 @window.updatetopic
             elsif line['topic']
                 channel.topic = line['topic']
-                channel.send_event(line, TOPIC, BUFFER_START)
+                channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 @window.updatetopic
             end
             #~ if line['topic'] or line['topic_set_by']
@@ -218,26 +218,26 @@ module ReplyParser
             return if line['deinit']
             
             if line['presence'] == network.username
-                channel.send_event(line, USERPART, BUFFER_START)
+                channel.send_event(line, EVENT_USERPART, BUFFER_START)
             else
-                channel.send_event(line, PART, BUFFER_START)
+                channel.send_event(line, EVENT_PART, BUFFER_START)
             end
         
         elsif line['event'] == 'channel_part'
-            channel.send_event(line, USERPART, BUFFER_START)
+            channel.send_event(line, EVENT_USERPART, BUFFER_START)
             #channel.disconnect
             
         elsif line['event'] == 'channel_join'
             #channel.reconnect
-            channel.send_event(line, USERJOIN, BUFFER_START)
+            channel.send_event(line, EVENT_USERJOIN, BUFFER_START)
             
         elsif line['event'] == 'channel_presence_added'
             return if line['init']
             
             if line['presence'] == network.username
-                channel.send_event(line, USERJOIN, BUFFER_START)
+                channel.send_event(line, EVENT_USERJOIN, BUFFER_START)
             else
-                channel.send_event(line, JOIN, BUFFER_START)
+                channel.send_event(line, EVENT_JOIN, BUFFER_START)
             end
             
         #~ elsif line['event'] == 'irc_ctcp'
@@ -289,7 +289,7 @@ module ReplyParser
 			pattern['%m'] = msg if msg
 			pattern['%n'] = line['presence'] if line['presence']
 			line['msg'] = pattern
-			network.send_event(line, NOTICE)
+			network.send_event(line, EVENT_NOTICE)
 			time = line['time']
 		end
 	end

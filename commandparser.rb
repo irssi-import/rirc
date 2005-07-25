@@ -56,7 +56,7 @@ module CommandParser
                 line = {}
                 line['presence'] = presence
                 line['msg'] = message
-                @window.currentbuffer.send_user_event(line, USERMESSAGE)
+                @window.currentbuffer.send_user_event(line, EVENT_USERMESSAGE)
             end
         elsif !network
             #line = {}
@@ -302,7 +302,7 @@ module CommandParser
         
         lines.each do |line|
             event = {'msg' => line}
-            @window.currentbuffer.send_user_event(event, NOTICE)
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
     end
     
@@ -322,7 +322,7 @@ module CommandParser
         
         lines.each do |line|
             event = {'msg' => line}
-            @window.currentbuffer.send_user_event(event, NOTICE)
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
         
         #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
@@ -345,7 +345,7 @@ module CommandParser
         
         lines.each do |line|
             event = {'msg' => line}
-            @window.currentbuffer.send_user_event(event, NOTICE)
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
     end
     
@@ -387,7 +387,7 @@ module CommandParser
         
         lines.each do |line|
             event = {'msg' => line}
-            @window.currentbuffer.send_user_event(event, NOTICE)
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
     end
     
@@ -399,7 +399,7 @@ module CommandParser
         
         count.times do |i|
             event = {'msg' => 'This is testing spam'}
-            @window.currentbuffer.send_user_event(event, NOTICE)
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
     end
     
@@ -427,7 +427,7 @@ module CommandParser
         lines = helptext.split("\n")
         lines.each do |line|
             temp = {'msg' => line}
-            @serverlist.send_user_event(temp, NOTICE)
+            @serverlist.send_user_event(temp, EVENT_NOTICE)
         end
     end
         

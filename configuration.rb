@@ -171,7 +171,7 @@ class Configuration
 		
     def get_pattern(name)
         if @values[name].class == String
-            return $main.escape_xml(@values[name])
+            return @values[name] #don't escape_xml here
         else
             return ''
         end

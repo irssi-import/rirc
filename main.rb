@@ -73,6 +73,7 @@ end
 
 
 #load all my home rolled ruby files here
+require 'constants'
 require 'configuration'
 require 'plugins'
 require 'commandparser'
@@ -137,9 +138,15 @@ class Main
                         @replies.delete(key)
                         reply_parse(reply)
                     elsif (Time.new - reply.start).to_i > 10
-                        puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
-                        @replies.delete(key)
-                        send_command(key, reply.origcommand)
+                        if reply.retries < 2
+                            puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
+                            @replies.delete(key)
+                            send_command(key, reply.origcommand)
+                            @replies[key].replies = reply.retries+1
+                        else
+                            puts 'REAPING - reply '+reply.name+' has been retried twice, deleting'
+                            @replies.delete(key)
+                        end
                     end
                 end
             end
@@ -171,12 +178,11 @@ class Main
 	end
     
     def escape_xml(string)
-        #puts string
-        s = string.gsub('<', '&lt;').gsub('>', '&gt;')
-        #puts s
+        s = string.gsub('&', '&amp;')
+        s = s.gsub('<', '&lt;').gsub('>', '&gt;')
         return s
     end
-	
+    
     def syncchannels
         @syncchannels = true
         Thread.new do

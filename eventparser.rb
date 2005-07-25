@@ -2,16 +2,16 @@ module EventParser
     #handle normal output from irssi2
 	def event_parse(event)
 		#trap for events that refer to a channel that does not exist
-		if event['network'] and event['mypresence']
-			if !@serverlist[event['network'], event['mypresence']]
+		if event[NETWORK] and event[MYPRESENCE]
+			if !@serverlist[event[NETWORK], event[MYPRESENCE]]
 			else
-				network = @serverlist[event['network'], event['mypresence']]
+				network = @serverlist[event[NETWORK], event[MYPRESENCE]]
 			end
 			
-			if event['channel'] and network
-				if !network[event['channel']]
+			if event[CHANNEL] and network
+				if !network[event[CHANNEL]]
 				else
-					channel = @serverlist[event['network'], event['mypresence']][event['channel']]
+					channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]]
 				end
 			end
         end
@@ -30,35 +30,35 @@ module EventParser
     #connecting to a server
     def event_gateway_connecting(event, network, channel)
         #return unless network
-        if !@serverlist[event['network'], event['mypresence']]
-            network = @serverlist.add(event['network'], event['mypresence'])
+        if !@serverlist[event[NETWORK], event[MYPRESENCE]]
+            network = @serverlist.add(event[NETWORK], event[MYPRESENCE])
             network.connect
             @window.redraw_channellist
             switchchannel(network)
-        elsif @serverlist[event['network'], event['mypresence']].connected.nil?
-            network = @serverlist[event['network'], event['mypresence']]
+        elsif @serverlist[event[NETWORK], event[MYPRESENCE]].connected.nil?
+            network = @serverlist[event[NETWORK], event[MYPRESENCE]]
             network.connect
             @window.redraw_channellist
             switchchannel(network)
-        elsif !@serverlist[event['network'], event['mypresence']].connected
-            puts 'network '+event['network']+' exists but is not connected, reconnecting'
-            network = @serverlist[event['network'], event['mypresence']]
+        elsif !@serverlist[event[NETWORK], event[MYPRESENCE]].connected
+            puts 'network '+event[NETWORK]+' exists but is not connected, reconnecting'
+            network = @serverlist[event[NETWORK], event[MYPRESENCE]]
             network.reconnect
         else
             puts 'request to create already existing network, ignoring'
             return
         end
         msg = "Connecting to "+event['ip']
-        msg += ":"+event['port'] if event['port']
+        msg += ":"+event[PORT] if event[PORT]
         event['msg'] = msg
-        network.send_event(event, NOTICE)
+        network.send_event(event, EVENT_NOTICE)
     end
     
     #disconnected from a network
     def event_gateway_disconnected(event, network, channel)
         if network
             line = {'msg' => 'Disconnected from '+network.name}
-            network.send_user_event(line, NOTICE)
+            network.send_user_event(line, EVENT_NOTICE)
             network.chats.each {|chat| chat.disconnect}
             network.disconnect
         end
@@ -77,20 +77,20 @@ module EventParser
     end
     
     def event_network_init(event, network, channel)
-        throw_message('Added '+event['protocol']+' server '+event['network'])
+        throw_message('Added '+event['protocol']+' server '+event[NETWORK])
     end
     
     #joined a channel
     def event_channel_init(event, network, channel )
         return unless network
-        if !@serverlist[event['network'], event['mypresence']]
+        if !@serverlist[event[NETWORK], event[MYPRESENCE]]
             puts 'Error, non existant channel init event caught for non existant network, ignoring'
             return
-        elsif @serverlist[event['network'], event['mypresence']][event['channel']]
+        elsif @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]]
             puts 'request to create already existing channel, ignoring'
             return
         else
-            channel = @serverlist[event['network'], event['mypresence']].add(event['channel'])
+            channel = @serverlist[event[NETWORK], event[MYPRESENCE]].add(event[CHANNEL])
             channel.usersync = channel.eventsync = true
             #send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(presence='+network.presence+')(!(event=client_command_reply))')
         end
@@ -99,17 +99,17 @@ module EventParser
     def event_channel_join(event, network, channel)
         puts 'channel join'
         #return unless network
-        #puts 'trying to join '+event['channel']
-        if !@serverlist[event['network'], event['mypresence']]
+        #puts 'trying to join '+event[CHANNEL]
+        if !@serverlist[event[NETWORK], event[MYPRESENCE]]
             puts 'Error, non existant channel init event caught for non existant network, ignoring'
             return
-        elsif channel = @serverlist[event['network'], event['mypresence']][event['channel']] and channel.connected.nil?
-           # puts 'connecting '+event['channel']
+        elsif channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]] and channel.connected.nil?
+           # puts 'connecting '+event[CHANNEL]
             channel.connect
             #@window.redraw_channellist
             switchchannel(channel)
             send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(mypresence='+network.presence+')(!(event=client_command_reply))')
-        elsif channel = @serverlist[event['network'], event['mypresence']][event['channel']] and !channel.connected
+        elsif channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]] and !channel.connected
             puts 'channel exists, but is not connected, reconnecting'
             channel.reconnect
         else
@@ -120,30 +120,30 @@ module EventParser
     #notice from the server
     def event_notice(event, network, channel)
         return unless network
-        network.send_event(event, NOTICE)
+        network.send_event(event, EVENT_NOTICE)
     end
     
     #you left the channel
     def event_channel_presence_removed(event, network, channel)
         return unless channel
-        if ! event['deinit']
-            if event['presence'] == network.username
-                channel.send_event(event, USERPART)
+        if ! event[DEINIT]
+            if event[PRESENCE] == network.username
+                channel.send_event(event, EVENT_USERPART)
             else
-                channel.send_event(event, PART)
+                channel.send_event(event, EVENT_PART)
             end
-            channel.users.remove(event['presence'])
+            channel.users.remove(event[PRESENCE])
             @window.updateusercount
             channel.drawusers
         else
-            channel.users.remove(event['presence'])
+            channel.users.remove(event[PRESENCE])
         end
     end
     
     #you left the channel
     def event_channel_part(event, network, channel)
         return unless channel
-        channel.send_event(event, USERPART)
+        channel.send_event(event, EVENT_USERPART)
         channel.disconnect
         channel.clearusers
         @serverlist.renumber
@@ -152,30 +152,30 @@ module EventParser
     #another user joined the channel
     def event_channel_presence_added(event, network, channel)
         return unless channel
-        if user = network.users[event['presence']]
-            if !event['init']
+        if user = network.users[event[PRESENCE]]
+            if !event[INIT]
                 chuser = channel.users.add(user)
                 channel.drawusers
                 #channel.adduser(event['name'], false)
-                if event['presence'] == network.username
-                    channel.send_event(event, USERJOIN)
+                if event[PRESENCE] == network.username
+                    channel.send_event(event, EVENT_USERJOIN)
                 else
-                    channel.send_event(event, JOIN)
+                    channel.send_event(event, EVENT_JOIN)
                     @window.updateusercount
                 end
             else
                 chuser = channel.users.add(user)
                 #channel.adduser(event['name'], true)
             end
-            if event['status']
-                chuser.add_mode(event['status'])
-                puts 'set '+chuser.name+'\'s status to '+event['status']
-                #~ if !event['init']
+            if event[STATUS]
+                chuser.add_mode(event[STATUS])
+                puts 'set '+chuser.name+'\'s status to '+event[STATUS]
+                #~ if !event[INIT]
                     #~ channel.drawusers
                 #~ end
             end
         else
-            puts 'unknown user '+event['presence']
+            puts 'unknown user '+event[PRESENCE]
         end
     end
     
@@ -183,19 +183,19 @@ module EventParser
     def event_presence_changed(event, network, channel)
 	#why is this not in buffers.rb with all the other events like this?
         return unless network
-        if event['new_name']
+        if event[NEW_NAME]
         
-            if event['presence'] == network.username
-                network.set_username(event['new_name'])
+            if event[PRESENCE] == network.username
+                network.set_username(event[NEW_NAME])
                 @window.get_username
                 @window.show_username
             end
             pattern = $config['notice'].deep_clone
             
-            user = network.users[event['presence']]
+            user = network.users[event[PRESENCE]]
             
             if user
-                user.rename(event['new_name'])
+                user.rename(event[NEW_NAME])
                 network.channels.each do |channel|
                     if channel.users[user.name]
                         #remove the user and readd him before the redraw
@@ -206,34 +206,35 @@ module EventParser
                 end
             end
             
-            if event['new_name'] == network.username
-                pattern = 'You are now known as '+event['new_name']
-            elsif event['presence'] != event['new_name']
-                pattern= event['presence']+' is now known as '+event['new_name']
+            #more stuff to make patterns
+            if event[NEW_NAME] == network.username
+                pattern = 'You are now known as '+event[NEW_NAME]
+            elsif event[PRESENCE] != event[NEW_NAME]
+                pattern= event[PRESENCE]+' is now known as '+event[NEW_NAME]
             else
                 pattern = nil
             end
             
-            event['msg'] = pattern
+            event[MSG] = pattern
             
             if pattern
                 network.channels.each{ |c|
-                    if c.users[event['new_name']]
+                    if c.users[event[NEW_NAME]]
                         c.drawusers
-                        c.send_event(event, NOTICE)
+                        c.send_event(event, EVENT_NOTICE)
                     end
                 }
             end
             
-            if event['presence'] and chat = network.has_chat?(event['presence'])
-                chat.rename(event['new_name'])
+            if event[PRESENCE] and chat = network.has_chat?(event[PRESENCE])
+                chat.rename(event[NEW_NAME])
             end
             
         end
 	
-        if event['address']
-            if user = network.users[event['presence']]
-                user.hostname = event['address']
+        if event[ADDRESS]
+            if user = network.users[event[PRESENCE]]
+                user.hostname = event[ADDRESS]
             end
         end
     end
@@ -241,58 +242,58 @@ module EventParser
     #a user has caught irssi2's attention
     def event_presence_init(event, network, channel)
         return unless network
-        network.users.create(event['presence'], event['address'])
+        network.users.create(event[PRESENCE], event[ADDRESS])
     end
     
     #a user has left irssi2's attention
     def event_presence_deinit(event, network, channel)
         return unless network
-        network.users.remove(event['presence'])
+        network.users.remove(event[PRESENCE])
     end
     
     #a message is recieved
     def event_msg(event, network, channel)
         return unless network
-        if event['presence']
-            user = network.users[event['presence']]
+        if event[PRESENCE]
+            user = network.users[event[PRESENCE]]
             if user
-                user.lastspoke = event['time']
+                user.lastspoke = event[TIME]
                 if !user.hostname
-                    user.hostname = event['address']
+                    user.hostname = event[ADDRESS]
                 end
             end
         end
     
-        if !event['channel'] and event['no-autoreply']
-            if event['presence']
-                network.send_event(event, MESSAGE)
+        if !event[CHANNEL] and event[NO_AUTOREPLYd]
+            if event[PRESENCE]
+                network.send_event(event, EVENT_MESSAGE)
             else
-                network.send_event(event, NOTICE)
+                network.send_event(event, EVENT_NOTICE)
             end
             return
-        elsif !event['channel'] and event['presence']
-            if !network.has_chat?(event['presence'])
-                chat = network.addchat(event['presence'])
+        elsif !event[CHANNEL] and event[PRESENCE]
+            if !network.has_chat?(event[PRESENCE])
+                chat = network.addchat(event[PRESENCE])
                 chat.connect
             else
-                chat = network.has_chat?(event['presence'])
+                chat = network.has_chat?(event[PRESENCE])
                 chat.connect unless chat.connected
             end
-            chat.send_event(event, MESSAGE)
+            chat.send_event(event, EVENT_MESSAGE)
             return
-        elsif !event['channel']
+        elsif !event[CHANNEL]
             return
         end
     
-        if event['address'] and network.users[event['presence']] and network.users[event['presence']].hostname == 'hostname'
-            network.users[event['presence']].hostname = event['address']
+        if event[ADDRESS] and network.users[event[PRESENCE]] and network.users[event[PRESENCE]].hostname == 'hostname'
+            network.users[event[PRESENCE]].hostname = event[ADDRESS]
         end
 
         return unless channel
-        if event['own']
-            channel.send_event(event, USERMESSAGE)
+        if event[OWN]
+            channel.send_event(event, EVENT_USERMESSAGE)
         else
-            channel.send_event(event, MESSAGE)
+            channel.send_event(event, EVENT_MESSAGE)
         end
     end
     
@@ -307,23 +308,23 @@ module EventParser
     #connected to a server
 	def event_gateway_connected(event, network, channel)
         return unless network
-        msg = "Connected to "+event['ip']
-        msg += ":"+event['port'] if event['port']
+        msg = "Connected to "+event[IP]
+        msg += ":"+event[PORT] if event[PORT]
         event['msg'] = msg
-        network.send_event(event, NOTICE)
+        network.send_event(event, EVENT_NOTICE)
     end
     
     #failed to connect to a server
     def event_gateway_connect_failed(event, network, channel)
         return unless network
         if event['ip']
-            err = "Connection to "+event['ip']+':'+event['port']+" failed : "+event['error']
+            err = "Connection to "+event['ip']+':'+event[PORT]+" failed : "+event[ERROR]
             event['err'] = err
         else
-            event['err'] = event['error']
+            event['err'] = event[ERROR]
         end
         
-        network.send_event(event, ERROR)
+        network.send_event(event, EVENT_ERROR)
     end
     
     #the gateway has changed
@@ -334,10 +335,10 @@ module EventParser
     #the gateway has changed
     def event_gateway_changed(event, network, channel)
         return unless network
-        if event['irc_mode']
-            msg = event['mypresence']+" sets mode +"+event['irc_mode']+" "+event['mypresence']
+        if event[IRC_MODE]
+            msg = event[MYPRESENCE]+" sets mode +"+event[IRC_MODE]+" "+event[MYPRESENCE]
             event['msg'] = msg
-            network.send_event(event, NOTICE)
+            network.send_event(event, EVENT_NOTICE)
         end
     end
     
@@ -345,7 +346,7 @@ module EventParser
     def event_gateway_motd(event, network, channel)
         return unless network
         event['msg'] = event['data']
-        network.send_event(event, NOTICE)
+        network.send_event(event, EVENT_NOTICE)
     end
     
     #a channel has changed
@@ -356,28 +357,28 @@ module EventParser
             @window.updateusercount
             channel.drawusers
         end
-        #~ elsif event['topic'] and event['topic_set_by']
-            #~ #pattern = "Topic set to %6"+event['topic']+ "%6 by %6"+event['topic_set_by']+'%6'
-            #~ pattern = "%6"+event['topic_set_by']+'%6 has changed the topic to: %6'+event['topic']+'%6'
-        #~ elsif event['topic']
-            #~ pattern ="Topic for %6"+event['channel']+ "%6 is %6"+event['topic']+'%6'
+        #~ elsif event[TOPIC] and event['topic_set_by']
+            #~ #pattern = "Topic set to %6"+event[TOPIC]+ "%6 by %6"+event['topic_set_by']+'%6'
+            #~ pattern = "%6"+event['topic_set_by']+'%6 has changed the topic to: %6'+event[TOPIC]+'%6'
+        #~ elsif event[TOPIC]
+            #~ pattern ="Topic for %6"+event[CHANNEL]+ "%6 is %6"+event[TOPIC]+'%6'
         #~ elsif event['topic_set_by']
-            #~ pattern = "Topic for %6"+event['channel']+ "%6 set by %6"+event['topic_set_by']+'%6 at %6'+event['topic_timestamp']+'%6'
+            #~ pattern = "Topic for %6"+event[CHANNEL]+ "%6 set by %6"+event['topic_set_by']+'%6 at %6'+event['topic_timestamp']+'%6'
         #~ end
         #~ event['msg'] = pattern
         
-        if event['topic'] and event['init']
+        if event[TOPIC] and event[INIT]
             puts 'initial topic'
             #send the topic stuff as 2 lines
-            channel.topic = event['topic']
+            channel.topic = event[TOPIC]
             event['line'] = 1
-            channel.send_event(event, TOPIC)
+            channel.send_event(event, EVENT_TOPIC)
             event['line'] = 2
-            channel.send_event(event, TOPIC)
+            channel.send_event(event, EVENT_TOPIC)
             @window.updatetopic
-        elsif event['topic']
-            channel.topic = event['topic']
-            channel.send_event(event, TOPIC)
+        elsif event[TOPIC]
+            channel.topic = event[TOPIC]
+            channel.send_event(event, EVENT_TOPIC)
             @window.updatetopic
         end
         
@@ -393,30 +394,30 @@ module EventParser
     end
     
     def event_channel_presence_mode_changed(event, network, channel)
-        if channel and channel.users[event['presence']]
+        if channel and channel.users[event[PRESENCE]]
 		if event['add']
-		    channel.users[event['presence']].add_mode(event['add'])
-		    #puts event['source_presence']+' gave '+event['status']+' to '+event['name']
-		    channel.send_user_event(event, MODECHANGE)
+		    channel.users[event[PRESENCE]].add_mode(event['add'])
+		    #puts event['source_presence']+' gave '+event[STATUS]+' to '+event['name']
+		    channel.send_user_event(event, EVENT_MODECHANGE)
 		elsif event['remove']
-		    channel.users[event['presence']].remove_mode(event['remove'])
-		    #puts event['source_presence']+' removed '+event['status']+' from '+event['name']
-		    channel.send_user_event(event, MODECHANGE)
+		    channel.users[event[PRESENCE]].remove_mode(event['remove'])
+		    #puts event['source_presence']+' removed '+event[STATUS]+' from '+event['name']
+		    channel.send_user_event(event, EVENT_MODECHANGE)
 		end
 		channel.drawusers
 		@window.updateusercount
         else
             if !channel
-                puts 'no such channel as '+event['channel']
-            elsif !channel.users[event['presence']]
-                    puts 'no such user '+event['presence']+' on '+event['channel']
+                puts 'no such channel as '+event[CHANNEL]
+            elsif !channel.users[event[PRESENCE]]
+                    puts 'no such user '+event[PRESENCE]+' on '+event[CHANNEL]
             end
         end
     end
     
     def event_presence_status_changed(event, network, channel)
         return unless network
-        if user = network.users[event['presence']]
+        if user = network.users[event[PRESENCE]]
             user.lastspoke = event['idle_started']
         end
     end
