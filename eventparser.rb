@@ -264,7 +264,7 @@ module EventParser
             end
         end
     
-        if !event[CHANNEL] and event[NO_AUTOREPLYd]
+        if !event[CHANNEL] and event[NO_AUTOREPLY]
             if event[PRESENCE]
                 network.send_event(event, EVENT_MESSAGE)
             else

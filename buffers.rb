@@ -190,9 +190,9 @@ class Buffer
         if line['type'] == 'action' and line[PRESENCE]
             pattern += $config.get_pattern('action')
             pattern['%u'] = line[PRESENCE]
-            if line['msg-xhtml']
+            if line[MSG_XHTML]
                 pattern = $main.escape_xml(pattern)
-                pattern['%m'] = line['msg-xhtml']
+                pattern['%m'] = line[MSG_XHTML]
             elsif line['msg']
                 pattern['%m'] = line['msg']
                 pattern = $main.escape_xml(pattern)
@@ -203,9 +203,9 @@ class Buffer
                 pattern['%u'] = line[PRESENCE]
                 users.push(line[PRESENCE])
             end
-            if line['msg-xhtml']
+            if line[MSG_XHTML]
                 pattern = $main.escape_xml(pattern)
-                pattern['%m'] = line['msg-xhtml']
+                pattern['%m'] = line[MSG_XHTML]
             elsif line['msg']
                 pattern['%m'] = line['msg']
                 pattern = $main.escape_xml(pattern)
@@ -491,6 +491,7 @@ class Buffer
         tags = {}
         x = doc.root[0]
         while x
+            #puts x
             if x.class == REXML::Text
                 string += x.value
             elsif x.class == REXML::Element
