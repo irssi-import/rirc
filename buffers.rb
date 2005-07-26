@@ -451,12 +451,16 @@ class Buffer
                 return 'color_'+value
             end
             
-            while value.length < 7
-                if value.include?('0')
-                    value.sub!('0', '00')
-                else
-                    value += '0'
-                end
+            
+            re = Regexp.new('#[a-fA-F0-9]+')
+            
+            while value =~ re and value.length < 7
+                #if value.include?('0')
+                #    value.sub!('0', '00')
+                #else
+                    #value += '0'
+                #end
+                value['#'] = '#0'
                 #puts 'fixing color '+value
             end
             

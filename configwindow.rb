@@ -166,5 +166,7 @@ class ConfigWindow
 	def destroy
 		@window.destroy
 	end
+    
+    
 	
 end
