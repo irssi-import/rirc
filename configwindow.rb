@@ -55,6 +55,7 @@ class ConfigWindow
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
 				elsif @glade[key].class == Gtk::ComboBox
 					i = 0
+                    match = false
 					#fill the combobox
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
 					next unless @options[key]
@@ -62,10 +63,14 @@ class ConfigWindow
 						@glade[key].append_text(v)
 						if value == v.downcase
 							@glade[key].active = i
+                            match = true
 						end
 						i += 1
 					end
-					#if @glade[key].active == 0
+                    
+					unless match
+                        @glade[key].active == 0
+                    end
 					#	@glade[key].active = 1
 					#end
 				elsif @glade[key].class == Gtk::Button and value.class == Gdk::Color

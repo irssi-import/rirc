@@ -1,3 +1,9 @@
+2005-07-28 21:22 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Reorganized stuff for the upcoming network/presence manager (this probably ADDS bugs)
+    Fixed privmsg buffer
+    Small fixes
+
 2005-07-25 18:15 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed hex code padding so it pads from the correct side

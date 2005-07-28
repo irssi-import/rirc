@@ -93,8 +93,11 @@ module ReplyParser
         if line[NETWORK] and line[MYPRESENCE]
             unless network = @serverlist[line[NETWORK], line[MYPRESENCE]]
                 network = @serverlist.add(line[NETWORK], line[MYPRESENCE])
+                if nw = @networks[line[NETWORK]]
+                    presence = nw.add_presence(line[MYPRESENCE])
+                    presence.autoconnect = true if line[AUTOCONNECT]
+                end
             end
-            #network = createnetworkifnot(line[NETWORK], line[PRESENCE])
             network.set_username(line[PRESENCE] ) if line[PRESENCE]
             if line['connected']
                 network.connect
@@ -109,10 +112,36 @@ module ReplyParser
     end
     
     def reply_network_list(line, network, channel, reply)
-        if line[NETWORK] and !@networks.include?(line[NETWORK])
-            @networks.push(line[NETWORK])
+        if line[NETWORK] and !@networks[line[NETWORK]]
+            #@networks.push(line[NETWORK])
+            @networks.add(line[NETWORK], line[PROTOCOL])
+        elsif line[REPLY_STATUS] == '+'
+            send_command('gateways', 'gateway list')
+            #send_command('presences', 'presence list')
+        end
+    end
+    
+    def reply_gateway_list(line, network, channel, reply)
+        if line[NETWORK] and line[HOST]
+            if @networks[line[NETWORK]]
+                if line[PORT]
+                    network = @networks[line[NETWORK]].add_gateway(line[HOST], line[PORT])
+                else
+                    network = @networks[line[NETWORK]].add_gateway(line[HOST])
+                end
+            else
+                puts 'unknown network '+line[NETWORK]
+            end
         elsif line[REPLY_STATUS] == '+'
             send_command('presences', 'presence list')
+        end
+    end
+    
+    def reply_protocol_list(line, network, channel, reply)
+        if line[PROTOCOL] and !@protocols[line[PROTOCOL]]
+            @protocols.add(line[PROTOCOL], line[CHARSET])
+        elsif line[REPLY_STATUS] == '+'
+            send_command('networks', 'network list')
         end
     end
     

@@ -33,6 +33,9 @@ MODE = 'mode'
 PROTOCOL = 'protocol'
 REAL_NAME = 'real_name'
 EVENT = 'event'
+CHARSET = 'charset'
+HOST = 'host'
+AUTOCONNECT = 'autoconnect'
 
 #define my own parameters
 EVENT_TYPE = 'event_type'

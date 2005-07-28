@@ -280,7 +280,9 @@ module EventParser
                 chat = network.has_chat?(event[PRESENCE])
                 chat.connect unless chat.connected
             end
-            chat.send_event(event, EVENT_MESSAGE)
+            unless event[OWN]
+                chat.send_event(event, EVENT_MESSAGE)
+            end
             return
         elsif !event[CHANNEL]
             return

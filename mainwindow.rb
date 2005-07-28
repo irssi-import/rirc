@@ -131,12 +131,6 @@ class MainWindow
 	def topic_change(widget)
 		#add_message("Topic changed to: "+ widget.text, 'notice')
 	end
-	
-	def handle_input(string)
-		@client.send(string+"\n", 0)
-		@messageinput.text = ""
-		return
-	end
     
     def recalculate_buffer_length
         return unless @messages.realized?

@@ -75,6 +75,7 @@ end
 #load all my home rolled ruby files here
 require 'constants'
 require 'configuration'
+require 'items'
 require 'plugins'
 require 'commandparser'
 require 'eventparser'
@@ -107,8 +108,9 @@ class Main
 		@filedescriptors = {}
 		@keys = {}
 		@drift = 0
-        @networks = []
-        @presences = []
+        @networks = ItemList.new(Network)
+        #@presences = ItemList.new
+        @protocols = ItemList.new(Protocol)
 	end
     
     def test
@@ -241,7 +243,7 @@ class Main
 			@connectionwindow.destroy
 			
 			#if @serverlist.servers.length == 0
-            send_command('networks', 'network list')
+            send_command('protocols', 'protocol list')
 				#send_command('presences', 'presence list')
 			#end
 	end
@@ -264,7 +266,7 @@ class Main
             temp = "gateway add;host="+address+";network="+name
             temp += ";port="+port if port != '' and port
             send_command('addhost', temp)
-            @networks.push(name)
+            @networks.add(name, protocol)
         else
             #line= {'err' => 'Network '+network+' is already defined'}
             #@window.currentbuffer.send_event(line, ERROR)
@@ -273,9 +275,9 @@ class Main
 	end
     
     def network_connect(network, presence)
-        if !@serverlist.get_network_by_name(network)  and !@networks.include?(network)
+        if !@serverlist.get_network_by_name(network)  and !@networks[network]
             throw_error('Undefined network '+network)
-        elsif !@serverlist[network, presence] and !@presences.include?([network, presence])
+        elsif !@serverlist[network, presence] and !@networks[network].presences[presence]
             throw_error('Undefined presence '+presence)
         else
             send_command('connect', "presence connect;network="+network+";mypresence="+presence)
@@ -284,9 +286,9 @@ class Main
     
     def presence_add(network, presence)
         #@networks.each {|network| puts network}
-        if !@serverlist.get_network_by_name(network) and !@networks.include?(network)
+        if !@serverlist.get_network_by_name(network) and !@networks[network]
             throw_error('Undefined network '+network)
-        elsif @serverlist[network, presence] or @presences.include?([network, presence])
+        elsif @serverlist[network, presence] or @networks[network].presences[presence]
             #throw_error('Presence '+presence+' exists')
             return true #non-fatal
         else
@@ -298,7 +300,8 @@ class Main
             
             cmdstring.gsub!("\n", "\\n")
             send_command('addpres', cmdstring)
-            @presences.push([network, presence])
+            #@presences.push([network, presence])
+            @networks[network].add_presence(presence)
             return true
         end
         return false

@@ -49,9 +49,9 @@ module CommandParser
             messages.each do |message|
                 
                 if channel.class == ChannelBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence)
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";mypresence="+presence)
                 elsif channel.class == ChatBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(message)+";presence="+presence)
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(message)+";mypresence="+presence)
                 end
                 line = {}
                 line['presence'] = presence
@@ -296,7 +296,7 @@ module CommandParser
     
     def cmd_networks(*args)
         lines = ['Defined networks:']
-        @networks.each {|network| lines.push(network)}
+        @networks.list.each {|network| lines.push(network.name+' - '+network.protocol)}
         
         lines.push(' ')
         
@@ -306,15 +306,35 @@ module CommandParser
         end
     end
     
-    def cmd_presences(*args)
-        lines = ['Defined Presences:']
+    def cmd_protocols(*args)
+        lines = ['Defined protocols']
+        @protocols.list.each {|protocol| lines.push(protocol.name+' - '+protocol.charset) }
         
-        @serverlist.servers.each do |server|
-            network, presence = server.getnetworkpresencepair
-            if server.connected
-                lines.push(network+' - '+presence+' - Connected')
-            else
-                lines.push(network+' - '+presence)
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+        end
+    end
+    
+    def cmd_gateways(*args)
+        lines = ['Defined gateways:']
+        
+        #~ @serverlist.servers.each do |server|
+            #~ network, presence = server.getnetworkpresencepair
+            #~ if server.connected
+                #~ lines.push(network+' - '+presence+' - Connected')
+            #~ else
+                #~ lines.push(network+' - '+presence)
+            #~ end
+        #~ end
+        
+        @networks.list.each do |network|
+            network.gateways.list.each do|gateway|
+                x = gateway.host
+                x += ':'+gateway.port if gateway.port
+                lines.push(x)
             end
         end
         
@@ -326,6 +346,42 @@ module CommandParser
         end
         
         #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
+    end
+    
+    def cmd_presences(*args)
+        lines = ['Defined Presences:']
+        
+        #~ @serverlist.servers.each do |server|
+            #~ network, presence = server.getnetworkpresencepair
+            #~ if server.connected
+                #~ lines.push(network+' - '+presence+' - Connected')
+            #~ else
+                #~ lines.push(network+' - '+presence)
+            #~ end
+        #~ end
+        
+        @networks.list.each do |network|
+            network.presences.list.each do|presence|
+                lines.push(network.name+' - '+presence.name)
+            end
+        end
+        
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+        end
+        
+        #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
+    end
+    
+    def cmd_dump(*args)
+    
+        File.open('dump', 'w+') do |f|
+            Marshal.dump(@networks, f)
+            Marshal.dump(@protocols, f)
+        end
     end
     
     def cmd_channels(*args)

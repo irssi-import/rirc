@@ -196,6 +196,8 @@ class Buffer
             elsif line[MSG]
                 pattern['%m'] = line[MSG]
                 pattern = $main.escape_xml(pattern)
+            else
+                pattern = $main.escape_xml(pattern)
             end
         else
             pattern += $config.get_pattern('message')
@@ -208,6 +210,8 @@ class Buffer
                 pattern['%m'] = line[MSG_XHTML]
             elsif line[MSG]
                 pattern['%m'] = line[MSG]
+                pattern = $main.escape_xml(pattern)
+            else
                 pattern = $main.escape_xml(pattern)
             end
         end
