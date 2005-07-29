@@ -32,11 +32,32 @@
 	  <child>
 	    <widget class="GtkMenuItem" id="menuitem10">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">_File</property>
+	      <property name="label" translatable="yes">_Main</property>
 	      <property name="use_underline">True</property>
 
 	      <child>
 		<widget class="GtkMenu" id="menuitem10_menu">
+
+		  <child>
+		    <widget class="GtkImageMenuItem" id="networks1">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Networks</property>
+		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_networks1_activate" last_modification_time="Fri, 29 Jul 2005 19:02:21 GMT"/>
+
+		      <child internal-child="image">
+			<widget class="GtkImage" id="image3">
+			  <property name="visible">True</property>
+			  <property name="stock">gtk-network</property>
+			  <property name="icon_size">1</property>
+			  <property name="xalign">0.5</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
+			</widget>
+		      </child>
+		    </widget>
+		  </child>
 
 		  <child>
 		    <widget class="GtkImageMenuItem" id="quit1">
@@ -61,11 +82,23 @@
 		<widget class="GtkMenu" id="edit1_menu">
 
 		  <child>
-		    <widget class="GtkMenuItem" id="preferences1">
+		    <widget class="GtkImageMenuItem" id="preferences1">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Preferences</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_preferences1_activate" last_modification_time="Sun, 01 May 2005 12:44:33 GMT"/>
+
+		      <child internal-child="image">
+			<widget class="GtkImage" id="image4">
+			  <property name="visible">True</property>
+			  <property name="stock">gtk-properties</property>
+			  <property name="icon_size">1</property>
+			  <property name="xalign">0.5</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
+			</widget>
+		      </child>
 		    </widget>
 		  </child>
 		</widget>

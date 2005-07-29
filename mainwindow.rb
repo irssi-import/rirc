@@ -381,6 +381,10 @@ class MainWindow
 		configwindow = ConfigWindow.new
 		configwindow.show_all
 	end
+    
+    def on_networks1_activate
+        NetworkPresenceConf.new($main.networks, $main.protocols)
+    end
 	
 	def updatetopic
 		if @currentbuffer.class == ChannelBuffer

@@ -1,3 +1,7 @@
+2005-07-29 22:30 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added networks/gateways/presences manager (Will not remove networks and is not notified internally of gateway adds/edits/deletes)
+
 2005-07-29 20:49 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fix support for /privmsg stuff sent from other irssi2 clients

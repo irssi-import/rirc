@@ -95,7 +95,7 @@ module ReplyParser
                 network = @serverlist.add(line[NETWORK], line[MYPRESENCE])
                 if nw = @networks[line[NETWORK]]
                     presence = nw.add_presence(line[MYPRESENCE])
-                    presence.autoconnect = true if line[AUTOCONNECT]
+                    presence.autoconnect = true if line[AUTOCONNECT] and presence
                 end
             end
             network.set_username(line[PRESENCE] ) if line[PRESENCE]
@@ -109,6 +109,19 @@ module ReplyParser
         if line[REPLY_STATUS] == '+'
                 send_command('channels', "channel list")
         end
+        
+        i = 0
+        @serverlist.servers.each do|server|
+            if server.connected
+                i += 1
+            end
+        end
+        
+        if i == 0
+            @window.on_networks1_activate
+        end
+        #else
+            #@window.draw_from_config
     end
     
     def reply_network_list(line, network, channel, reply)

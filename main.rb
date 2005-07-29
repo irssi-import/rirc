@@ -88,10 +88,10 @@ require 'connections'
 require 'mainwindow'
 require 'configwindow'
 require 'connectionwindow'
-
+require 'networkpresenceconf'
 
 class Main
-	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift
+	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols
     @@test = 'no'
     extend Plugins
     include PluginAPI
@@ -144,7 +144,7 @@ class Main
                             puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
                             @replies.delete(key)
                             send_command(key, reply.origcommand)
-                            @replies[key].replies = reply.retries+1
+                            @replies[key].retries = reply.retries+1
                         else
                             puts 'REAPING - reply '+reply.name+' has been retried twice, deleting'
                             @replies.delete(key)
@@ -488,12 +488,7 @@ class Main
             return
         end
         
-        line = {}
-        line['err'] = err
-        time = Time.new
-        time = time - @drift if $config['canonicaltime'] == 'server'
-        line['time'] = time
-        target.send_event(line, EVENT_ERROR)
+        target.send_user_event({'err' => err}, EVENT_ERROR)
     end
     
 	#duh....

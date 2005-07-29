@@ -77,7 +77,23 @@ module EventParser
     end
     
     def event_network_init(event, network, channel)
-        throw_message('Added '+event['protocol']+' server '+event[NETWORK])
+        @networks.add(event[NETWORK], event[PROTOCOL])
+        throw_message('Added '+event[PROTOCOL]+' server '+event[NETWORK])
+    end
+    
+    def event_network_set(event, network, channel)
+        #TODO - update network settings here
+    end
+    
+    def event_local_presence_init(event, network, channel)
+        @networks[event[NETWORK]].presences.add(event[MYPRESENCE])
+    end
+    
+    def event_local_presence_deinit(event, network, channel)
+        ps = @networks[event[NETWORK]].presences[event[MYPRESENCE]]
+        if ps
+            @networks[event[NETWORK]].presences.remove(ps)
+        end
     end
     
     #joined a channel
