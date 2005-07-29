@@ -1,3 +1,9 @@
+2005-07-29 20:49 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fix support for /privmsg stuff sent from other irssi2 clients
+    Add some hooks to buffers for line replacement/removal (INCOMPLETE)
+    Minor additions to plugin system.
+
 2005-07-28 21:22 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Reorganized stuff for the upcoming network/presence manager (this probably ADDS bugs)

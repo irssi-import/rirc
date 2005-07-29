@@ -19,6 +19,8 @@ class Buffer
 			switchchannel(self)
 		end
         
+        @linebuffer = []
+        
         @button.signal_connect('button_press_event')do |w, event|
             if event.button == 3
                 rightclickmenu(event)
@@ -131,6 +133,7 @@ class Buffer
         time = Time.new
         time = time - $main.drift if $config['canonicaltime'] == 'server'
         line[TIME] = time
+        line[ID] = 'client'+rand(100).to_s
         send_event(line, type)
     end
     
@@ -140,8 +143,10 @@ class Buffer
 		
 		if insert_location == BUFFER_END
 			insert = @buffer.end_iter
+            @linebuffer.push(line)
 		elsif insert_location == BUFFER_START
 			insert = @buffer.start_iter
+            @linebuffer.unshift(line)
 		end
 		
 		if $config['usetimestamp']
@@ -154,7 +159,9 @@ class Buffer
 		users = []
 		
 		@oldlineend = @buffer.end_iter
-		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, false)
+		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, true)
+        
+        local = self
         
         cmd = 'buffer_'+type
         if self.respond_to?(cmd)
@@ -176,7 +183,7 @@ class Buffer
 			elsif insert.offset != 0
 				pattern = "\n"+pattern
 			end
-			colortext(pattern, insert, users)
+			colortext(pattern, insert, users, line[ID])
 		end
 		
 		@newlineend = @buffer.end_iter
@@ -184,6 +191,70 @@ class Buffer
 		$main.scroll_to_end(self)
 			
 	end
+    
+    def get_last_line_id(user)
+        @linebuffer.reverse_each do |line|
+            if line[PRESENCE] == user
+                return line[ID]
+            end
+        end
+        
+        return nil
+    end
+    
+    def get_line_by_id(id)
+        #gets the start and stop marks for a line in the buffer
+        return unless id
+        
+        start = @buffer.get_mark(id+'_start')
+        stop = @buffer.get_mark(id+'_end')
+        
+        return [start, stop]
+    end
+    
+    def remove_line(start, stop)
+        #remove the line between start and stop marks, returns true if line is at the end
+        return unless start and stop
+        
+        puts @buffer.get_text(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
+        
+        @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
+        
+        if @buffer.get_iter_at_mark(stop).offset == @buffer.end_iter.offset
+            iter = @buffer.get_iter_at_mark(start)
+            iter.offset += 1
+            @buffer.delete(iter, @buffer.end_iter)
+            return true
+        else
+            @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
+        end
+            
+    end
+    
+    def replace_line(id, replacement)
+        #replaces a line in the buffer
+        start, stop = get_line_by_id(id)
+        
+        return unless start and stop
+    
+        if remove_line(start, stop)
+            replacement += "\n"
+        end
+        
+        @buffer.insert(@buffer.get_iter_at_mark(start), replacement)
+    end
+    
+    def delete_line(id)
+        #deletes a line in the buffer
+        start, stop = get_line_by_id(id)
+        
+        return unless start and stop
+    
+        remove_line(start, stop)
+        
+        @buffer.delete_mark(start)
+        @buffer.delete_mark(stop)
+    end
     
     def buffer_message(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
@@ -345,7 +416,7 @@ class Buffer
     end
     
     def endmark
-        return @buffer.create_mark('end', @buffer.end_iter, false)
+        return @buffer.create_mark('end', @buffer.end_iter, true)
     end
 	
 	#add a command to the command buffer
@@ -378,7 +449,7 @@ class Buffer
 	end
 	
 	#parse the colors in the text
-	def colortext(string, insert, users)
+	def colortext(string, insert, users, id)
 		
 		#tags = {}
         string, tags = parse_xml(string)
@@ -446,7 +517,7 @@ class Buffer
 			end
 		end
         
-		sendtobuffer(string, tags, insert, user_tags, link_tags)
+		sendtobuffer(string, tags, insert, user_tags, link_tags, id)
 	end
     
     def get_tag(key, value)
@@ -532,10 +603,13 @@ class Buffer
     end
 	
 	#send the text to the buffer
-	def sendtobuffer(string, tags, insert, user_tags, link_tags)
+	def sendtobuffer(string, tags, insert, user_tags, link_tags, id)
 		offset = insert.offset
 		@buffer.insert(insert, string)
 		iter = @buffer.get_iter_at_offset(offset)
+        #puts id
+        @buffer.create_mark(id+'_start', iter, false)
+        iter = @buffer.get_iter_at_offset(offset)
 		start = iter.offset
 		tags.each do |k, v|
 			if v and @buffer.tag_table.lookup(v)
@@ -570,6 +644,9 @@ class Buffer
 			tag_end = @buffer.get_iter_at_offset(k.end+start)
 			@buffer.apply_tag(tag, tag_start, tag_end)
 		end
+        
+        iter = @buffer.get_iter_at_offset(offset+string.length)
+        @buffer.create_mark(id+'_end', iter, true)
 	end
 end
 

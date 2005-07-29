@@ -289,6 +289,17 @@ module CommandParser
         end
     end
     
+    
+    def cmd_last(arguments, channel, network, presence)
+        id = channel.get_last_line_id(presence)
+        channel.replace_line(id, 'replacement'+rand(100).to_s)
+    end
+    
+    def cmd_del(arguments, channel, network, presence)
+        id = channel.get_last_line_id(presence)
+        channel.delete_line(id)
+    end
+    
     #~ def cmd_me(message, channel, network, presence)
        #~ send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
        #~ #user

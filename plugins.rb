@@ -86,7 +86,7 @@ module PluginAPI
             ret = nil
             cb_hash[method.to_sym].each do |hash|
                 puts 'a callback'
-                ret = hash.call(*args)
+                ret = hash.call(self, *args)
                 if ret === true
                     break
                 elsif ret.class == Array

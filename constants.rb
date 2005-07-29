@@ -36,6 +36,7 @@ EVENT = 'event'
 CHARSET = 'charset'
 HOST = 'host'
 AUTOCONNECT = 'autoconnect'
+ID = 'id'
 
 #define my own parameters
 EVENT_TYPE = 'event_type'

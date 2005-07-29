@@ -94,6 +94,8 @@ class MainWindow
         
         @messages.modify_font(font)
         
+        @tooltips = Gtk::Tooltips.new
+        
         if unhide
             @glade['window1'].show
         end
@@ -308,6 +310,7 @@ class MainWindow
 			@userlist.show_all
 			@topic.show
 			@topic.text =@currentbuffer.topic
+            @tooltips.set_tip(@topic, @currentbuffer.topic, '')
 			@usernamebutton.show
 			updateusercount
 		else
@@ -382,6 +385,7 @@ class MainWindow
 	def updatetopic
 		if @currentbuffer.class == ChannelBuffer
 			@topic.text =@currentbuffer.topic
+            @tooltips.set_tip(@topic, @currentbuffer.topic, '')
 		end
 	end
     
