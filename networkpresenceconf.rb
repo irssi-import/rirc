@@ -441,7 +441,7 @@ class NetworkPresenceConf
                         diff = presence.diff(origpresences[presence.name])
                         if diff
                             puts 'update presence'
-                            $main.send_command('editpresence', 'presence set;network='+presence.name+';'+diff)
+                            $main.send_command('editpresence', 'presence set;network='+network.name+';mypresence='+presence.name+';'+diff)
                             #origpresences[presence.name] = presence
                         end
                     else

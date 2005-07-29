@@ -1,3 +1,7 @@
+2005-07-29 23:13 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Small fixes to presence manager, and raw output
+
 2005-07-29 22:30 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added networks/gateways/presences manager (Will not remove networks and is not notified internally of gateway adds/edits/deletes)

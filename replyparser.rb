@@ -24,9 +24,9 @@ module ReplyParser
             network = nil
             
 			if reply.name == 'raw'
-				output = {}
-				output['msg'] =  line['original']
-				@serverlist.send_event(output, EVENT_NOTICE)
+				#output = {}
+				#output['msg'] =  line['original']
+				@serverlist.send_user_event({'msg' =>line['original']}, EVENT_NOTICE)
 				next
 			end
 			
