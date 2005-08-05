@@ -189,26 +189,29 @@ class Main
         @syncchannels = true
         Thread.new do
             @serverlist.servers.each do |server|
+                puts server.name
                 server.channels.each do |channel|
                     if !channel.usersync and channel.connected
+                        puts 'user syncing '+channel.name
                          send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
-                        while channel.usersync != true
-                            sleep 1
-                        end
+                        #while channel.usersync != true
+                        #    sleep 1
+                        #end
                     end
                 end
                 
                 server.channels.each do |channel|
                     if !channel.eventsync and channel.connected
+                        puts 'event syncing '+channel.name
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(event=client_command_reply))')
-                        while channel.eventsync != true
-                            sleep 1
-                        end
+                        #while channel.eventsync != true
+                        #    sleep 1
+                        #end
                     end
                 end
             end
-            @syncchannels = nil
         end
+        @syncchannels = nil
     end
     
 	#connect to irssi2

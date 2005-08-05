@@ -17,4 +17,4 @@ Little things:
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
-    Slight issues with scrolling to end when tab switching.
+    Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden....

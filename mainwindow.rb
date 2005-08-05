@@ -13,6 +13,8 @@ class MainWindow
 		@messageinput = @glade["message_input"]
 		@messagescroll = @glade['message_scroll']
         @messagevadjustment = @messagescroll.vadjustment
+        
+        @tooltips = Gtk::Tooltips.new
 		
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
@@ -36,6 +38,10 @@ class MainWindow
 				true
 			end
 		end
+        
+        #TODO, make this work only if the end of the buffer is visible?
+        #force a scroll to end on resize events
+        @messages.signal_connect('size_allocate') { || scroll_to_end(@currentbuffer, true); false}
 
 		@userbar = @glade['userbar']
 		@userlist = @glade['userlist']
@@ -89,12 +95,16 @@ class MainWindow
 		
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+        
+        #@messageinput.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#@messageinput.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+        #@messageinput.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+        #@messageinput.modify_fg(Gtk::STATE_ACTIVE, $config['foregroundcolor'])
+        #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
 		
         font = Pango::FontDescription.new($config['main_font'])
         
         @messages.modify_font(font)
-        
-        @tooltips = Gtk::Tooltips.new
         
         if unhide
             @glade['window1'].show
@@ -259,6 +269,7 @@ class MainWindow
             @userlist.remove_column(@currentbuffer.usercolumn)
         end
 		@currentbuffer = channel
+        drawuserlist(@currentbuffer.class == ChannelBuffer)
 		@messageinput.text = @currentbuffer.currentcommand
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
@@ -266,8 +277,7 @@ class MainWindow
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-		drawuserlist(@currentbuffer.class == ChannelBuffer)
-        recalculate_buffer_length
+        #recalculate_buffer_length
         @messages.scroll_mark_onscreen(@currentbuffer.endmark)
         #scroll_to_end(@currentbuffer)
 	end

@@ -264,10 +264,8 @@ class Buffer
             if line[MSG_XHTML]
                 pattern = $main.escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
-            elsif line[MSG]
-                pattern['%m'] = line[MSG]
-                pattern = $main.escape_xml(pattern)
             else
+                pattern['%m'] = line[MSG].to_s
                 pattern = $main.escape_xml(pattern)
             end
         else
@@ -320,8 +318,8 @@ class Buffer
         pattern['%c'] = line[CHANNEL]
         if user = @users[line[PRESENCE]] and user.hostname
             pattern['%h'] = user.hostname
-        elsif line[ADDRESS]
-            pattern['%h'] = line[ADDRESS]
+        else
+            pattern['%h'] = line[ADDRESS].to_s
         end
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
@@ -340,12 +338,12 @@ class Buffer
         pattern += $config.get_pattern('part')
         pattern['%u'] = line[PRESENCE]
         users.push(line[PRESENCE])
-        pattern['%r'] = line[REASON] if line[REASON]
+        pattern['%r'] = line[REASON].to_s
         pattern['%c'] = line[CHANNEL]
         if user = @users[line[PRESENCE]] and user.hostname
             pattern['%h'] = user.hostname
-        elsif line[ADDRESS]
-            pattern['%h'] = line[ADDRESS]
+        else
+            pattern['%h'] = line[ADDRESS].to_s
         end
         pattern = $main.escape_xml(pattern)
        return [pattern, users, insert_location]
@@ -389,8 +387,8 @@ class Buffer
             pattern['%t'] = line[TOPIC]
         elsif line[TOPIC]
             pattern += $config.get_pattern('topic_change')
-            pattern['%t'] = line[TOPIC]
-            pattern['%u'] = line[TOPIC_SET_BY]
+            pattern['%t'] = line[TOPIC].to_s
+            pattern['%u'] = line[TOPIC_SET_BY].to_s
             users.push(line[TOPIC_SET_BY])
         end
         pattern = $main.escape_xml(pattern)
@@ -462,6 +460,8 @@ class Buffer
 			colorid = md[2].gsub!('%', '')
 			#remove the color tags from the text
 			text = md[0].gsub('%'+colorid, '')
+            
+            #puts text
 	
 			#strip the color tags for this tag from the string
 			string[md[0]] = text
@@ -474,6 +474,15 @@ class Buffer
 			#go around again
 			md = re.match(string)
 		end
+        
+        #strip out any empty patterns
+        re = /((%\d)\2)/
+        md = re.match(string)
+        while md.class == MatchData
+            #puts md[0]
+            string.sub!(md[0], '')
+            md = re.match(string)
+        end
         
         re = /((\x02).+?\2)/
 		md = re.match(string)
@@ -506,6 +515,7 @@ class Buffer
 		link_tags = {}
 		
 		users.each do |user|
+            next unless user
 			if index = string.index(user)
 				user_tags[Range.new(index, index+user.length)] = user
 			end
