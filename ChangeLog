@@ -1,4 +1,8 @@
-2005-08-07 18:13 - Andrew Thompson <vagabond@cataclysm-software.net>
+2005-08-07 19:22 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Store default button color so it can be reverted to, black was not a suitable default for all themes (thanks Denstark)
+
+2005-08-07 18:50 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     alt+num channel tabbing now works with numlock down (thanks Denstark)
 

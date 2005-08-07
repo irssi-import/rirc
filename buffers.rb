@@ -696,6 +696,11 @@ class RootBuffer < Buffer
 		@status = INACTIVE
 		@connected = true
         @button.show
+        
+        #get the default color for the text and store it so we can revert to it.
+        style = @button.style
+        $config.set_value('defaultcolor', style.fg(Gtk::STATE_NORMAL))
+        
         redraw
 	end
 	
@@ -1048,7 +1053,7 @@ class ServerBuffer < Buffer
     #check if a chat with a particular person exists
 	def has_chat?(name)
 		@chats.each do |chat|
-			if chat.name == name
+			if chat.rename(name)
 				return chat
 			end
 		end

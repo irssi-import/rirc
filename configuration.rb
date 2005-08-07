@@ -5,6 +5,7 @@ class Configuration
         16.times do |x|
             @values['color'+x.to_s] = Gdk::Color.new(0, 0, 0)
         end
+        @values['defaultcolor'] = Gdk::Color.new(0, 0, 0)
 		@values['color0'] = Gdk::Color.new(62168, 16051, 16051)
 		@values['color1'] = Gdk::Color.new(0, 47254, 11392)
 		@values['color2'] = Gdk::Color.new(0, 28332, 65535)
@@ -21,7 +22,7 @@ class Configuration
 		@values['newmessagecolor'] = Gdk::Color.new(65535, 0, 0)
 		@values['highlightcolor'] = Gdk::Color.new(0, 0, 65535)
 		
-		@statuscolors = [Gdk::Color.new(0, 0, 0), @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
+		@statuscolors = [@values['defaultcolor'], @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
 		
 		@values['usetimestamp'] = true
 		@values['timestamp'] = "[%H:%M]"
