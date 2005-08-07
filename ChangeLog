@@ -1,4 +1,8 @@
 2005-08-07 18:13 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    alt+num channel tabbing now works with numlock down (thanks Denstark)
+
+2005-08-07 18:13 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added debug info for keypress tio debug alt+num tab changing
     Fixed whois triggered from userlist (thanks Denstark)
