@@ -559,6 +559,7 @@ class MainWindow
     
     def window_buttons(widget, event)
         puts 'Got key event' if $args['debug']
+        puts event.state.to_i if $args['debug']
         
         if event.state == Gdk::Window::MOD1_MASK
             puts 'pressed alt-'+Gdk::Keyval.to_name(event.keyval) if $args['debug']
