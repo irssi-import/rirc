@@ -554,12 +554,14 @@ class MainWindow
 	def whois(user)
 		return if @currentbuffer.class == RootBuffer
 		network, presence = @currentbuffer.getnetworkpresencepair
-		$main.send_command('whois'+user, 'presence status;network='+network+';presence='+presence+';name='+user)
+		$main.send_command('whois'+user, 'presence status;network='+network+';mypresence='+presence+';presence='+user)
 	end
     
     def window_buttons(widget, event)
-    
+        puts 'Got key event' if $args['debug']
+        
         if event.state == Gdk::Window::MOD1_MASK
+            puts 'pressed alt-'+Gdk::Keyval.to_name(event.keyval) if $args['debug']
             key = Gdk::Keyval.to_name(event.keyval)
             if key =~ /\d/
                 key = 10 if key.to_i == 0

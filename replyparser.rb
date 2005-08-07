@@ -160,14 +160,13 @@ module ReplyParser
     
     #list the connected channels
     def reply_channel_list(line, network, channel, reply)
-        puts 'beep'
         if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL]
             if !@serverlist[line[NETWORK], line[MYPRESENCE]]
                 puts 'network does not exist '+line[NETWORK]+', '+line[MYPRESENCE]
             else
                 unless channel = @serverlist[line[NETWORK], line[MYPRESENCE]][line[CHANNEL]]
                     channel = @serverlist[line[NETWORK], line[MYPRESENCE]].add(line[CHANNEL])
-                    puts line[CHANNEL]
+                    #puts line[CHANNEL]
                 end
                 
                 if line['joined'] and channel
@@ -302,6 +301,7 @@ module ReplyParser
 	#output the result of a whois
 	def reply_presence_status(reply)
 		network = @serverlist[reply.command['network'], reply.command['mypresence']]
+        #puts network, reply.command['network'], reply.command['mypresence']
 		
 		reply.lines.each do |line|
 		

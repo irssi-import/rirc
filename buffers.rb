@@ -287,17 +287,6 @@ class Buffer
         return [pattern, users, insert_location]
     end
     
-    #~ def buffer_ctcp(line, pattern, users, insert_location)
-        #~ puts 'ctcp line'
-        #~ if line['name'] == 'action' and line[PRESENCE]
-            #~ puts 'an action'
-            #~ pattern += $config.get_pattern('action')
-            #~ pattern['%u'] = line[PRESENCE]
-            #~ pattern['%m'] = line['args'] if line['args']
-        #~ end
-        #~ return [pattern, users, insert_location]
-    #~ end
-    
     def buffer_usermessage(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
         pattern += $config.get_pattern('usermessage')
@@ -448,8 +437,8 @@ class Buffer
 	
 	#parse the colors in the text
 	def colortext(string, insert, users, id)
-		
-		#tags = {}
+        
+        #parse it for XHTML-IM tags
         string, tags = parse_xml(string)
         
         re = /((%\d).+?\2)/
@@ -479,7 +468,6 @@ class Buffer
         re = /((%\d)\2)/
         md = re.match(string)
         while md.class == MatchData
-            #puts md[0]
             string.sub!(md[0], '')
             md = re.match(string)
         end
@@ -530,37 +518,41 @@ class Buffer
 		sendtobuffer(string, tags, insert, user_tags, link_tags, id)
 	end
     
+    #parse xhtml-im styles into tags
     def get_tag(key, value)
         if key == 'color'
+            
+            #if we already have the color in a tag, use it
             if @buffer.tag_table.lookup('color_'+value)
                 return 'color_'+value
             end
             
-            
             re = Regexp.new('#[a-fA-F0-9]+')
             
+            #if color is a hex value, and its not fully padded, try to pad it
             while value =~ re and value.length < 7
-                #if value.include?('0')
-                #    value.sub!('0', '00')
-                #else
-                    #value += '0'
-                #end
                 value['#'] = '#0'
-                #puts 'fixing color '+value
             end
             
+            #pass the color to GDK, and catch the exception if its invalid
             begin
                 color = Gdk::Color.parse(value)
             rescue ArgumentError
                 $main.throw_error('Invalid color '+value)
                 return '0'
             end
+            
+            #assuming everything worked out, create the color tag
             @buffer.create_tag('color_'+value, {'foreground_gdk'=>color})
             return 'color_'+value
+        
+        #handle the 'bold' font weight
         elsif key == 'font-weight'
             if value == 'bold'
                 return 'bold'
             end
+        
+        #handle 'underline'
         elsif key == 'text-decoration'
             if value == 'underline'
                 return 'underline'
@@ -568,6 +560,7 @@ class Buffer
         end
     end
     
+    #split up xhtml-im styles into their components
     def parse_style(style)
         styles = style.split(';')
         tags = []
@@ -578,33 +571,56 @@ class Buffer
         return tags
     end
     
+    #parse xhtml-im strings
     def parse_xml(istring)
-        #puts istring if istring.include?('>')
+        #add some root tags around the string to keep Rexml happy
         doc = REXML::Document.new('<msg>'+istring+'</msg>')
         string = ''
         tags = {}
         x = doc.root[0]
+        
+        #loop through the tags
+        #TODO - maybe this should handle children of children...?
         while x
-            #puts x
+        
+            #hey look, its a text node, we just append it to the result string
             if x.class == REXML::Text
                 string += x.value
+            
+            #its a xml element, do some stuff
             elsif x.class == REXML::Element
+            
+                #check if it has style
                 if x.attributes['style']
+                
+                    #do some magic to account for the % color tags in the string in the tag offsets
                     offset = 0
+                    #regular expression to match color tags
                     re = Regexp.new('((%\d).+?\2)')
+                    #scan the string and update the offset value
                     string.scan(re){|z| offset += ($2.length)*2}
-                   # puts offset
+                    #get the start and stop values
                     start = string.length-offset
                     stop = x.text.length+start
+                    
+                    #append the string
                     string += x.text
+                    
+                    #get any tags derived from the style
                     taglist = parse_style(x.attributes['style'])
+                    
+                    #bundle all the tags up nicely
                     taglist.each do |tag|
                         tags[Range.new(start, stop)] = tag
                     end
                 end
             end
+            
+            #go around again
             x = x.next_sibling
         end
+        
+        #not sure, worst case fallback?
         if string == ''
             string = istring
         end
@@ -627,7 +643,7 @@ class Buffer
 				tag_end = @buffer.get_iter_at_offset(k.end+start)
 				@buffer.apply_tag(v, tag_start, tag_end)
 			else
-				puts 'invalid tag '+v
+				puts 'invalid tag '+v.to_s
 			end
 		end
 		
@@ -1303,6 +1319,7 @@ class ChatBuffer < Buffer
         @server.chats.sort
         @server.insertintobox(self)
         @server.parent.renumber
+        set_tab_label(@name)
         #@server.parent.redraw
     end
     
