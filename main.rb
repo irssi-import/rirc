@@ -240,6 +240,7 @@ class Main
 			
 			$config.get_config
 			@window.draw_from_config
+            @serverlist.storedefault
             #puts 'setting presence to '+@connectionwindow.presence
 			$config.set_value('presence', @connectionwindow.presence)
             #puts $config['presence']
