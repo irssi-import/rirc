@@ -226,10 +226,10 @@ class MainWindow
 		if index == 0
             #the beginning
 			if string[nick.length, 1] == ' '
-				string.insert(nick.length, ';')
+				string.insert(nick.length, $config['tabcompletesuffix'])
                 nicklength = nick.length+2
 			else
-				string.insert(nick.length, '; ')
+				string.insert(nick.length, $config['tabcompletesuffix']+' ')
                 nicklength = nick.length+2
 			end
 		elsif index+nick.length == string.length

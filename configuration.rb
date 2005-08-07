@@ -43,6 +43,8 @@ class Configuration
         @values['remove_mode'] = '-%1--%1 %s removed %m from %u'
         
 		@values['linkclickaction'] = 'firefox -remote "openURL(%s,new-tab)"'
+        
+        @values['tabcompletesuffix'] = ';'
 		
 		@serverbuttons = true
 		

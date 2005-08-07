@@ -1,3 +1,7 @@
+2005-08-07 22:47 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Tab completion suffix is now configurable (requested by Denstark)
+
 2005-08-07 19:22 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Store default button color so it can be reverted to, black was not a suitable default for all themes (thanks Denstark)
