@@ -704,7 +704,6 @@ class RootBuffer < Buffer
         #get the default color for the text and store it so we can revert to it.
         style = @button.style
         $config.set_value('defaultcolor', style.fg(Gtk::STATE_NORMAL))
-        puts style.fg(Gtk::STATE_NORMAL).to_a
     end
 	
     #redraw the buttonbox
