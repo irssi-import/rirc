@@ -1,3 +1,9 @@
+2005-08-08 15:46 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed callback remove problem
+    Fixed colors encased in 's
+    Added some exception handling for plugins (need more)
+
 2005-08-08 03:14 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added callback_after functionality to plugins

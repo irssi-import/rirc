@@ -523,7 +523,9 @@ class Buffer
     def get_tag(key, value)
         if key == 'color'
             
+            value.gsub!('\'', '')
             #if we already have the color in a tag, use it
+            puts value
             if @buffer.tag_table.lookup('color_'+value)
                 return 'color_'+value
             end
