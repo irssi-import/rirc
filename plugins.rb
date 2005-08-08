@@ -257,6 +257,7 @@ module PluginAPI
     #load a plugin
     def plugin_load(name)
         #expand the name
+        $config['plugins'].push(name) unless $config['plugins'].include?(name)
         file = 'plugins/'+name+'.rb'
         
         #check if it exists, if so, load it
@@ -266,11 +267,13 @@ module PluginAPI
                 load(file, true)
             rescue Exception
                 puts 'Error loading plugin '+name+' : '+$!
+                $config['plugins'].delete(name)
             end
             
         #no plugin found
         else
             puts 'plugin file '+file+' not found'
+            $config['plugins'].delete(name)
         end
     end
     
@@ -351,6 +354,7 @@ class Plugin
         
         #delete the plugin from the hash
         @@plugins.delete(plugin)
+        $config['plugins'].delete(plugin.name)
         
         #call the unload function if the plugin wants to do any additional cleanup
         plugin.unload

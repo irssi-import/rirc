@@ -239,6 +239,12 @@ class Main
 			@connection.listen(self)
 			
 			$config.get_config
+            
+            #$config['plugins'] ||= []
+            #puts $config['plugins'].length
+            
+            $config['plugins'].each {|plugin| plugin_load(plugin)}
+            
 			@window.draw_from_config
             @serverlist.storedefault
             #puts 'setting presence to '+@connectionwindow.presence

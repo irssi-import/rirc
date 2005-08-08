@@ -60,6 +60,8 @@ class Configuration
         @values['main_font'] = 'monospace 9'
         
         @values['number_tabs'] = true
+        
+        @values['plugins'] = []
 		
 		@oldvalues = {}
 	end
@@ -132,14 +134,14 @@ class Configuration
 		if value.class == Gdk::Color
 			colors = value.to_a
 			return 'color:'+colors[0].to_s+':'+colors[1].to_s+':'+colors[2].to_s
-		elsif value.class == String
-			return value
-		elsif value == true
+		elsif value.class == TrueClass
 			return 'true'
-		elsif value == false
+		elsif value.class == FalseClass
 			return 'false'
+        elsif value.class == String
+            return YAML::dump(YAML::escape(value))
 		else
-			return value.to_s
+            return YAML::dump(value).gsub("\n", "\\\\\\n")
 		end
 	end
 	
@@ -152,6 +154,11 @@ class Configuration
 		elsif value == 'false'
 			return false
 		else
+            begin
+                value = YAML::load(value.gsub("\\n", "\n"))
+            rescue ArgumentError
+            end
+            
 			return value
 		end
 	end
