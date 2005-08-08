@@ -20,3 +20,4 @@ Bugs:
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
     Can't set colors for input from config as the cursor becomes hidden
     URLs sometimes get colored, need to use a different color tag format or escape message text somehow
+    unloading plugins does not remove callbacks correctly, caused by cb_resolve_hash storing the calbacks from the parent class, and retaining them even when the refernce is removed in the parent class...

@@ -169,7 +169,8 @@ class Buffer
             res = callback(cmd, line, pattern, users, insert_location)
             return if res === true
             #res.each {|x| puts x}
-            pattern, users, insert_location = self.send(cmd, *res)
+            res2 = self.send(cmd, *res)
+            pattern, users, insert_location = callback_after(cmd, *res2)
         else
             return
         end

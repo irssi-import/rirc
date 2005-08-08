@@ -513,6 +513,7 @@ end
 begin
 	$config = Configuration.new
 	$main = Main.new
+    $main.plugin_load('colornicks')
     #~ 10.times do
         #~ $main.plugin_load('osd')
         #~ sleep 2

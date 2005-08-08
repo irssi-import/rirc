@@ -1,3 +1,7 @@
+2005-08-08 03:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added callback_after functionality to plugins
+
 2005-08-07 22:47 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Tab completion suffix is now configurable (requested by Denstark)
