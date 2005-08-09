@@ -407,6 +407,27 @@ class Buffer
         return [pattern, users, insert_location]
     end
     
+    def buffer_nickchange(line, pattern, users, insert_location)
+        pattern += $config.get_pattern('nickchange')
+        
+        pattern['%u'] = line[PRESENCE].to_s
+        pattern['%n'] = line[NAME].to_s
+        
+        users.push(line[NAME])
+        pattern = $main.escape_xml(pattern)
+        return [pattern, users, insert_location]
+    end
+    
+    def buffer_usernickchange(line, pattern, users, insert_location)
+        pattern += $config.get_pattern('usernickchange')
+        
+        pattern['%n'] = line[NAME].to_s
+        
+        users.push(line[NAME])
+        pattern = $main.escape_xml(pattern)
+        return [pattern, users, insert_location]
+    end
+    
     def endmark
         return @buffer.create_mark('end', @buffer.end_iter, true)
     end

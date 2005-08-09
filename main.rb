@@ -41,13 +41,18 @@ class Object
 end
 
 def duration(seconds, precision=2)
+
+    puts seconds
+    
 	if seconds < 0
 		seconds *= -1
 		negative = true
 	end
     
     t = Time.at(seconds)
+    puts t
     t.gmtime
+    puts t
     
     seconds = t.strftime('%S').to_i
     minutes = t.strftime('%M').to_i
@@ -68,7 +73,7 @@ def duration(seconds, precision=2)
 	stuff.push(hours.to_s+' Hours') if hours > 1
     stuff.push(days.to_s+' Day') if days == 1
 	stuff.push(days.to_s+' Days') if days > 1
-    stuff.push(years.to_s+' Years') if years == 1
+    stuff.push(years.to_s+' Year') if years == 1
     stuff.push(years.to_s+' Years') if years > 1
     
     stuff.reverse!

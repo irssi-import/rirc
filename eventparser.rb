@@ -200,7 +200,6 @@ module EventParser
     
     #a user has changed
     def event_presence_changed(event, network, channel)
-	#why is this not in buffers.rb with all the other events like this?
         return unless network
         if event[NAME]
         
@@ -217,32 +216,24 @@ module EventParser
                 user.rename(event[NAME])
                 network.channels.each do |channel|
                     if channel.users[user.name]
-                        #remove the user and readd him before the redraw
-                        #channel.deluser(user.name)
-                        #channel.adduser(user.name)
                         channel.drawusers
                     end
                 end
             end
-            
-            #more stuff to make patterns
+
             if event[NAME] == network.username
-                pattern = 'You are now known as '+event[NAME]
-            elsif event[PRESENCE] != event[NAME]
-                pattern= event[PRESENCE]+' is now known as '+event[NAME]
+                type = EVENT_USERNICKCHANGE
             else
-                pattern = nil
+                type = EVENT_NICKCHANGE
             end
             
-            event[MSG] = pattern
-            
-            if pattern
-                network.channels.each{ |c|
+            if type
+                network.channels.each do |c|
                     if c.users[event[NAME]]
                         c.drawusers
-                        c.send_event(event, EVENT_NOTICE)
+                        c.send_event(event, type)
                     end
-                }
+                end
             end
             
             if event[PRESENCE] and chat = network.has_chat?(event[PRESENCE])
@@ -320,14 +311,6 @@ module EventParser
         end
     end
     
-    #~ def event_irc_ctcp(event, network, channel)
-        #~ puts 'CTCP'
-        
-        #~ if event['name'] == 'action' and event['args']
-            #~ channel.send_event(event, CTCP)
-        #~ end
-    #~ end
-    
     #connected to a server
 	def event_gateway_connected(event, network, channel)
         return unless network
@@ -376,22 +359,11 @@ module EventParser
     def event_channel_changed(event, network, channel)
         return unless channel
         if event['initial_presences_added']
-            #puts 'initial presences added'
             @window.updateusercount
             channel.drawusers
         end
-        #~ elsif event[TOPIC] and event['topic_set_by']
-            #~ #pattern = "Topic set to %6"+event[TOPIC]+ "%6 by %6"+event['topic_set_by']+'%6'
-            #~ pattern = "%6"+event['topic_set_by']+'%6 has changed the topic to: %6'+event[TOPIC]+'%6'
-        #~ elsif event[TOPIC]
-            #~ pattern ="Topic for %6"+event[CHANNEL]+ "%6 is %6"+event[TOPIC]+'%6'
-        #~ elsif event['topic_set_by']
-            #~ pattern = "Topic for %6"+event[CHANNEL]+ "%6 set by %6"+event['topic_set_by']+'%6 at %6'+event['topic_timestamp']+'%6'
-        #~ end
-        #~ event['msg'] = pattern
         
         if event[TOPIC] and event[INIT]
-            puts 'initial topic'
             #send the topic stuff as 2 lines
             channel.topic = event[TOPIC]
             event['line'] = 1
@@ -404,10 +376,6 @@ module EventParser
             channel.send_event(event, EVENT_TOPIC)
             @window.updatetopic
         end
-        
-        #~ if pattern
-            #~ channel.send_event(event, NOTICE)
-        #~ end
     end
     
     def event_irc_event(event, network, channel)
@@ -420,11 +388,9 @@ module EventParser
         if channel and channel.users[event[PRESENCE]]
 		if event[ADD]
 		    channel.users[event[PRESENCE]].add_mode(event[ADD])
-		    #puts event['source_presence']+' gave '+event[STATUS]+' to '+event['name']
 		    channel.send_user_event(event, EVENT_MODECHANGE)
 		elsif event[REMOVE]
 		    channel.users[event[PRESENCE]].remove_mode(event[REMOVE])
-		    #puts event['source_presence']+' removed '+event[STATUS]+' from '+event['name']
 		    channel.send_user_event(event, EVENT_MODECHANGE)
 		end
 		channel.drawusers
