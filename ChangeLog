@@ -1,3 +1,9 @@
+2005-08-09 13:21 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added duplicate checking to channel user lists
+    Added exception hanling to parse_event/reply/command and buffer_send and plugin loading
+    Removed plugin load messages, and added simple notifications to server buffer
+
 2005-08-08 15:46 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     RIRC tries to store things as YAML if its not a color or a boolean

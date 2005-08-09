@@ -16,14 +16,16 @@ module EventParser
 			end
         end
         
-        if self.respond_to?('event_'+event['event_type'])
-            res = callback('event_'+event['event_type'], event, network, channel)
-            return if res === true
-            #if res.class == Array and res.length > 0
-            self.send('event_'+event['event_type'], *res)
-            #else
-            #    self.send('event_'+event['type'], event, network, channel)
-            #end
+        begin
+            if self.respond_to?('event_'+event['event_type'])
+                res = callback('event_'+event['event_type'], event, network, channel)
+                return if res === true
+                self.send('event_'+event['event_type'], *res)
+            end
+        #rescue any exceptions...
+        rescue =>exception
+            puts 'Error parsing event : '+$!
+            puts exception.backtrace
         end
     end
     

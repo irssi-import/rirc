@@ -6,39 +6,31 @@ module CommandParser
             network.bufferedcommands.push(message)
             return
         end
-        		
-        #arguments ||= ''
-        #command ||= ''
-        
-		#command, arguments = message.split(' ', 2)
+
         if /^(\/\w+)(?: (.+)|)/.match(message)
             command = $1
             arguments = $2
         end
         
-        #puts '"'+command+'"' if command
-        #puts '"'+arguments+'"' if arguments
-        
         if command and command[0].chr == '/'
             cmd = command[1, command.length].downcase
-        #~ else
-            #~ cmd = 'message'
-            #~ arguments = message
         end
         
-        if cmd and self.respond_to?('cmd_'+cmd)
-            res = callback('cmd_'+cmd, arguments, channel, network, presence)
-            return if res === true
-           # puts res
-            #if res.class == Array and res.length > 0
-                self.send('cmd_'+cmd, *res)
-            #else
-            #    self.send('cmd_'+cmd, arguments, channel, network, presence)
-            #end
-        else
-            res = callback('cmd_message', message, channel, network, presence)
-            self.send('cmd_message', *res)
+        begin
+            if cmd and self.respond_to?('cmd_'+cmd)
+                res = callback('cmd_'+cmd, arguments, channel, network, presence)
+                return if res === true
+                    self.send('cmd_'+cmd, *res)
+            else
+                res = callback('cmd_message', message, channel, network, presence)
+                self.send('cmd_message', *res)
+            end
+        #rescue any exceptions...
+        rescue =>exception
+            puts 'Error parsing commmand : '+$!
+            puts exception.backtrace
         end
+        
     end
     
     def cmd_message(message, channel, network, presence)

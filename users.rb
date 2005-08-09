@@ -163,7 +163,7 @@ class UserList < Monitor
     end
     
 	def do_create(name, hostname = nil)
-        return if self[name]
+        return if self.include?(name)
         new = User.new(name)
         new.hostname = hostname
         @users.push(new)
@@ -177,8 +177,27 @@ class UserList < Monitor
     end
     
 	def do_add(user)
+        return if self.include?(user)
         @users.push(user)
 	end
+    
+    def include?(newuser)
+    
+        if newuser.class == User
+            @users.each do |user|
+                if user.name == newuser.name
+                    return true
+                end
+            end
+        else
+            @users.each do |user|
+                if user.name == newuser
+                    return true
+                end
+            end
+        end
+        return false
+    end
     
     def remove(name)
         synchronize do
@@ -234,6 +253,24 @@ class UserList < Monitor
 end
 
 class ChannelUserList < UserList
+
+    def include?(newuser)
+        if newuser.class == ChannelUser
+            @users.each do |user|
+                if user.name == newuser.name
+                    return true
+                end
+            end
+        else
+            @users.each do |user|
+                if user.name == newuser
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    
     def add(user)
         synchronize do
             return do_add(ChannelUser.new(user))
@@ -241,6 +278,7 @@ class ChannelUserList < UserList
     end
     
 	def do_add(user)
+        return if self.include?(user)
         @users.push(user)
         return user
 	end

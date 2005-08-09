@@ -163,16 +163,20 @@ class Buffer
         
         local = self
         
-        cmd = 'buffer_'+type
-        if self.respond_to?(cmd)
-            #puts cmd
-            res = callback(cmd, line, pattern, users, insert_location)
-            return if res === true
-            #res.each {|x| puts x}
-            res2 = self.send(cmd, *res)
-            pattern, users, insert_location = callback_after(cmd, *res2)
-        else
-            return
+        begin
+            cmd = 'buffer_'+type
+            if self.respond_to?(cmd)
+                res = callback(cmd, line, pattern, users, insert_location)
+                return if res === true
+                res2 = self.send(cmd, *res)
+                pattern, users, insert_location = callback_after(cmd, *res2)
+            else
+                return
+            end
+        #rescue any exceptions...
+        rescue =>exception
+            puts 'Error sending : '+$!
+            puts exception.backtrace
         end
 		
 		if pattern.length > 0

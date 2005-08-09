@@ -18,7 +18,7 @@ module Plugins
             
                 #add the block to the array
                 @cb_hash[name.to_sym].push(block)
-                puts 'added callback for '+name
+                #puts 'added callback for '+name
                 
                 #return the name of the callback..?
                 return name
@@ -41,7 +41,7 @@ module Plugins
             @cb_hash_after[name.to_sym] ||= Array.new
             if block_given?
                 @cb_hash_after[name.to_sym].push(block)
-                puts 'added callback_after for '+name
+                #puts 'added callback_after for '+name
                 
                 #return the name, not sure why...
                 return name
@@ -79,7 +79,7 @@ module Plugins
         
         #call define method and add it.
         self.send(:define_method, name, &block)
-        puts 'added '+name
+        #puts 'added '+name
         return name
     end
     
@@ -325,6 +325,7 @@ class Plugin
         @@plugins[plugin] = {'callbacks' => Array.new, 'callbacks_after' => Array.new, 'methods' => Array.new} if plugin and !@@plugins[plugin]
         
         #call the plugins load() method
+        $main.serverlist.send_user_event({'msg' => 'Loading Plugin '+plugin.name}, EVENT_NOTICE)
         plugin.load
     end
     

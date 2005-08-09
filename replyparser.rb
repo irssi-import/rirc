@@ -24,17 +24,9 @@ module ReplyParser
             network = nil
             
 			if reply.name == 'raw'
-				#output = {}
-				#output['msg'] =  line['original']
 				@serverlist.send_user_event({'msg' =>line['original']}, EVENT_NOTICE)
 				next
 			end
-			
-			#if line['status'] == '-'
-				#line['err'] = 'Error: '+line['error']+' encountered when sending command '+reply.origcommand
-				#@serverlist.send_event(line, ERROR)
-				#return
-			#end
             
             if line[NETWORK] and line[MYPRESENCE]
                 if !@serverlist[line[NETWORK], line[MYPRESENCE]]
@@ -50,15 +42,17 @@ module ReplyParser
                 end
             end
             
-            cmd = 'reply_'+reply.command['command'].gsub(' ', '_')
-            if self.respond_to?(cmd)
-                res = callback(cmd, line, network, channel, reply)
-                return if res === true
-                #if res.class == Array and res.length > 0
-                    self.send(cmd, *res)
-                #else
-                #    self.send(cmd, line, network, channel, reply)
-                #end
+            begin
+                cmd = 'reply_'+reply.command['command'].gsub(' ', '_')
+                if self.respond_to?(cmd)
+                    res = callback(cmd, line, network, channel, reply)
+                    return if res === true
+                        self.send(cmd, *res)
+                end
+            #rescue any exceptions...
+            rescue =>exception
+                puts 'Error parsing reply : '+$!
+                puts exception.backtrace
             end
         end
     end
@@ -196,7 +190,7 @@ module ReplyParser
             network.users.create(line[PRESENCE])
             chuser = channel.users.add(network.users[line[PRESENCE]])
             #channel.adduser(line['name'], true)
-            if line['mode']
+            if line['mode'] and chuser
                 chuser.add_mode(line['mode'])
                 #puts 'set '+chuser.name+'\'s status to '+line['status']
             end
