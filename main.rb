@@ -42,23 +42,25 @@ end
 
 def duration(seconds, precision=2)
 
-    puts seconds
+    #puts seconds
     
 	if seconds < 0
 		seconds *= -1
 		negative = true
 	end
     
+    #puts Time.at(0)
+    
     t = Time.at(seconds)
-    puts t
+    #puts t
     t.gmtime
-    puts t
+    #puts t
     
     seconds = t.strftime('%S').to_i
     minutes = t.strftime('%M').to_i
     hours = t.strftime('%H').to_i
     days = (t.strftime('%j').to_i)-1
-    years = (t.strftime('%Y').to_i) - (Time.at(0).strftime('%Y').to_i)
+    years = (t.strftime('%Y').to_i) - (Time.at(0).gmtime.strftime('%Y').to_i)
     
     stuff = []
     
