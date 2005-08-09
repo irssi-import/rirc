@@ -40,31 +40,40 @@ class Object
     end
 end
 
-def duration(seconds)
+def duration(seconds, precision=2)
 	if seconds < 0
 		seconds *= -1
 		negative = true
 	end
-	
-	mins = (seconds / 60).floor.to_i
-	secs = (seconds % 60).to_i
-	hours = (mins/60).floor.to_i
-	mins = (mins%60).to_i
-	days = (hours/24).floor.to_i
-	hours = (hours%24).to_i
-	
-	stuff = []
-	
-	stuff.push(secs.to_s+' Seconds')
-	stuff.push( mins.to_s+' Minutes') if mins > 0
-	stuff.push(hours.to_s+' Hours') if hours > 0
-	stuff.push(days.to_s+' Days') if days > 0
-	
-	if stuff.length > 1
-		result = stuff.pop+' '+stuff.pop
-	else
-		result = stuff[0]
-	end
+    
+    t = Time.at(seconds)
+    t.gmtime
+    
+    seconds = t.strftime('%S').to_i
+    minutes = t.strftime('%M').to_i
+    hours = t.strftime('%H').to_i
+    days = (t.strftime('%j').to_i)-1
+    years = (t.strftime('%Y').to_i) - (Time.at(0).strftime('%Y').to_i)
+    
+    stuff = []
+    
+    if seconds == 1
+        stuff.push(seconds.to_s+' Second')
+    else
+        stuff.push(seconds.to_s+' Seconds')
+    end
+    stuff.push( minutes.to_s+' Minute') if minutes == 1
+	stuff.push( minutes.to_s+' Minutes') if minutes > 1
+    stuff.push(hours.to_s+' Hour') if hours == 1
+	stuff.push(hours.to_s+' Hours') if hours > 1
+    stuff.push(days.to_s+' Day') if days == 1
+	stuff.push(days.to_s+' Days') if days > 1
+    stuff.push(years.to_s+' Years') if years == 1
+    stuff.push(years.to_s+' Years') if years > 1
+    
+    stuff.reverse!
+    
+    result = stuff[0, precision].join(' ')
 	
 	result = ' - '+result if negative
 	

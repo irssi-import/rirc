@@ -1,3 +1,8 @@
+2005-08-09 14:32 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Improved duration method to only pluralize when needed, to use the strftime method instead of repeated divisons
+    Duration now allows the amount of precision to be variable, defaults to 2 - eg - (1 hour 5 minutes)
+
 2005-08-09 13:21 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added duplicate checking to channel user lists
