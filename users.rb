@@ -23,7 +23,6 @@ class User
 	def lastspoke=(time)
         time = time.to_i + $main.drift if $config['canonicaltime'] == 'client'
 		@lastspoke = Time.at(time.to_i)
-        #puts 'updated lastspoke for '+@name
 	end
 	
 	def comparetostring(string)
@@ -49,7 +48,6 @@ class ChannelUser < User
     def initialize(user)
         @user = user
         @modes = []
-        #@modes.default = ''
     end
     
     def hostname=(hostname)
@@ -73,23 +71,16 @@ class ChannelUser < User
     end
     
     def <=>(object)
-        #puts self, object
-        #puts @modes, object.modes
         res = object.get_modenumber<=>get_modenumber
         if res == 0
             res = @user<=>(object)
         end
-        #puts 'returning '+res.to_s+'for <=>'
         return res
     end
     
     def comparetostring(string, mode)
-        #puts 'comparing '+string+' '+mode
-        #puts 'to '+name+' '+get_modes
-        #puts decodemode(mode), get_modenumber
         res = decodemode(mode)<=>get_modenumber
         if res == 0
-            #puts 'going down the stack'
             res = @user.comparetostring(string)
         end
         return res
@@ -99,11 +90,9 @@ class ChannelUser < User
         if mode.class == Fixnum
             mode = mode.chr
         end
-        #return ModeSymbol[mode]
         modenumber = 0
         mode.each_byte do |b|
             modenumber += mode2int(SymbolModes[b.chr])
-            #puts b.chr+'has a value of '+SymbolModes[b.chr]+'=>'+mode2int(SymbolModes[b.chr]).to_s
         end
         return modenumber
     end
@@ -117,13 +106,11 @@ class ChannelUser < User
     end
     
     def get_modes
-        #puts ModeSymbols
         modestring = ''
         @modes.each do |mode|
             modestring += ModeSymbols[mode]
         end
         return modestring
-        #return SymbolMode[@mode]
     end
     
     def get_mode
@@ -137,15 +124,10 @@ class ChannelUser < User
     
     def add_mode(mode)
         @modes[mode2int(mode)] = mode 
-        #puts 'mode set to '+@mode.to_s
-        #puts 'Added mode '+mode
-        #puts get_modenumber
     end
     
     def remove_mode(mode)
         @modes.delete_at(mode2int(mode))
-        #puts 'Removed mode '+mode
-        #puts get_modenumber
     end
 end
 

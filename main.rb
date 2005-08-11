@@ -10,6 +10,8 @@ $platform = RUBY_PLATFORM
 
 $args = {}
 
+Thread.current.priority = 1
+
 def parse_args
     args = ARGV
     args.each do |arg|
@@ -41,20 +43,14 @@ class Object
 end
 
 def duration(seconds, precision=2)
-
-    #puts seconds
     
 	if seconds < 0
 		seconds *= -1
 		negative = true
 	end
     
-    #puts Time.at(0)
-    
     t = Time.at(seconds)
-    #puts t
     t.gmtime
-    #puts t
     
     seconds = t.strftime('%S').to_i
     minutes = t.strftime('%M').to_i
@@ -125,14 +121,9 @@ class Main
 		@keys = {}
 		@drift = 0
         @networks = ItemList.new(Network)
-        #@presences = ItemList.new
         @protocols = ItemList.new(Protocol)
+        @quitting = false
 	end
-    
-    def test
-        puts self.class.cb_hash.length
-        #puts @@cb_hash.length
-    end
     
 	#start doing stuff
 	def start
@@ -148,8 +139,8 @@ class Main
 	
     def reply_reaper
         @reaperthread = Thread.new do
+            Thread.current.priority = -5
             while true
-                sleep 5
                 @replies.each do |key, reply|
                     if reply.complete
                         puts 'REAPING - reply '+reply.name+' is complete, parsing'
@@ -158,15 +149,16 @@ class Main
                     elsif (Time.new - reply.start).to_i > 10
                         if reply.retries < 2
                             puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
+                            @replies[key].retries = reply.retries+1
                             @replies.delete(key)
                             send_command(key, reply.origcommand)
-                            @replies[key].retries = reply.retries+1
                         else
                             puts 'REAPING - reply '+reply.name+' has been retried twice, deleting'
                             @replies.delete(key)
                         end
                     end
                 end
+                sleep 10
             end
         end
     end
@@ -204,25 +196,17 @@ class Main
     def syncchannels
         @syncchannels = true
         Thread.new do
+            Thread.current.priority = -2
             @serverlist.servers.each do |server|
-                #puts server.name
                 server.channels.each do |channel|
                     if !channel.usersync and channel.connected
-                        #puts 'user syncing '+channel.name
                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
-                        #while channel.usersync != true
-                        #    sleep 1
-                        #end
                     end
                 end
                 
                 server.channels.each do |channel|
                     if !channel.eventsync and channel.connected
-                        #puts 'event syncing '+channel.name
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(event=client_command_reply))')
-                        #while channel.eventsync != true
-                        #    sleep 1
-                        #end
                     end
                 end
             end
@@ -256,22 +240,15 @@ class Main
 			
 			$config.get_config
             
-            #$config['plugins'] ||= []
-            #puts $config['plugins'].length
-            
             $config['plugins'].each {|plugin| plugin_load(plugin)}
             
 			@window.draw_from_config
             @serverlist.storedefault
-            #puts 'setting presence to '+@connectionwindow.presence
 			$config.set_value('presence', @connectionwindow.presence)
-            #puts $config['presence']
 			@connectionwindow.destroy
-			
-			#if @serverlist.servers.length == 0
+            
             send_command('protocols', 'protocol list')
-				#send_command('presences', 'presence list')
-			#end
+
 	end
 	
 	#what do do when we get disconnected from irssi2
@@ -294,8 +271,6 @@ class Main
             send_command('addhost', temp)
             @networks.add(name, protocol)
         else
-            #line= {'err' => 'Network '+network+' is already defined'}
-            #@window.currentbuffer.send_event(line, ERROR)
             throw_error('Network '+network+' is already defined')
         end
 	end
@@ -311,12 +286,10 @@ class Main
     end
     
     def presence_add(network, presence)
-        #@networks.each {|network| puts network}
         if !@serverlist.get_network_by_name(network) and !@networks[network]
             throw_error('Undefined network '+network)
         elsif @serverlist[network, presence] or @networks[network].presences[presence]
-            #throw_error('Presence '+presence+' exists')
-            return true #non-fatal
+            return true
         else
             cmdstring = "presence add;mypresence="+presence+";network="+network
             if @keys[presence] and @keys[presence]['silc_pub']
@@ -326,7 +299,6 @@ class Main
             
             cmdstring.gsub!("\n", "\\n")
             send_command('addpres', cmdstring)
-            #@presences.push([network, presence])
             @networks[network].add_presence(presence)
             return true
         end
@@ -397,15 +369,16 @@ class Main
 		if md = re.match(string)
 			if @replies[$1]
 				reply = @replies[$1]
-				Thread.new{reply.addline(string)}
+				Thread.new do
+                    #Thread.current.priority = -3
+                    reply.addline(string)
+                end
 				if @replies[$1] and @replies[$1].complete
 					Thread.new do
 						reply_parse(reply)
 						@replies.delete(reply.name)
 					end
 				end
-			else
-				#puts "Event for dead or unregistered handler recieved " + string
 			end
 			return
 		elsif !md = re2.match(string)
@@ -447,27 +420,6 @@ class Main
 		client = Time.new
 		@drift = (client - server).to_i
 	end
-	
-	#~ #create a network if it doesn't already exist
-	#~ def createnetworkifnot(network, presence)
-		#~ if ! @serverlist[network, presence]
-			#~ switchchannel(@serverlist.add(network, presence))
-		#~ end
-		
-		#~ return @serverlist[network, presence]
-	#~ end
-	
-	#~ #create a channel if it doesn't already exist
-	#~ def createchannelifnot(network, channel)
-		#~ if network and ! network[channel]
-			#~ switchchannel(network.add(channel))
-		#~ elsif ! network
-			#~ puts "ERROR: invalid network!"
-			#~ return nil
-		#~ end
-		
-		#~ return network[channel]
-	#~ end
 	
     def handle_error(line, reply)
         channel ||= reply.command['channel']
@@ -518,13 +470,27 @@ class Main
     end
     
 	#duh....
-	def quit(send_quit = true)
-		$config.send_config
-        if send_quit
+	def quit
+        #if the connection is dead, don't bother trying to comunicate with irssi2
+        if !@connection
+            @quitting = true
+            do_quit
+        
+        #update the config and wait for quit response
+        else
+            @quitting = true
+            $config.send_config
             send_command('quit', 'quit')
+            puts 'sending quit'
         end
+        true
+    end
+    
+    def do_quit
+        return unless @quitting
 		@connection.close if @connection
         @reaperthread.kill if @reaperthread
+        Gtk.main_quit
 		puts 'bye byeeeeee...'
 		exit
 	end
@@ -535,13 +501,6 @@ end
 begin
 	$config = Configuration.new
 	$main = Main.new
-    #$main.plugin_load('highlighter')
-    #~ 10.times do
-        #~ $main.plugin_load('osd')
-        #~ sleep 2
-        #~ Plugin.unregister(Plugin.lookup('osd'))
-    #~ end
-    #$main.test
 	$main.start
 rescue Interrupt
 	puts 'got keyboard interrupt'

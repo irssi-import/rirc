@@ -96,10 +96,6 @@ class MainWindow
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
         
-        #@messageinput.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#@messageinput.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-        #@messageinput.modify_fg(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-        #@messageinput.modify_fg(Gtk::STATE_ACTIVE, $config['foregroundcolor'])
         #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
 		
         font = Pango::FontDescription.new($config['main_font'])
@@ -164,9 +160,6 @@ class MainWindow
 		return if @currentbuffer != channel
 		#check if we were at the end before the message was sent, if so, move down again
 		if mark_onscreen?(@currentbuffer.oldendmark) or force
-			#@messages.scroll_to_mark(@currentbuffer.endmark, 0.0, false,  0, 0)
-            #@messages.scroll_mark_onscreen(@currentbuffer.endmark)
-
             @messages.scroll_mark_onscreen(@currentbuffer.endmark)
         end
 	end
@@ -261,7 +254,7 @@ class MainWindow
                 return
             end
         end
-        #puts @currentbuffer.name, channel.name
+
 		@currentbuffer.currentcommand = @messageinput.text
 		@currentbuffer.deactivate
         if @currentbuffer.class == ChannelBuffer
@@ -277,9 +270,7 @@ class MainWindow
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-        #recalculate_buffer_length
         @messages.scroll_mark_onscreen(@currentbuffer.endmark)
-        #scroll_to_end(@currentbuffer)
 	end
     
 	def updateusercount
@@ -305,7 +296,6 @@ class MainWindow
         
         text += @currentbuffer.users.users.length.to_s+' total'
         @usercount.text = text
-		#@usercount.text = @currentbuffer.users.users.length.to_s+" users"
 	end
 	
 	def drawuserlist(toggle)
@@ -558,8 +548,6 @@ class MainWindow
 	end
     
     def window_buttons(widget, event)
-        #puts 'Got key event' if $args['debug']
-        #puts event.state.to_i if $args['debug']
         
         if (event.state & Gdk::Window::MOD1_MASK) != 0
             puts 'pressed alt-'+Gdk::Keyval.to_name(event.keyval) if $args['debug']
@@ -580,7 +568,7 @@ class MainWindow
 	def focus_input
 		start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
 		stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
-		if @currentbuffer.buffer.get_text(start, stop).length <= 0
+		if @currentbuffer.buffer.get_text(start, stop) and @currentbuffer.buffer.get_text(start, stop).length <= 0
             position = @messageinput.position
 			@messageinput.grab_focus
 			@messageinput.select_region(0, 0)
@@ -592,7 +580,6 @@ class MainWindow
 	
 	def quit
         update_dimensions
-		Gtk.main_quit
 		$main.quit
 	end
 end

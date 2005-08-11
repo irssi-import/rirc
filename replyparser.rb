@@ -82,6 +82,13 @@ module ReplyParser
         end
     end
     
+    def reply_quit(line, network, channel, reply)
+        puts 'got quit confirmation'
+        if @quitting
+            do_quit
+        end
+    end
+    
     #list the connected presences
     def reply_presence_list(line, network, channel, reply)
         if line[NETWORK] and line[MYPRESENCE]
