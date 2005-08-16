@@ -457,6 +457,7 @@
 		      <property name="visible">True</property>
 		      <property name="can_default">True</property>
 		      <property name="can_focus">True</property>
+		      <property name="has_focus">True</property>
 		      <property name="label">gtk-ok</property>
 		      <property name="use_stock">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
@@ -744,6 +745,7 @@
       <property name="has_frame">True</property>
       <property name="invisible_char">*</property>
       <property name="activates_default">False</property>
+      <signal name="activate" handler="start_connect" last_modification_time="Tue, 16 Aug 2005 15:49:26 GMT"/>
     </widget>
     <packing>
       <property name="left_attach">1</property>

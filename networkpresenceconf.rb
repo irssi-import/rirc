@@ -35,8 +35,12 @@ class NetworkPresenceConf
             if iter = widget.selected and iter[0]
                 puts iter[0]
                 @glade['connect'].sensitive = true
+                @glade['editpresence'].sensitive = true
+                @glade['deletepresence'].sensitive = true
             else
                 @glade['connect'].sensitive = false
+                @glade['editpresence'].sensitive = false
+                @glade['deletepresence'].sensitive = false
             end
             false
         end
@@ -70,8 +74,14 @@ class NetworkPresenceConf
         unless network
             puts 'clearing'
             @presencelist.clear
+            #disable buttons the user shouldn't be clicking
+            @glade['editnetwork'].sensitive = false
+            @glade['addpresence'].sensitive = false
             return
         end
+        #reenable any disabled buttons
+        @glade['editnetwork'].sensitive = true
+        @glade['addpresence'].sensitive = true
         network = network[0]
         @presencelist.clear
         return unless @networks[network]

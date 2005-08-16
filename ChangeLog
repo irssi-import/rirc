@@ -1,8 +1,15 @@
+2005-08-16 17:55 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Began alias support
+    Disable/Enable buttons in presence manager depending on selection
+    Autofocus OK button in connection manager, and return in the binpath field also connects
+
 2005-08-11 18:44 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Improved threading (I think)
     Made rirc wait for a quit reply before actually quitting
     Code cleanups
+    Tried fixing the userlist duplication bug
 
 2005-08-09 17:00 - Andrew Thompson <vagabond@cataclysm-software.net>
     

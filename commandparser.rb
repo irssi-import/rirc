@@ -6,6 +6,8 @@ module CommandParser
             network.bufferedcommands.push(message)
             return
         end
+        
+        check_aliases(message)
 
         if /^(\/\w+)(?: (.+)|)/.match(message)
             command = $1
@@ -31,6 +33,15 @@ module CommandParser
             puts exception.backtrace
         end
         
+    end
+    
+    def check_aliases(command)
+        $config['aliases'].each do |original, cmdalias|
+            if command[0, original.length].downcase == original.downcase
+                puts 'found alias'
+                
+            end
+        end
     end
     
     def cmd_message(message, channel, network, presence)
@@ -162,7 +173,7 @@ module CommandParser
     def cmd_shutdown(arguments, channel, network, presence)
         send_command('shutdown', 'shutdown')
         Gtk.main_quit
-        quit(false)
+        quit
     end
     
     #/silckey command
@@ -440,6 +451,32 @@ module CommandParser
                 end
                 lines.push(temp)
             end
+        end
+        
+        lines.push(' ')
+        
+        lines.each do |line|
+            event = {'msg' => line}
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+        end
+    end
+    
+    def cmd_alias(arguments, channel, network, presence)
+        original, cmdalias = arguments.split('=>', 2).map{|e| e.strip}
+        
+        puts 'aliased '+original+' to '+cmdalias
+        
+        puts original.class, cmdalias.class
+        
+        $config['aliases'][original] = cmdalias
+    end
+    
+    def cmd_aliases(*args)
+        lines = ['Aliases:']
+        
+        $config['aliases'].each do |original, cmdalias|
+            puts original.class, cmdalias.class
+            lines.push(original+' => '+cmdalias)
         end
         
         lines.push(' ')

@@ -372,7 +372,7 @@ class Buffer
         if line['init'] and line['line'] == 2
             pattern += $config.get_pattern('topic_setby')
             pattern['%c'] = line[CHANNEL]
-            pattern['%u'] = line[TOPIC_SET_BY]
+            pattern['%u'] = line[TOPIC_SET_BY].to_s
             pattern['%a'] = Time.at(line[TOPIC_TIMESTAMP].to_i).strftime('%c')
             users.push(line[TOPIC_SET_BY])
         elsif line['init'] and line['line'] == 1
@@ -1082,7 +1082,7 @@ class ServerBuffer < Buffer
     #check if a chat with a particular person exists
 	def has_chat?(name)
 		@chats.each do |chat|
-			if chat.rename(name)
+			if chat.name == name
 				return chat
 			end
 		end

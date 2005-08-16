@@ -15,9 +15,11 @@ Little things:
     NetSplit detection (might be better in irssi2 itself)
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
     /alias and /exec commands...
+    Autoconnect option for connect is broken (probably need a way to edit startup settings before fixing this...
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
     Can't set colors for input from config as the cursor becomes hidden
     URLs sometimes get colored, need to use a different color tag format or escape message text somehow
+    fails to catch nickname changes made by other clients... (investigate)

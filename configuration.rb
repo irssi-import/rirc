@@ -64,6 +64,8 @@ class Configuration
         @values['number_tabs'] = true
         
         @values['plugins'] = []
+        
+        @values['aliases'] = {}
 		
 		@oldvalues = {}
 	end
