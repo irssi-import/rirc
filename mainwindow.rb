@@ -382,6 +382,10 @@ class MainWindow
 		configwindow.show_all
 	end
     
+    def on_disconnect1_activate
+        $main.disconnect
+    end
+    
     def on_networks1_activate
         NetworkPresenceConf.new($main.networks, $main.protocols)
     end

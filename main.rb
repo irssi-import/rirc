@@ -253,6 +253,7 @@ class Main
 	
 	#what do do when we get disconnected from irssi2
 	def disconnect
+        @connection.close if @connection
 		@connection = nil
 		@serverlist.servers.each{|server|
 			server.disconnect
@@ -260,6 +261,7 @@ class Main
 				channel.disconnect
 			}
 		}
+        @connectionwindow = ConnectionWindow.new
 	end
 	
 	#connect to a network
@@ -335,6 +337,7 @@ class Main
 	#send a command to irssi2
 	def send_command(tag, command, length=nil)
 		if !@connection
+            disconnect
 			return
 		end
 
@@ -468,6 +471,7 @@ class Main
         
         target.send_user_event({'err' => err}, EVENT_ERROR)
     end
+    
     
 	#duh....
 	def quit
