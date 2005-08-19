@@ -14,8 +14,7 @@ Little things:
     Make keybindings configurable
     NetSplit detection (might be better in irssi2 itself)
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
-    /alias and /exec commands...
-    Autoconnect option for connect is broken (probably need a way to edit startup settings before fixing this...
+    /alias command...
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.

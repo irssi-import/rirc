@@ -44,6 +44,33 @@ module CommandParser
         end
     end
     
+    #/exec support, -o makes it output to the channel
+    def cmd_exec(message, channel, network, presence)
+        return unless message
+        
+        output = false
+        
+        if message[0,2] == '-o'
+            output = true
+            message.slice!(0,2).strip
+        end
+
+        res = `#{message}`
+        res.chomp
+        if $? == 0 and res and output
+            res.split("\n").each do |msg|
+                if channel.class == ChannelBuffer
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                elsif channel.class == ChatBuffer
+                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                end
+                
+                @window.currentbuffer.send_user_event({'msg' => msg}, EVENT_USERMESSAGE)
+            end
+        end
+            
+    end
+    
     def cmd_message(message, channel, network, presence)
         #its not a command, treat as a message
         if network
