@@ -86,6 +86,7 @@ end
 
 #load all my home rolled ruby files here
 require 'constants'
+require 'lines'
 require 'configuration'
 require 'items'
 require 'plugins'
@@ -104,7 +105,6 @@ require 'networkpresenceconf'
 
 class Main
 	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols
-    @@test = 'no'
     extend Plugins
     include PluginAPI
     include EventParser
@@ -316,12 +316,12 @@ class Main
     end
     
     def throw_error(error, buffer=@serverlist)
-        line = {'err' => 'Client Error: '+error}
+        line = Line[ERR => 'Client Error: '+error]
         buffer.send_user_event(line, EVENT_ERROR)
     end
 	
 	def throw_message(message, buffer=@serverlist)
-	line = {'msg' => 'Client Message: '+message}
+	line = Line[MSG => 'Client Message: '+message]
 	buffer.send_user_event(line, EVENT_NOTICE)
 	end
 	
@@ -366,7 +366,7 @@ class Main
 	#handle output from irssi2
 	def handle_output(string)
 		return if string.length == 0
-		line= {}
+		line= Line.new
 		re = /(^[^\*]+);([+\->]+)(.*)$/
 		re2 = /^[*]+;([a-zA-Z_]+);(.+)$/
 		
@@ -389,7 +389,7 @@ class Main
 			puts "Failed to match: "+string+"\n"
 			return
 		end
-		line['event_type'] = $1
+		line[:event_type] = $1
         line['original'] = string
 		
 		items = $2.split(';')
@@ -397,23 +397,27 @@ class Main
 		items.each do |x|
 			vals = x.split('=', 2)
 			if vals[1] and vals[1] != ''
-				line[vals[0]] = unescape(vals[1])
+				line[vals[0].to_sym] = unescape(vals[1])
 			elsif x.count('=') == 0
-				line[x] = true
+				line[x.to_sym] = true
 			end
 		end
 		calculate_clock_drift(line['time']) if line['time']
 		
 		if $config['canonicaltime'] == 'client'
-			line['time'] = Time.at(line['time'].to_i + $main.drift)
+			line[:time] = Time.at(line[:time].to_i + $main.drift)
 		end
 		
-		num = line['id'].to_i
+		num = line[:id].to_i
 		@buffer[num] = line 
 		
 		if @last == nil
 			@last = num-1
 		end
+        
+        #~ line.each do |k,v|
+            #~ puts k,v
+        #~ end
 
 		event_parse(@buffer[num])
 	end
@@ -470,7 +474,7 @@ class Main
             return
         end
         
-        target.send_user_event({'err' => err}, EVENT_ERROR)
+        target.send_user_event(Line['err' => err], EVENT_ERROR)
     end
     
     

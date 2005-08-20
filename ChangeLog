@@ -1,4 +1,9 @@
-2005-08-20 15:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+2005-08-20 18:52 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Configs are now synced across clients.
+    Converted to use symbols to reference line variables(should use less memory and be more efficent)
+
+2005-08-20 02:14 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added /me actions
     tweaked /exec behaviour

@@ -378,6 +378,20 @@ module EventParser
         end
     end
     
+    def event_client_config_changed(event, network, channel)
+        begin
+            event['value'] = YAML::load(event['value'])
+        rescue ArgumentError
+            puts 'not YAML'
+            event['value'] = YAML::unescape(event['value']) if event['value'].class == String
+        end
+        
+        event['value'].gsub!('\"', '"') if event['value'].class == String
+        
+        $config.set_value(event['key'].sub('rirc_', ''), event['value'])
+        @window.draw_from_config
+    end
+    
     def event_irc_event(event, network, channel)
     end
     

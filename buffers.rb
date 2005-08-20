@@ -130,6 +130,14 @@ class Buffer
     
     #send an event from the user to the buffer
     def send_user_event(line, type)
+        
+        x = Line.new
+        
+        line.each do |k,v|
+            x[k.to_sym] = v
+        end
+        
+        line = x
         time = Time.new
         time = time - $main.drift if $config['canonicaltime'] == 'server'
         line[TIME] = time
@@ -140,6 +148,8 @@ class Buffer
     #send a line to the buffer
 	def send_event(line, type, insert_location=BUFFER_END)
 		return if !@connected
+        
+        raise ArgumentError unless line.class == Line
 		
 		if insert_location == BUFFER_END
 			insert = @buffer.end_iter

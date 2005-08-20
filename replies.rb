@@ -38,10 +38,10 @@ class Reply
 	#parse a line and add it to the reply object
 	def addline(line)
         #time = Time.new
-		temp = {}
+		temp = Line.new
 		vars = line.split(";", 3)
 		temp['tagname'] = vars[0]
-		temp['reply_status'] = vars[1]
+		temp[:reply_status] = vars[1]
 		temp['original'] = line
 		
 		if !vars[2]
@@ -59,9 +59,9 @@ class Reply
 				vals[1].gsub!('\\.', ';')
                 vals[1].gsub!('\\\\', '\\')
 				vals[1].gsub!('\\\\\\\\', '\\\\')
-				temp[vals[0]] = vals[1]
+				temp[vals[0].to_sym] = vals[1]
 			elsif x.count('=') == 0
-				temp[x] = true
+				temp[x.to_sym] = true
 			end
 		end
 		
@@ -73,13 +73,13 @@ class Reply
 			temp['time'] = Time.at(temp['time'].to_i + $main.drift)
 		end
 		
-		if temp['reply_status'] == '+'
+		if temp[:reply_status] == '+'
 			@complete = true
 		end
 		
-		if temp['reply_status'] == '-'
+		if temp[:reply_status] == '-'
 			error = line.gsub(temp['tagname']+';-;', '')
-			temp['error'] = error
+			temp[:error] = error
 			@complete = true
             @error = true
 		end

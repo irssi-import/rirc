@@ -100,7 +100,7 @@ module ReplyParser
                 end
             end
             network.set_username(line[PRESENCE] ) if line[PRESENCE]
-            if line['connected']
+            if line[CONNECTED]
                 network.connect
                 network.loggedin = true
                 @window.redraw_channellist
@@ -165,7 +165,7 @@ module ReplyParser
                     channel = @serverlist[line[NETWORK], line[MYPRESENCE]].add(line[CHANNEL])
                 end
                 
-                if line['joined'] and channel
+                if line[JOINED] and channel
                     if line[TOPIC]
                         channel.topic = line[TOPIC]
                     end
@@ -185,8 +185,8 @@ module ReplyParser
         if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL] and line[PRESENCE]
             network.users.create(line[PRESENCE])
             chuser = channel.users.add(network.users[line[PRESENCE]])
-            if line['mode'] and chuser
-                chuser.add_mode(line['mode'])
+            if line[MODE] and chuser
+                chuser.add_mode(line[MODE])
             end
         elsif line[REPLY_STATUS] == '+'
             @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].drawusers
@@ -247,7 +247,7 @@ module ReplyParser
             end
             
         elsif line[EVENT] == 'channel_presence_removed'
-            return if line['deinit']
+            return if line[DEINIT]
             
             if line[PRESENCE] == network.username
                 channel.send_event(line, EVENT_USERPART, BUFFER_START)
@@ -262,7 +262,7 @@ module ReplyParser
             channel.send_event(line, EVENT_USERJOIN, BUFFER_START)
             
         elsif line[EVENT] == 'channel_presence_added'
-            return if line['init']
+            return if line[INIT]
             
             if line[PRESENCE] == network.username
                 channel.send_event(line, EVENT_USERJOIN, BUFFER_START)
@@ -316,7 +316,7 @@ module ReplyParser
 			pattern = $config['whois'].deep_clone
 			pattern['%m'] = msg if msg
 			pattern['%n'] = line[PRESENCE] if line[PRESENCE]
-			line['msg'] = pattern
+			line[MSG] = pattern
 			network.send_event(line, EVENT_NOTICE)
 			time = line[TIME]
 		end
