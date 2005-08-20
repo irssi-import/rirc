@@ -329,8 +329,9 @@ class Main
 	def parse_lines(string)
 		lines = string.split("\n")
 		
-		for i in 0...lines.length
-			handle_output(lines[i])
+		lines.each do |line|
+            $main.serverlist.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
+			handle_output(line)
 		end
 	end
 	

@@ -57,14 +57,15 @@ module CommandParser
 
         res = `#{message}`
         res.chomp
-        if $? == 0 and res and output
+        if $? == 0 and res
             res.split("\n").each do |msg|
-                if channel.class == ChannelBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
-                elsif channel.class == ChatBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                if output
+                    if channel.class == ChannelBuffer
+                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                    elsif channel.class == ChatBuffer
+                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                    end
                 end
-                
                 @window.currentbuffer.send_user_event({'msg' => msg}, EVENT_USERMESSAGE)
             end
         end
@@ -330,10 +331,10 @@ module CommandParser
         channel.delete_line(id)
     end
     
-    #~ def cmd_me(message, channel, network, presence)
-       #~ send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
-       #~ #user
-    #~ end
+    def cmd_me(message, channel, network, presence)
+       send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
+       @window.currentbuffer.send_user_event({'msg'=>message, 'type'=>'action'}, EVENT_USERMESSAGE)
+    end
     
     def cmd_networks(*args)
         lines = ['Defined networks:']

@@ -1,4 +1,9 @@
-2005-08-16 15:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+2005-08-20 15:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added /me actions
+    tweaked /exec behaviour
+
+2005-08-19 15:14 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added /exec
     Various small things

@@ -263,7 +263,7 @@ class Buffer
     
     def buffer_message(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
-        if line['type'] == 'action' and line[PRESENCE]
+        if line[TYPE] == 'action' and line[PRESENCE]
             pattern += $config.get_pattern('action')
             pattern['%u'] = line[PRESENCE]
             if line[MSG_XHTML]
@@ -294,12 +294,16 @@ class Buffer
     
     def buffer_usermessage(line, pattern, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('usermessage')
-        if username
+        if line[TYPE] == 'action' and username
+            pattern += $config.get_pattern('action')
+            pattern['%u'] = username
+            users.push(username)
+        elsif username
+            pattern += $config.get_pattern('usermessage')
             pattern['%u'] = username
             users.push(username)
         end
-        pattern['%m'] = line[MSG] if line[MSG]
+        pattern['%m'] = line[MSG].to_s
         pattern = $main.escape_xml(pattern)
         return [pattern, users, insert_location]
     end
