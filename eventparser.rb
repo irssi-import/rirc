@@ -19,6 +19,7 @@ module EventParser
         begin
             if self.respond_to?('event_'+event['event_type'])
                 res = callback('event_'+event['event_type'], event, network, channel)
+                puts 'event_'+event['event_type']
                 return if res === true
                 self.send('event_'+event['event_type'], *res)
             end
@@ -74,6 +75,40 @@ module EventParser
             network.bufferedcommands.each do |command|
                 puts 'sending command '+command+' to network '+network.name
                 command_parse(command, nil, network, network.presence)
+            end
+        end
+    end
+    
+    def event_gateway_init(event, network, channel)
+        if event[NETWORK] and event[HOST]
+            if @networks[event[NETWORK]]
+                if event[PORT]
+                    @networks[event[NETWORK]].add_gateway(event[HOST], event[PORT])
+                else
+                    @networks[event[NETWORK]].add_gateway(event[HOST])
+                end
+            else
+                puts 'unknown network '+event[NETWORK]
+            end
+        end
+    end
+    
+    def event_gateway_deinit(event, network, channel)
+        if event[NETWORK] and event[HOST]
+            if @networks[event[NETWORK]]
+                #@networks[event[NETWORK]].add_gateway(event[HOST])
+                remove = nil
+                
+                @networks[event[NETWORK]].gateways.list.each do |gw|
+                    if event[HOST] == gw.host and event[PORT] == gw.port
+                        remove = gw
+                        break
+                    end
+                end
+                
+                @networks[event[NETWORK]].gateways.remove(remove)
+            else
+                puts 'unknown network '+event[NETWORK]
             end
         end
     end

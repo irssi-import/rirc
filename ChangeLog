@@ -1,3 +1,7 @@
+2005-08-20 20:43 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Added support for the gateway_init/deinit events
+
 2005-08-20 18:52 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Configs are now synced across clients.
