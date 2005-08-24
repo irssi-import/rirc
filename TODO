@@ -23,3 +23,5 @@ Bugs:
     URLs sometimes get colored, need to use a different color tag format or escape message text somehow
     fails to catch nickname changes made by other clients... (investigate)
     client and nickname do not always match up
+    newly added colors are not added to the tagtable.
+    coloring timestamps adds weird spacing

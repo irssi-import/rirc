@@ -481,7 +481,7 @@ class Buffer
         #parse it for XHTML-IM tags
         string, tags = parse_xml(string)
         
-        re = /((%[0-9]*[0-5]*).+?\2)/
+        re = /((%[0-9]{1}[0-5]*).+?\2)/
 		md = re.match(string)
 		
 		while md.class == MatchData
@@ -505,7 +505,7 @@ class Buffer
 		end
         
         #strip out any empty patterns
-        re = /((%\d)\2)/
+        re = /((%[0-9]{1}[0-5]*)\2)/
         md = re.match(string)
         while md.class == MatchData
             string.sub!(md[0], '')
