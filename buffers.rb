@@ -956,6 +956,14 @@ class ServerBuffer < Buffer
 		@channels.each do |channel|
 			insertintobox(channel)
 		end
+        
+		@chats.sort! {|x, y| x.name <=> y.name}
+		
+		@chats.each do |chat|
+            puts chat.button.label
+			insertintobox(chat)
+		end
+        
         @box.show_all
 	end
     
@@ -965,6 +973,9 @@ class ServerBuffer < Buffer
 		@box.remove(@button)
 		@channels.each do |channel|
 			@box.remove(channel.button)
+		end
+		@chats.each do |chat|
+			@box.remove(chat.button)
 		end
 		@box.destroy if destroy
 	end
@@ -989,6 +1000,7 @@ class ServerBuffer < Buffer
 		@chats.push(newchat)
 		@chats.sort! {|x, y| x.name <=> y.name}
 		insertintobox(newchat)
+        @parent.renumber
 		return newchat
 	end
     
@@ -1021,7 +1033,7 @@ class ServerBuffer < Buffer
 			@box.pack_start(item.button, true, true)
 			@chats.each do |chat|
                 next if chat.connected.nil?
-                #puts @channels[i].name+' at '+i.to_s
+                #puts @chat[i].name+' at '+i.to_s
 				if chat== item
                     #puts i, @channels.length
                     @box.reorder_child(item.button, i+1)
@@ -1353,6 +1365,7 @@ class ChatBuffer < Buffer
 	end
     
     def set_number(num)
+        #return
         @number = num
         if $config['number_tabs']
             md = /^(\d+:).+$/.match(@button.label)

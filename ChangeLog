@@ -1,3 +1,7 @@
+2005-08-24 23:36 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed crash on redraw caused by not remocing chats before destroying their container
+    
 2005-08-24 18:10 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed colortags < 9
