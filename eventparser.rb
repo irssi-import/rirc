@@ -413,7 +413,7 @@ module EventParser
     end
     
     def event_client_config_changed(event, network, channel)
-        value = $config.decode_valie(event['value'])
+        value = $config.decode_value(event['value'])
         
         $config.set_value(event['key'].sub('rirc_', ''), value)
         @window.draw_from_config
