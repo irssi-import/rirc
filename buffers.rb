@@ -481,10 +481,11 @@ class Buffer
         #parse it for XHTML-IM tags
         string, tags = parse_xml(string)
         
-        re = /((%\d).+?\2)/
+        re = /((%[0-9]*[0-5]*).+?\2)/
 		md = re.match(string)
 		
 		while md.class == MatchData
+            puts "matched "+md[2]
 			color = md[2].gsub!('%', 'color')
 			colorid = md[2].gsub!('%', '')
 			#remove the color tags from the text
@@ -512,22 +513,22 @@ class Buffer
             md = re.match(string)
         end
         
-        re = /((\x02).+?\2)/
-		md = re.match(string)
-        re2 = /\x02/
+        #~ re = /((\x02).+?\2)/
+		#~ md = re.match(string)
+        #~ re2 = /\x02/
         
-        while md.class == MatchData
-            text = md[0].gsub(re2, '')
+        #~ while md.class == MatchData
+            #~ text = md[0].gsub(re2, '')
             
-            string[md[0]] = text
+            #~ string[md[0]] = text
             
-            start, stop = md.offset(1)
+            #~ start, stop = md.offset(1)
             
-            stop -= (md[2].length)*2
-			tags[Range.new(start, stop)] = 'bold'
+            #~ stop -= (md[2].length)*2
+			#~ tags[Range.new(start, stop)] = 'bold'
             
-            md = re.match(string)
-        end
+            #~ md = re.match(string)
+        #~ end
 		
 		links = []
 		

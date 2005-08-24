@@ -96,6 +96,7 @@ class Configuration
 	
 	#set a config value
 	def set_value(key, value)
+        value = decode_value(value) if value.class == String
 		@values[key] = value
         
         #update the color array on the off-chance we changed it :(
@@ -142,12 +143,16 @@ class Configuration
 		if value.class == Gdk::Color
 			colors = value.to_a
 			return 'color:'+colors[0].to_s+':'+colors[1].to_s+':'+colors[2].to_s
+        elsif value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
+            return value
 		elsif value.class == TrueClass
 			return 'true'
 		elsif value.class == FalseClass
 			return 'false'
         elsif value.class == String
-            return YAML::dump(YAML::escape(value))
+            return value
+        elsif value.class == Fixnum
+            return value.to_s
 		else
             return YAML::dump(value).gsub("\n", "\\\\\\n")
 		end
@@ -163,11 +168,17 @@ class Configuration
 		elsif value == 'false'
 			return false
 		else
-            begin
-                value = YAML::load(value.gsub("\\n", "\n"))
-            rescue ArgumentError
+            if(value[0,3] == '---')#check if its YAML
+                begin
+                    value = YAML::load(value.gsub("\\n", "\n"))
+                rescue ArgumentError
+                end
             end
             value.gsub!('\"', '"') if value.class == String
+            
+            if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
+                return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
+            end
 			return value
 		end
 	end

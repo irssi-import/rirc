@@ -19,7 +19,6 @@ module EventParser
         begin
             if self.respond_to?('event_'+event['event_type'])
                 res = callback('event_'+event['event_type'], event, network, channel)
-                puts 'event_'+event['event_type']
                 return if res === true
                 self.send('event_'+event['event_type'], *res)
             end
@@ -414,16 +413,9 @@ module EventParser
     end
     
     def event_client_config_changed(event, network, channel)
-        begin
-            event['value'] = YAML::load(event['value'])
-        rescue ArgumentError
-            puts 'not YAML'
-            event['value'] = YAML::unescape(event['value']) if event['value'].class == String
-        end
+        value = $config.decode_valie(event['value'])
         
-        event['value'].gsub!('\"', '"') if event['value'].class == String
-        
-        $config.set_value(event['key'].sub('rirc_', ''), event['value'])
+        $config.set_value(event['key'].sub('rirc_', ''), value)
         @window.draw_from_config
     end
     

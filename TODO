@@ -22,3 +22,4 @@ Bugs:
     Can't set colors for input from config as the cursor becomes hidden
     URLs sometimes get colored, need to use a different color tag format or escape message text somehow
     fails to catch nickname changes made by other clients... (investigate)
+    client and nickname do not always match up
