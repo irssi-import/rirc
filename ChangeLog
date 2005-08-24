@@ -1,3 +1,8 @@
+2005-08-25 00:43 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    event get for networks (kinda unfinished)
+    Fixed network dialog popping up even when servers were connected
+
 2005-08-24 23:36 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed crash on redraw caused by not remocing chats before destroying their container

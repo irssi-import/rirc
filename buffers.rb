@@ -777,7 +777,7 @@ class RootBuffer < Buffer
 	def empty_box
         return unless @box
        # puts @box, @button
-		@box.remove(@button) if @button
+		@box.remove(@button)
 		@servers.each do |server|
 			@box.remove(server.box)
 		end

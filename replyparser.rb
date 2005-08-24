@@ -110,17 +110,6 @@ module ReplyParser
         if line[REPLY_STATUS] == '+'
                 send_command('channels', "channel list")
         end
-        
-        i = 0
-        @serverlist.servers.each do|server|
-            if server.connected
-                i += 1
-            end
-        end
-        
-        if i == 0
-            @window.on_networks1_activate
-        end
     end
     
     def reply_network_list(line, network, channel, reply)
@@ -175,6 +164,18 @@ module ReplyParser
             end
         
         elsif line[REPLY_STATUS] == '+'
+            #check for connected networks
+            i = 0
+            @serverlist.servers.each do|server|
+                if server.connected
+                    i += 1
+                end
+            end
+            
+            #if no networks are connected, raise the network window
+            if i == 0
+                @window.on_networks1_activate
+            end
             syncchannels
         end
         
@@ -203,14 +204,28 @@ module ReplyParser
             if line[ADDRESS] and network.users[line[PRESENCE]] and network.users[line[PRESENCE]].hostname == 'hostname'
                 network.users[line[PRESENCE]].hostname = line[ADDRESS]
             end
+            
+            target = network
+            if channel
+                target = channel
+            elsif line[PRESENCE] and !line[NO_AUTOREPLY]
+                unless target = network.has_chat?(line[PRESENCE])
+                    target = network.addchat(line[PRESENCE])
+                end
+                target.connect unless target.connected
+            end
                 
             if line[OWN]
 		#I don't know why I did this, but I'm fixing something else ATM so 'll come back to it
-                line[PRESENCE] = network.username #line[MYPRESENCE]
-                channel.send_event(line, EVENT_USERMESSAGE, BUFFER_START)
+                #line[PRESENCE] = line[PRESENCE]
+                target.send_event(line, EVENT_USERMESSAGE, BUFFER_START)
             else
-                channel.send_event(line, EVENT_MESSAGE, BUFFER_START)
+                target.send_event(line, EVENT_MESSAGE, BUFFER_START)
             end
+            
+        elsif line[EVENT] == 'notice'
+            return unless network
+            network.send_event(event, EVENT_NOTICE, BUFFER_START)
             
         elsif line[EVENT] == 'channel_changed'
             if line[TOPIC] and line['init']
@@ -230,7 +245,7 @@ module ReplyParser
         elsif line[EVENT] == 'presence_changed'
             #this doesn't seem to be reached, ever
             if line[NAME]
-                if event[NAME] == network.username
+                if line[NAME] == network.username
                     type = EVENT_USERNICKCHANGE
                 else
                     type = EVENT_NICKCHANGE
@@ -238,9 +253,10 @@ module ReplyParser
                 
                 if type
                     network.channels.each do |c|
-                        if c.users[event[NAME]]
-                            c.drawusers
-                            c.send_event(event, type, BUFFER_START)
+                        if c.users[line[NAME]]
+                            #this isn't really a great thing to be doing ATM
+                            #c.drawusers
+                            #c.send_event(line, type, BUFFER_START)
                         end
                     end
                 end
@@ -269,14 +285,6 @@ module ReplyParser
             else
                 channel.send_event(line, EVENT_JOIN, BUFFER_START)
             end
-            
-        #~ elsif line[EVENT] == 'irc_ctcp'
-            #~ puts 'CTCP', line['original']
-        
-            #~ if line['name'] == 'action' and line['args']
-                #~ puts 'action'
-                #~ channel.send_event(line, CTCP, BUFFER_START)
-            #~ end
             
         elsif line[REPLY_STATUS] == '+'
             reply.channel.eventsync = true if reply.channel
