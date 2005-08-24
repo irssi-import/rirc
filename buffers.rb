@@ -485,7 +485,6 @@ class Buffer
 		md = re.match(string)
 		
 		while md.class == MatchData
-            puts "matched "+md[2]
 			color = md[2].gsub!('%', 'color')
 			colorid = md[2].gsub!('%', '')
 			#remove the color tags from the text
