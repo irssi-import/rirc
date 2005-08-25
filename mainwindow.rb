@@ -31,10 +31,10 @@ class MainWindow
 			end
 			
 			if event.keyval == Gdk::Keyval.from_name('Up')
-                #storecommand
+                storecommand
 				getlastcommand
 			elsif event.keyval == Gdk::Keyval.from_name('Down')
-                #storecommand
+                storecommand
 				getnextcommand
 			elsif event.keyval == Gdk::Keyval.from_name('Tab')
 				true

@@ -449,6 +449,8 @@ class Buffer
 	#add a command to the command buffer
 	def addcommand(string)
 		return if string.length == 0
+        return if string == @commandbuffer[@commandindex]
+        #puts string, @commandbuffer[@commandindex], @commandbuffer[@commandindex-1]
 		@commandbuffer.push(string)
 		while @commandbuffer.length > $config['commandbuffersize'].to_i
 			@commandbuffer.delete_at(0)
