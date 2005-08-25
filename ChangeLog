@@ -1,3 +1,8 @@
+2005-08-25 22.37 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed escape bug for the 6.02^27th time
+    Improved hyperlink parser
+
 2005-08-25 10:04 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed weird bug in color parser

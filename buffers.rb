@@ -532,7 +532,8 @@ class Buffer
 		
 		links = []
 		
-		re = %r{(([a-zA-Z]+\://|[\w\-]+\.)[\w.\-]+\.[\w.\-,]+([^\s\n\(\)\[\]\r]+|))}
+		#re = %r{(([a-zA-Z]+\://|[\w\-]+\.)[\w.\-]+\.[\w.\-,]+([^\s\n\(\)\[\]\r]+|))}
+        re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([^\s\n\(\)\[\]\r]+|))}
 		md = re.match(string)
 		
 		while md.class == MatchData
