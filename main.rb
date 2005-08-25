@@ -199,6 +199,7 @@ class Main
             Thread.current.priority = -2
             @serverlist.servers.each do |server|
                 #send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(presence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)(channel=*)(event=presence_status_changed)(event=client_command)(event=client_config_changed)(event=presence_init)(event=presence_deinit))')
+                #send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(presence='+server.presence+')(|(event=msg)(event=notice))(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)(channel=*))')
                 server.channels.each do |channel|
                     if !channel.usersync and channel.connected
                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)

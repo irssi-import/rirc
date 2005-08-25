@@ -532,7 +532,7 @@ class Buffer
 		
 		links = []
 		
-		re = /(([a-zA-Z]+\:\/\/|[a-zA-Z0-9]+\.)[a-zA-Z0-9.-]+\.[a-zA-Z.]+([^\s\n\(\)\[\]\r]+|))/
+		re = %r{(([a-zA-Z]+\://|[\w\-]+\.)[\w.\-]+\.[\w.\-,]+([^\s\n\(\)\[\]\r]+|))}
 		md = re.match(string)
 		
 		while md.class == MatchData
