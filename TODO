@@ -16,6 +16,7 @@ Little things:
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
     /alias command...
     when down/up is pressed, put current command into history
+    Remove default presence from connect, update presence selection for /connect
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
@@ -26,4 +27,3 @@ Bugs:
     client and nickname do not always match up
     newly added colors are not added to the tagtable.
     coloring timestamps adds weird spacing
-    pushing up to get the last command then requires 2 down presses to clear again

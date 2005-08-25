@@ -31,8 +31,10 @@ class MainWindow
 			end
 			
 			if event.keyval == Gdk::Keyval.from_name('Up')
+                #storecommand
 				getlastcommand
 			elsif event.keyval == Gdk::Keyval.from_name('Down')
+                #storecommand
 				getnextcommand
 			elsif event.keyval == Gdk::Keyval.from_name('Tab')
 				true
@@ -358,6 +360,13 @@ class MainWindow
 	def show_username
 		@usernamebutton.show
 	end
+    
+    def storecommand
+        text = @messageinput.text
+        if text.length > 0
+            @currentbuffer.addcommand(text)
+        end
+    end
 	
 	def getlastcommand
 		@messageinput.text = @currentbuffer.getlastcommand

@@ -1,3 +1,7 @@
+2005-08-25 23.25 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed command buffer
+
 2005-08-25 22.37 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed escape bug for the 6.02^27th time

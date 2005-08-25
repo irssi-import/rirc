@@ -453,24 +453,26 @@ class Buffer
 		while @commandbuffer.length > $config['commandbuffersize'].to_i
 			@commandbuffer.delete_at(0)
 		end
-		@commandindex = @commandbuffer.length-1
+		@commandindex += 1#= @commandbuffer.length
 	end
 	
 	#get the last command in the command buffer
 	def getlastcommand
-        puts @commandindex
+        @commandindex -=1 if @commandindex > 0
+        #puts 'back to '+@commandindex.to_s
         command = @commandbuffer[@commandindex]
-		@commandindex -=1 if @commandindex != 0
+        command ||= ''
 		return command
 	end
 	
 	#get the next command in the command buffer
 	def getnextcommand
-        puts @commandindex
-		 if @commandindex >= @commandbuffer.length-1
+        @commandindex +=1
+        #puts 'forward to '+@commandindex.to_s
+		 if @commandindex >= @commandbuffer.length
+            @commandindex = @commandbuffer.length if @commandindex > @commandbuffer.length
 			return ''
 		else
-            @commandindex +=1
 			return @commandbuffer[@commandindex]
 		end
 	end
