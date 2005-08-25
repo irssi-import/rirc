@@ -182,7 +182,7 @@ class Main
 	
 	#unescape the string
 	def unescape(string)
-        result = string.gsub("\.", "\\\\.")
+        result = string.gsub("\\.", "\\\\.")
         result.gsub!(%r{\\{1}\\\.}, '!.')
         result.gsub!('\\.', ';')
         result.gsub!('!.', '\\.')

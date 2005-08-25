@@ -55,7 +55,7 @@ class Reply
 			vals = x.split('=', 2)
 			if vals[1] and vals[1] != ''
                 #unescape the reply values
-                vals[1].gsub!("\.", "\\\\.")
+                vals[1].gsub!("\\.", "\\\\.")
                 vals[1].gsub!(%r{\\{1}\\\\\.}, '!.')
                 vals[1].gsub!('\\\\.', ';')
                 vals[1].gsub!('\\\\', '\\')
