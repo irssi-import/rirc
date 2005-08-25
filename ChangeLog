@@ -1,3 +1,7 @@
+2005-08-25 10:04 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed weird bug in color parser
+
 2005-08-25 00:43 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     event get for networks (kinda unfinished)

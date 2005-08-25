@@ -493,7 +493,8 @@ class Buffer
             #puts text
 	
 			#strip the color tags for this tag from the string
-			string[md[0]] = text
+            #for some reason []= fucked up for some people, sub is probably better anyway
+			string.sub!(md[1], text)
 			
 			#create a tag with a range
 			start, stop = md.offset(1)
