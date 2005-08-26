@@ -6,6 +6,7 @@ require 'base64'
 require 'thread'
 require 'monitor'
 require "rexml/document"
+require "yaml"
 $platform = RUBY_PLATFORM
 
 $args = {}
@@ -81,6 +82,29 @@ def duration(seconds, precision=2)
 	result = ' - '+result if negative
 	
 	return result
+end
+
+#escape the string
+def escape(string)
+    result = string.gsub('\\', '\\\\\\')
+    result.gsub!(';', '\\.')
+    return result
+end
+
+#unescape the string
+def unescape(string)
+    result = string.gsub("\\.", "\\\\.")
+    result.gsub!(%r{\\{1}\\\.}, '!.')
+    result.gsub!('\\.', ';')
+    result.gsub!('!.', '\\.')
+    result.gsub!('\\\\', '\\')
+    return result
+end
+
+def escape_xml(string)
+    s = string.gsub('&', '&amp;')
+    s = s.gsub('<', '&lt;').gsub('>', '&gt;')
+    return s
 end
 
 
@@ -172,29 +196,6 @@ class Main
 	def scroll_to_end(channel)
 		@window.scroll_to_end(channel)
 	end
-	
-	#escape the string
-	def escape(string)
-		result = string.gsub('\\', '\\\\\\')
-		result.gsub!(';', '\\.')
-		return result
-	end
-	
-	#unescape the string
-	def unescape(string)
-        result = string.gsub("\\.", "\\\\.")
-        result.gsub!(%r{\\{1}\\\.}, '!.')
-        result.gsub!('\\.', ';')
-        result.gsub!('!.', '\\.')
-		result.gsub!('\\\\', '\\')
-		return result
-	end
-    
-    def escape_xml(string)
-        s = string.gsub('&', '&amp;')
-        s = s.gsub('<', '&lt;').gsub('>', '&gt;')
-        return s
-    end
     
     def syncchannels
         @syncchannels = true

@@ -8,6 +8,7 @@ class Buffer
         16.times do |x|
             @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
         end
+        #TODO italics...?
         @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
         @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
 		@commandbuffer = []
@@ -277,11 +278,11 @@ class Buffer
             pattern += $config.get_pattern('action')
             pattern['%u'] = line[PRESENCE]
             if line[MSG_XHTML]
-                pattern = $main.escape_xml(pattern)
+                pattern = escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
             else
                 pattern['%m'] = line[MSG].to_s
-                pattern = $main.escape_xml(pattern)
+                pattern = escape_xml(pattern)
             end
         else
             pattern += $config.get_pattern('message')
@@ -290,13 +291,13 @@ class Buffer
                 users.push(line[PRESENCE])
             end
             if line[MSG_XHTML]
-                pattern = $main.escape_xml(pattern)
+                pattern = escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
             elsif line[MSG]
                 pattern['%m'] = line[MSG]
-                pattern = $main.escape_xml(pattern)
+                pattern = escape_xml(pattern)
             else
-                pattern = $main.escape_xml(pattern)
+                pattern = escape_xml(pattern)
             end
         end
         return [pattern, users, insert_location]
@@ -314,7 +315,7 @@ class Buffer
             users.push(username)
         end
         pattern['%m'] = line[MSG].to_s
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -329,7 +330,7 @@ class Buffer
         else
             pattern['%h'] = line[ADDRESS].to_s
         end
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end    
         
@@ -337,7 +338,7 @@ class Buffer
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('userjoin')
         pattern['%c'] = line[CHANNEL]
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -353,7 +354,7 @@ class Buffer
         else
             pattern['%h'] = line[ADDRESS].to_s
         end
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
        return [pattern, users, insert_location]
     end
     
@@ -361,7 +362,7 @@ class Buffer
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('userpart')
         pattern['%c'] = line[CHANNEL]
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
 
@@ -369,7 +370,7 @@ class Buffer
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('error')
         pattern['%m'] = line[ERR]
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -377,7 +378,7 @@ class Buffer
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern += $config.get_pattern('notice')
         pattern['%m'] = line[MSG]
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -399,7 +400,7 @@ class Buffer
             pattern['%u'] = line[TOPIC_SET_BY].to_s
             users.push(line[TOPIC_SET_BY])
         end
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
        return [pattern, users, insert_location]
     end
     
@@ -417,7 +418,7 @@ class Buffer
         #pattern['%m'] = line['mode']
         pattern['%u'] = line[PRESENCE]
         users.push(line[SOURCE_PRESENCE], line[PRESENCE])
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -428,7 +429,7 @@ class Buffer
         pattern['%n'] = line[NAME].to_s
         
         users.push(line[NAME])
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -438,7 +439,7 @@ class Buffer
         pattern['%n'] = line[NAME].to_s
         
         users.push(line[NAME])
-        pattern = $main.escape_xml(pattern)
+        pattern = escape_xml(pattern)
         return [pattern, users, insert_location]
     end
     
@@ -485,54 +486,52 @@ class Buffer
         #parse it for XHTML-IM tags
         string, tags = parse_xml(string)
         
-        re = /((%[0-9]{1}[0-5]*).+?\2)/
+        re = /((%(C[0-9]{1}[0-5]*|U|B|I)).+?\2)/
 		md = re.match(string)
 		
 		while md.class == MatchData
-			color = md[2].gsub!('%', 'color')
-			colorid = md[2].gsub!('%', '')
-			#remove the color tags from the text
-			text = md[0].gsub('%'+colorid, '')
             
-            #puts text
-	
-			#strip the color tags for this tag from the string
+            tag = nil
+            
+            if md[2] =~ /^%C[0-9]{1}[0-5]*$/
+                tag = md[2].gsub!('%C', 'color')
+                colorid = md[2].gsub!('%C', '')
+                
+            elsif md[2] == '%U'
+                tag = 'underline'
+                
+            elsif md[2] == '%B'
+                tag = 'bold'
+                
+            elsif md[2] == '%I'
+                tag = 'italic'
+            end
+            
+            #remove the tags from the text
+            text = md[0].gsub(md[2], '')
+    
+            #strip the tags for this tag from the string
             #for some reason []= fucked up for some people, sub is probably better anyway
-			string.sub!(md[1], text)
-			
-			#create a tag with a range
-			start, stop = md.offset(1)
-			stop -= (md[2].length)*2
-			tags[Range.new(start, stop)] = color
+            string.sub!(md[1], text)
+            
+            if tag
+                #create a tag with a range
+                start, stop = md.offset(1)
+                stop -= (md[2].length)*2
+                tags[Range.new(start, stop)] = tag
+            end
 			
 			#go around again
 			md = re.match(string)
 		end
         
         #strip out any empty patterns
-        re = /((%[0-9]{1}[0-5]*)\2)/
+        re = /((%(C[0-9]{1}[0-5]*|U|B|I))\2)/
         md = re.match(string)
         while md.class == MatchData
             string.sub!(md[0], '')
             md = re.match(string)
         end
-        
-        #~ re = /((\x02).+?\2)/
-		#~ md = re.match(string)
-        #~ re2 = /\x02/
-        
-        #~ while md.class == MatchData
-            #~ text = md[0].gsub(re2, '')
-            
-            #~ string[md[0]] = text
-            
-            #~ start, stop = md.offset(1)
-            
-            #~ stop -= (md[2].length)*2
-			#~ tags[Range.new(start, stop)] = 'bold'
-            
-            #~ md = re.match(string)
-        #~ end
 		
 		links = []
 		

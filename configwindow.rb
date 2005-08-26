@@ -42,8 +42,8 @@ class ConfigWindow
 		fill_values
 	end
 	
-	def fill_values
-		values = $config.get_all_values
+	def fill_values(values = $config.get_all_values)
+		#values = $config.get_all_values
 		
 		values.each do | key, value|
 			if @glade[key]
@@ -154,7 +154,13 @@ class ConfigWindow
         change_setting(widget, widget.font_name)
     end
     
+    def revert_config
+        #$config.revert_to_defaults
+        fill_values($config.defaults)
+    end
+    
 	def update_config
+        $config.create_config_snapshot
 		#pass all the values back to $config
 		@configarray.each do |k, v|
 			$config.set_value(v['name'], v['value'])

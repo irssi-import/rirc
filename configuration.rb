@@ -1,4 +1,5 @@
 class Configuration
+    attr_reader :defaults
 	def initialize
 		#set some defaults... probably too soon be overriden by the user's config, but you gotta start somewhere :P
 		@values = {}
@@ -26,23 +27,23 @@ class Configuration
 		
 		@values['usetimestamp'] = true
 		@values['timestamp'] = "[%H:%M]"
-		@values['message'] = "%2<%2%u%2>%2 %m"
-		@values['usermessage'] = "%4<%4%u%4>%4 %m"
-		@values['action'] = "%1*%1 %u %m"
-		@values['notice'] = "-%1--%1 %m"
-		@values['error'] = "%0***%0 %m"
-		@values['join'] = "-%1->%1 %u (%1%h%1) has joined %c"
-		@values['userjoin'] = "-%1->%1 You are now talking on %c"
-		@values['part'] = "<%1--%1 %u (%1%h%1) has left %c (%r)"
-		@values['userpart'] = "<%1--%1 You have left %c"
-		@values['whois'] = "%2[%2%n%2]%2 %m"
-        @values['topic_change'] = '-%1--%1 Topic set to %6%t%6 by %6%u%6'
-        @values['topic'] ='-%1--%1 Topic for %6%c%6 is %6%t%6'
-		@values['topic_setby'] = '-%1--%1 Topic for %6%c%6 set by %6%u%6 at %6%a%6'
-        @values['add_mode'] = '-%1--%1 %s gave %m to %u'
-        @values['remove_mode'] = '-%1--%1 %s removed %m from %u'
-        @values['nickchange'] = '-%1--%1 %u is now known as %n'
-        @values['usernickchange'] = '-%1--%1 You are now known as %n'
+		@values['message'] = "%C2<%C2%u%C2>%C2 %m"
+		@values['usermessage'] = "%C4<%C4%u%C4>%C4 %m"
+		@values['action'] = "%C1*%C1 %u %m"
+		@values['notice'] = "-%C1--%C1 %m"
+		@values['error'] = "%C0***%C0 %m"
+		@values['join'] = "-%C1->%C1 %u (%C1%h%C1) has joined %c"
+		@values['userjoin'] = "-%C1->%C1 You are now talking on %c"
+		@values['part'] = "<%C1--%C1 %u (%C1%h%C1) has left %c (%r)"
+		@values['userpart'] = "<%C1--%C1 You have left %c"
+		@values['whois'] = "%C2[%C2%n%C2]%C2 %m"
+        @values['topic_change'] = '-%C1--%C1 Topic set to %C6%t%C6 by %C6%u%C6'
+        @values['topic'] = '-%C1--%C1 Topic for %C6%c%C6 is %C6%t%C6'
+		@values['topic_setby'] = '-%C1--%C1 Topic for %6%c%6 set by %C6%u%C6 at %C6%a%C6'
+        @values['add_mode'] = '-%C1--%C1 %s gave %m to %u'
+        @values['remove_mode'] = '-%C1--%C1 %s removed %m from %u'
+        @values['nickchange'] = '-%C1--%C1 %u is now known as %n'
+        @values['usernickchange'] = '-%C1--%C1 You are now known as %n'
         
 		@values['linkclickaction'] = 'firefox -remote "openURL(%s,new-tab)"'
         
@@ -66,6 +67,9 @@ class Configuration
         @values['plugins'] = []
         
         @values['aliases'] = {}
+        
+        #store defaults
+        @defaults = duplicate_config
 		
 		@oldvalues = {}
 	end
@@ -114,7 +118,7 @@ class Configuration
 			if @oldvalues[k] != value or  !@oldvalues[k]
                 key = 'rirc_'+k unless k['rirc_']
                 
-				configs.push(key+'='+$main.escape(value)) if k and value
+				configs.push(key+'='+escape(value)) if k and value
 				puts k+" HAS changed"
 			else
 			end
@@ -160,7 +164,7 @@ class Configuration
 	
 	#decode values retrieved from irssi2
 	def decode_value(value)
-        value = $main.unescape(value)
+        value = unescape(value)
 		if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
 			return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
 		elsif value == 'true'
@@ -201,6 +205,21 @@ class Configuration
 			@oldvalues[k.deep_clone] = encode_value(v)
 		end
 	end
+    
+    def duplicate_config
+        vals = {}
+		@values.each do |k, v|
+			vals[k.deep_clone] = decode_value(encode_value(v))
+		end
+        vals
+    end
+    
+    def revert_to_defaults
+        @values = {}
+        @defaults.each do |k,v|
+            @values[k] = v
+        end
+    end
 		
     def get_pattern(name)
         if @values[name].class == String
