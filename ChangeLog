@@ -1,3 +1,8 @@
+2005-08-27 00.40 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Made config diffing more intelligent
+    Fixed XML offset bug
+
 2005-08-26 11.50 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Updated Color tag format to %C<number>, Added underline %U, bold %B and italic %I (italics doesn't show yet, can't figure out how to do it in pango)

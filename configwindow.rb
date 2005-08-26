@@ -38,6 +38,7 @@ class ConfigWindow
 		@currentcategory = @configarea.child
 		draw_category(@categories['Miscallenous'])
 		@configarray = {}
+        @configbackup = {}
 
 		fill_values
 	end
@@ -53,11 +54,13 @@ class ConfigWindow
 						change_setting(widget, widget.text)
 					end
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+                    @configbackup[key] = value
 				elsif @glade[key].class == Gtk::ComboBox
 					i = 0
                     match = false
 					#fill the combobox
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+                    @configbackup[key] = value
 					next unless @options[key]
 					@options[key].each do |v|
 						@glade[key].append_text(v)
@@ -76,8 +79,10 @@ class ConfigWindow
 				elsif @glade[key].class == Gtk::Button and value.class == Gdk::Color
 					color_button(@glade[key], value)
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+                    @configbackup[key] = value
 				elsif @glade[key].class == Gtk::CheckButton
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
+                    @configbackup[key] = value
 					if value
 						@glade[key].active = true
 					else
@@ -85,6 +90,7 @@ class ConfigWindow
 					end
                 elsif @glade[key].class == Gtk::FontButton
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
+                    @configbackup[key] = value
                     @glade[key].font_name = value
 				end
 			end
@@ -160,7 +166,8 @@ class ConfigWindow
     end
     
 	def update_config
-        $config.create_config_snapshot
+        #$config.create_config_snapshot
+        $config.update_snapshot(@configbackup)
 		#pass all the values back to $config
 		@configarray.each do |k, v|
 			$config.set_value(v['name'], v['value'])

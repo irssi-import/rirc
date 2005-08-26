@@ -128,7 +128,7 @@ require 'connectionwindow'
 require 'networkpresenceconf'
 
 class Main
-	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols
+	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols, :quitting
     extend Plugins
     include PluginAPI
     include EventParser

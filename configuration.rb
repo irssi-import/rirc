@@ -206,6 +206,11 @@ class Configuration
 		end
 	end
     
+    def update_snapshot(hash)
+        hash.each{|k,v| hash[k] = encode_value(v)}
+        @oldvalues.merge!(hash)
+    end
+    
     def duplicate_config
         vals = {}
 		@values.each do |k, v|

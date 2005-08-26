@@ -79,6 +79,7 @@ class MainWindow
 	end
 	
 	def draw_from_config(unhide=true)
+        return if $main.quitting
 		@serverlist.redraw
 		redraw_channellist
         
