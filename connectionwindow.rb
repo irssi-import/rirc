@@ -23,6 +23,7 @@ class ConnectionWindow
 		@config[@ssh_button]['host'] = 'localhost'
 		@config[@ssh_button]['username'] = `whoami`.chomp
 		@config[@ssh_button]['binpath'] = '/usr/bin/irssi2'
+        @config[@ssh_button]['port'] = '22'
 		
         @config[@local_button] = {}
         @config[@local_button] ['binpath'] = '/usr/bin/irssi2'
@@ -85,7 +86,7 @@ class ConnectionWindow
 		group = @glade['ssh'].group
 		group.each do |button|
 			if settings[button.name]
-				@config[button] = settings[button.name]
+				@config[button].merge!(settings[button.name])
 			end
 		end
 		
@@ -115,6 +116,8 @@ class ConnectionWindow
 		
 		group.each do |button|
 			@config[button].each do |k, v|
+                puts k,v
+                puts button.name+'_'+k+' = '+v
 				@glade[button.name+'_'+k].text = v if @glade[button.name+'_'+k]
 			end
 		end

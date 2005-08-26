@@ -1,3 +1,7 @@
+2005-08-26 14.35 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    SSH port for connection is now configurable
+
 2005-08-25 23.35 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Experimental command storage
