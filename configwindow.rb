@@ -23,11 +23,11 @@ class ConfigWindow
 		child2 = @treestore.append(parent)
 		child2[0] = "Miscallenous"
 		child = @treestore.append(parent)
-		child[0] = "Prompts"
+		child[0] = "Templates"
 		child = @treestore.append(parent)
 		child[0] = "Colors"
 		
-		@categories = {'Miscallenous' => @glade['miscconfig'], 'Prompts'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
+		@categories = {'Miscallenous' => @glade['miscconfig'], 'Templates'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
 
 		renderer = Gtk::CellRendererText.new
 		

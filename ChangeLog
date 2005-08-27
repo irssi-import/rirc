@@ -1,3 +1,8 @@
+2005-08-27 02.25 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Styling timestamps is now possible
+    cleanup for some stuff
+
 2005-08-27 00.40 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Made config diffing more intelligent

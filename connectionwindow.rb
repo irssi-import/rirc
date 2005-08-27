@@ -116,8 +116,6 @@ class ConnectionWindow
 		
 		group.each do |button|
 			@config[button].each do |k, v|
-                puts k,v
-                puts button.name+'_'+k+' = '+v
 				@glade[button.name+'_'+k].text = v if @glade[button.name+'_'+k]
 			end
 		end

@@ -161,7 +161,23 @@ class Buffer
 		end
 		
 		if $config['usetimestamp']
-			pattern = Time.at(line[TIME].to_i).strftime($config['timestamp'])
+            re = /((%%(C[0-9]{1}[0-5]*|U|B|I)).*\2)/
+            
+            timestamp = $config['timestamp'].deep_clone
+            
+            md = re.match(timestamp)
+            
+            while md.class == MatchData
+                text = md[1].gsub(md[2], '^^'+md[3])
+                timestamp.gsub!(md[1], text)
+                
+                md = re.match(timestamp)
+            end
+                    
+        
+			pattern = Time.at(line[TIME].to_i).strftime(timestamp)
+            
+            pattern.gsub!(/(\^\^(C[0-9]{1}[0-5]*|U|B|I))/){|s| '%'+$2}
 		else
 			pattern = ''
 		end
@@ -481,6 +497,7 @@ class Buffer
 	end
 	
 	#parse the colors in the text
+    #TODO - Do we need to make this support nested tags?
 	def colortext(string, insert, users, id)
         
         #parse it for XHTML-IM tags

@@ -507,9 +507,14 @@
 			  <property name="visible">True</property>
 			  <property name="label" translatable="yes">These templates let you configure the format of the messages, events, etc in RIRC.
 
-Colors are set by surrounding the text to be colored with %&lt;number&gt; where number is the number of the color you wish to use.
+Colors are set by surrounding the text to be colored with 
+%C&lt;number&gt; where number is the number of the color you wish to use. Bold is %B, underline is %U and italics are %I.
 
 %m is message, %c is channel, %u is username, %h is hostname, %r is quit/part reason. Not all of these are available for each prompt, missing ones will be stripped out.
+
+NOTE: The timestamp needs %% instead of % before any style tags, or stftime will parse them as time formats.
+
+NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 </property>
 			  <property name="use_underline">False</property>
 			  <property name="use_markup">False</property>

@@ -9,7 +9,7 @@ class SSHConnection
 		cmdstring += '-l '+settings['username']+' ' if settings['username']
         cmdstring += '-p '+settings['port']+' ' if settings['port']
 		cmdstring += settings['host']+' '+settings['binpath']
-        puts cmdstring
+        #puts cmdstring
 		@input, @output, @error = Open3.popen3(cmdstring)
 
 		begin
