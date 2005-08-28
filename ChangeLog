@@ -1,3 +1,7 @@
+2005-08-28 14.32 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    /alias /unalias /aliases commands now work, as do aliases themselves (still kinda experimental)
+
 2005-08-27 02.25 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Styling timestamps is now possible

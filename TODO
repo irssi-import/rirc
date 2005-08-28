@@ -14,8 +14,6 @@ Little things:
     Make keybindings configurable
     NetSplit detection (might be better in irssi2 itself)
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
-    /alias command...
-    when down/up is pressed, put current command into history
     Remove default presence from connect, update presence selection for /connect
 
 Bugs:
@@ -26,4 +24,3 @@ Bugs:
     fails to catch nickname changes made by other clients... (investigate)
     client and nickname do not always match up
     newly added colors are not added to the tagtable.
-    coloring timestamps adds weird spacing

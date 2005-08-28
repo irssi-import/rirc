@@ -7,7 +7,7 @@ module CommandParser
             return
         end
         
-        check_aliases(message)
+        message = check_aliases(message)
 
         if /^(\/\w+)(?: (.+)|)/.match(message)
             command = $1
@@ -37,11 +37,30 @@ module CommandParser
     
     def check_aliases(command)
         $config['aliases'].each do |original, cmdalias|
-            if command[0, original.length].downcase == original.downcase
-                puts 'found alias'
-                
+            if command[0, original.length+1].downcase == '/'+original.downcase
+                puts 'found alias '+original
+                if cmdalias.include?('$')
+                    args = command[original.length+1..-1].strip.split(' ')
+                    puts args
+                    
+                    cmd = cmdalias.deep_clone
+                    
+                    re = /(\$(\d+))/
+                    md = re.match(cmd)
+                    
+                    while md.class == MatchData
+                        var = args[$2.to_i]
+                        var ||= ''
+                        cmd.gsub!($1, var)
+                        md = re.match(cmd)
+                    end
+                    return '/'+cmd
+                else
+                    return command.sub(command[0, original.length+1], '/'+cmdalias)
+                end
             end
         end
+        command
     end
     
     #/exec support, -o makes it output to the channel
@@ -490,13 +509,24 @@ module CommandParser
     end
     
     def cmd_alias(arguments, channel, network, presence)
-        original, cmdalias = arguments.split('=>', 2).map{|e| e.strip}
+        original, cmdalias = arguments.split(' ', 2).map{|e| e.strip}
         
         puts 'aliased '+original+' to '+cmdalias
         
         puts original.class, cmdalias.class
         
         $config['aliases'][original] = cmdalias
+    end
+    
+    def cmd_unalias(arguments, channel, network, presence)
+    
+        cmd, other = arguments.split(' ', 2)
+        
+        cmd.strip!
+        
+        $config['aliases'].delete(cmd)
+        
+        puts 'unaliased '+cmd
     end
     
     def cmd_aliases(*args)
