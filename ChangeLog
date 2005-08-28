@@ -1,3 +1,7 @@
+2005-08-28 15:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Changed alias format slightly to be more flexible
+
 2005-08-28 14.32 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     /alias /unalias /aliases commands now work, as do aliases themselves (still kinda experimental)

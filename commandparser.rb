@@ -38,10 +38,10 @@ module CommandParser
     def check_aliases(command)
         $config['aliases'].each do |original, cmdalias|
             if command[0, original.length+1].downcase == '/'+original.downcase
-                puts 'found alias '+original
+                #puts 'found alias '+original
                 if cmdalias.include?('$')
                     args = command[original.length+1..-1].strip.split(' ')
-                    puts args
+                    #puts args
                     
                     cmd = cmdalias.deep_clone
                     
@@ -54,9 +54,9 @@ module CommandParser
                         cmd.gsub!($1, var)
                         md = re.match(cmd)
                     end
-                    return '/'+cmd
+                    return cmd
                 else
-                    return command.sub(command[0, original.length+1], '/'+cmdalias)
+                    return command.sub(command[0, original.length+1], cmdalias)
                 end
             end
         end
@@ -509,11 +509,19 @@ module CommandParser
     end
     
     def cmd_alias(arguments, channel, network, presence)
-        original, cmdalias = arguments.split(' ', 2).map{|e| e.strip}
+        splitter = ' '
+        if arguments.include?(' /')
+            splitter = ' /'
+        end
+        original, cmdalias = arguments.split(splitter, 2).map{|e| e.strip}
+        
+        if splitter == ' /'
+            cmdalias = '/'+cmdalias
+        end
         
         puts 'aliased '+original+' to '+cmdalias
         
-        puts original.class, cmdalias.class
+        #puts original.class, cmdalias.class
         
         $config['aliases'][original] = cmdalias
     end
