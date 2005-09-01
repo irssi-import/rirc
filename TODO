@@ -14,7 +14,6 @@ Little things:
     Make keybindings configurable
     NetSplit detection (might be better in irssi2 itself)
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
-    Remove default presence from connect, update presence selection for /connect
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
@@ -22,5 +21,5 @@ Bugs:
     Can't set colors for input from config as the cursor becomes hidden
     fails to catch nickname changes made by other clients... (investigate)
     client and nickname do not always match up
-    newly added colors are not added to the tagtable.
     looks like event resend loop still exists...
+    restoring colors from default doesn't work, the colors don't know they've been updated

@@ -251,7 +251,6 @@ class Main
             
 			@window.draw_from_config
             @serverlist.storedefault
-			$config.set_value('presence', @connectionwindow.presence)
 			@connectionwindow.destroy
             
             send_command('protocols', 'protocol list')

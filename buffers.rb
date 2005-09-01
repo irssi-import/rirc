@@ -5,9 +5,7 @@ class Buffer
     include PluginAPI
 	def initialize(name)
 		@buffer = Gtk::TextBuffer.new
-        16.times do |x|
-            @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
-        end
+        
         #TODO italics...?
         @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
         @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
@@ -20,6 +18,8 @@ class Buffer
 			switchchannel(self)
 		end
         
+        update_colors
+        
         @linebuffer = []
         
         @button.signal_connect('button_press_event')do |w, event|
@@ -29,6 +29,18 @@ class Buffer
 		end
         @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic', 'modechange', 'ctcp']
 	end
+    
+    def update_colors
+        #puts 'updating colors for '+@button.label
+        16.times do |x|
+            if $config['color'+x.to_s] and tag = @buffer.tag_table.lookup('color'+x.to_s)
+                #puts 'updating '+tag.to_s
+                tag.foreground_gdk = $config['color'+x.to_s]
+            elsif $config['color'+x.to_s] 
+                @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
+            end
+        end
+    end
     
     def rightclickmenu(event)
         menu = genmenu
@@ -790,6 +802,8 @@ class RootBuffer < Buffer
                 insertintobox(server)
             end
 		end
+        
+        update_colors
 		
 		@box.show_all
         renumber
@@ -988,6 +1002,7 @@ class ServerBuffer < Buffer
 		@channels.sort! {|x, y| x.name <=> y.name}
 		
 		@channels.each do |channel|
+            channel.update_colors
 			insertintobox(channel)
 		end
         
@@ -995,8 +1010,11 @@ class ServerBuffer < Buffer
 		
 		@chats.each do |chat|
             puts chat.button.label
+            chat.update_colors
 			insertintobox(chat)
 		end
+        
+        update_colors
         
         @box.show_all
 	end

@@ -132,13 +132,14 @@ module CommandParser
     #/connect command
     def cmd_connect(arguments, channel, network, presence)
         unless arguments
-                throw_error('Specify a network to connect to.')
-                return
+            throw_error('Specify a network to connect to.')
+            return
         end
         network, presence = arguments.split(' ', 2)
         
         unless presence
-            presence = $config['presence']
+            #presence = $config['presence']
+            throw_error('Specify a presence to use.')
         end
         
         if presence_add(network, presence)
