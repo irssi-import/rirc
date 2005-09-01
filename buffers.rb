@@ -195,6 +195,30 @@ class Buffer
 		else
 			pattern = ''
 		end
+        
+        if line[MSG]
+            re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([.\/]{1}[^\s\n\(\)\[\]\r]+|))}
+            md = re.match(line[MSG])
+            
+            while md.class == MatchData
+                dup = false
+                @links.each_with_index do |link, index|
+                    next if dup == true
+                    if link['link'] == md[0]
+                        dup = true
+                        #puts 'link is a dup'
+                        break
+                    elsif line[TIME].to_i < link['timestamp']
+                        @links.insert(index, {'link' => md[0], 'name' => line[PRESENCE].to_s, 'timestamp' => line[TIME].to_i, 'time' => Time.at(line[TIME].to_i).strftime('%H:%M')})
+                        dup = true
+                        #puts 'adding link'
+                        break
+                    end
+                end
+                @links.insert(-1, {'link' => md[0], 'name' => line[PRESENCE].to_s, 'timestamp' => line[TIME].to_i, 'time' => Time.at(line[TIME].to_i).strftime('%H:%M')}) unless dup
+                md = re.match(md.post_match)
+            end
+        end
 		
 		links = []
 		users = []
@@ -567,12 +591,12 @@ class Buffer
 		links = []
 		
 		#re = %r{(([a-zA-Z]+\://|[\w\-]+\.)[\w.\-]+\.[\w.\-,]+([^\s\n\(\)\[\]\r]+|))}
-        re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([^\s\n\(\)\[\]\r]+|))}
+        re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([.\/]{1}[^\s\n\(\)\[\]\r]+|))}
 		md = re.match(string)
 		
 		while md.class == MatchData
 			links.push(md[0])
-            @links.push(md[0]) unless @links.include?(md[0])
+            #@links.push(md[0]) unless @links.include?(md[0])
 			md = re.match(md.post_match)
 		end
 		

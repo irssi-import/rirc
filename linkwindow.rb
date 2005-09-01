@@ -2,17 +2,23 @@
 class LinkWindow
     def initialize(links)
         @glade = GladeXML.new("glade/linkwindow.glade") {|handler| method(handler)}
-        @linkstore = Gtk::ListStore.new(String)#, String)
+        @linkstore = Gtk::ListStore.new(String, String, String)
         @linklist = @glade['linklist']
         @linklist.model = @linkstore
 		renderer = Gtk::CellRendererText.new
 		
-		col = Gtk::TreeViewColumn.new("Link", renderer, :text => 0)
+		col = Gtk::TreeViewColumn.new("Time", renderer, :text => 0)
+		@linklist.append_column(col)
+		col = Gtk::TreeViewColumn.new("Link", renderer, :text => 1)
+		@linklist.append_column(col)
+		col = Gtk::TreeViewColumn.new("User", renderer, :text => 2)
 		@linklist.append_column(col)
         
-        links.each do |x|
+        links.each do |v|
             iter = @linkstore.append
-            iter[0] = x
+            iter[2] = v['link']
+            iter[0] = v['time']
+            iter[1] = v['name']
         end
         
         @window = @glade['linkwindow']
@@ -31,14 +37,14 @@ class LinkWindow
     def open_link
         selection = @linklist.selection.selected
         if selection
-            go_link(selection[0])
+            go_link(selection[2])
         end
     end
     
     def link_activated(treeview, path, column)
         iter = @linklist.model.get_iter(path)
         if iter
-            go_link(iter[0])
+            go_link(iter[2])
         end
     end
     

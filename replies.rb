@@ -56,11 +56,10 @@ class Reply
 			if vals[1] and vals[1] != ''
                 #unescape the reply values
                 vals[1].gsub!("\\.", "\\\\.")
-                vals[1].gsub!(%r{\\{1}\\\\\.}, '!.')
-                vals[1].gsub!('\\\\.', ';')
-                vals[1].gsub!('\\\\', '\\')
+                vals[1].gsub!(%r{\\{1}\\\.}, '!.')
+                vals[1].gsub!('\\.', ';')
                 vals[1].gsub!('!.', '\\.')
-				vals[1].gsub!('\\\\\\\\', '\\\\')
+                vals[1].gsub!('\\\\', '\\')
 				temp[vals[0].to_sym] = vals[1]
 			elsif x.count('=') == 0
 				temp[x.to_sym] = true

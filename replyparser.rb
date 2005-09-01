@@ -211,6 +211,7 @@ module ReplyParser
             elsif line[PRESENCE] and !line[NO_AUTOREPLY]
                 unless target = network.has_chat?(line[PRESENCE])
                     target = network.addchat(line[PRESENCE])
+                    #puts 'chat for '+line[PRESENCE]
                 end
                 target.connect unless target.connected
             end
