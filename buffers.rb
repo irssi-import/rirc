@@ -1,5 +1,5 @@
 class Buffer
-	attr_reader :oldendmark, :currentcommand, :buffer, :button
+	attr_reader :oldendmark, :currentcommand, :buffer, :button, :links
 	attr_writer :currentcommand
     extend Plugins
     include PluginAPI
@@ -7,6 +7,7 @@ class Buffer
 		@buffer = Gtk::TextBuffer.new
         
         #TODO italics...?
+        @links = []
         @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
         @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
 		@commandbuffer = []
@@ -571,6 +572,7 @@ class Buffer
 		
 		while md.class == MatchData
 			links.push(md[0])
+            @links.push(md[0]) unless @links.include?(md[0])
 			md = re.match(md.post_match)
 		end
 		

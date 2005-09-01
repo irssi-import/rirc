@@ -588,6 +588,8 @@ class MainWindow
                 tab = @serverlist.number2tab(@keyintmap[key].to_i)
                 switchchannel(tab)
                 return true
+            elsif key == 'l'
+                LinkWindow.new(@currentbuffer.links)
             end
         end
     end
