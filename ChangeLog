@@ -1,3 +1,7 @@
+2005-09-01 23.45 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added plugin loader/unloader
+
 2005-09-01 22.12 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added link browser, invoke with alt+l

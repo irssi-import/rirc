@@ -127,6 +127,7 @@ require 'configwindow'
 require 'connectionwindow'
 require 'networkpresenceconf'
 require 'linkwindow'
+require 'pluginwindow'
 
 class Main
 	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols, :quitting
