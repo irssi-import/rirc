@@ -409,6 +409,9 @@ class MainWindow
     
     def userlist_on_click(widget, event)
 		if event.button == 3
+            path, column, x, y = @userlist.get_path_at_pos(event.x, event.y)
+            return unless path
+            @userlist.set_cursor(path, nil, false)
 			userlist_popup_menu(event)
 			return true
 		end
@@ -421,6 +424,16 @@ class MainWindow
             menu.show_all
             menu.popup(nil, nil, event.button, event.time)
         end
+    end
+    
+    def userlist_on_doubleclick(treeview, path, column)
+        iter = @userlist.model.get_iter(path)
+        return if iter[1] == @currentbuffer.server.username
+        if !chat = @currentbuffer.server.has_chat?(iter[1])
+            chat = @currentbuffer.server.addchat(iter[1])
+        end
+        chat.connect unless chat.connected
+        switchchannel(chat)
     end
 	
 	def textview_on_click(widget, event)

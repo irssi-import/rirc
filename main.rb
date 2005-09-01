@@ -215,7 +215,7 @@ class Main
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))')
                     end
                 end
-                send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(presence='+server.presence+')(event=msg)(!(|(init=*)(deinit=*)(raw=*)(channel=*))')
+                send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(mypresence='+server.presence+')(event=msg)(!(|(init=*)(deinit=*)(raw=*)(channel=*))')
             end
         end
         @syncchannels = nil

@@ -1009,7 +1009,7 @@ class ServerBuffer < Buffer
 		@chats.sort! {|x, y| x.name <=> y.name}
 		
 		@chats.each do |chat|
-            puts chat.button.label
+            #puts chat.button.label
             chat.update_colors
 			insertintobox(chat)
 		end
