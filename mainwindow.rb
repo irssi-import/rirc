@@ -19,13 +19,13 @@ class MainWindow
 		@messageinput.grab_focus
 		@messageinput.signal_connect("key_press_event") do |widget, event|
 			if event.keyval == Gdk::Keyval.from_name('Tab')
-				if @currentbuffer.class == ChannelBuffer
+				if @currentbuffer.class == ChannelBuffer || ChatBuffer
 					substr = get_completion_substr
 					nick = @currentbuffer.tabcomplete(substr) if substr
 					replace_completion_substr(substr, nick) if nick
 				end
 			else
-				if @currentbuffer.class == ChannelBuffer
+				if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
 					@currentbuffer.clear_tabcomplete
 				end
 			end

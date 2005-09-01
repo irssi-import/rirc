@@ -2164,7 +2164,7 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
   <child>
     <widget class="GtkEntry" id="tabcompletesuffix">
       <property name="visible">True</property>
-      <property name="tooltip" translatable="yes">what to do when a link is clicked</property>
+      <property name="tooltip" translatable="yes">Character to append to tab completions when they're the first word on the line.</property>
       <property name="can_focus">True</property>
       <property name="editable">True</property>
       <property name="visibility">True</property>

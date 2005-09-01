@@ -254,6 +254,7 @@ class ChannelUserList < UserList
     end
     
     def add(user)
+        return unless user
         synchronize do
             return do_add(ChannelUser.new(user))
         end

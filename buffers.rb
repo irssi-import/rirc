@@ -45,6 +45,7 @@ class Buffer
     def set_tab_label(label)
         r = Regexp.new('([^_])(_)([^_])')
         @button.label = label.gsub(r) {|x| $1+$2+'_'+$3}
+        recolor
     end
 	
     #trigger a channel switch...?
@@ -912,6 +913,17 @@ class RootBuffer < Buffer
         end
     end
     
+    def unnumber(number)
+        return unless number
+        @tabs.delete_at(number.to_i)
+        
+        @tabs.each_with_index do |v,i|
+            if i >= number.to_i
+                v.set_number(i)
+            end
+        end
+    end
+    
     def number2tab(number)
         return @tabs[number.to_i]
     end
@@ -1228,6 +1240,7 @@ class ChannelBuffer < Buffer
     end
     
     def close
+        $main.serverlist.unnumber(@number)
         if @connected
             $main.send_command('part', "channel part;network="+@server.name+";mypresence="+@server.presence+";channel="+@name)
         end
@@ -1261,6 +1274,7 @@ class ChannelBuffer < Buffer
             set_tab_label(@button.label.gsub(md[1], '')) if md
             set_tab_label(@number.to_s+':'+@button.label)
         end
+        recolor
     end
     
     #add this channel to the server
@@ -1364,7 +1378,8 @@ end
 
 #buffer used for 2 person chats
 class ChatBuffer < Buffer
-	attr_reader :name, :server, :connected
+    include TabCompleteModule
+	attr_reader :name, :server, :connected, :users
 	def initialize(name, server)
 		super(name)
 		@server = server
@@ -1379,7 +1394,9 @@ class ChatBuffer < Buffer
 		set_tab_label(@name)
 		@button.active = false
 		#@button.show
-		@users = UserList.new
+		@users = ChannelUserList.new
+        @users.add(@server.users[name])
+        @users.add(@server.users[@server.username])
 		@connected = nil
         @number = nil
 		
@@ -1394,6 +1411,7 @@ class ChatBuffer < Buffer
             set_tab_label(@button.label.gsub(md[1], '')) if md
             set_tab_label(@number.to_s+':'+@button.label)
         end
+        recolor
     end
     
     def connect
@@ -1401,12 +1419,13 @@ class ChatBuffer < Buffer
         @button.show
         @server.chats.sort
         @server.insertintobox(self)
-        @server.parent.renumber
         set_tab_label(@name)
+        @server.parent.renumber
         #@server.parent.redraw
     end
     
     def close
+        $main.serverlist.unnumber(@number)
         @server.removefrombox(@button)
         @connected = nil
         @number = nil
@@ -1432,4 +1451,8 @@ class ChatBuffer < Buffer
         #@button.label = name.gsub('_', '__')
         set_tab_label(name)
     end
+    
+	def getnetworkpresencepair
+		return @server.getnetworkpresencepair
+	end
 end

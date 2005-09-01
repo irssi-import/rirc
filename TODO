@@ -20,7 +20,7 @@ Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
     Can't set colors for input from config as the cursor becomes hidden
-    URLs sometimes get colored, need to use a different color tag format or escape message text somehow
     fails to catch nickname changes made by other clients... (investigate)
     client and nickname do not always match up
     newly added colors are not added to the tagtable.
+    looks like event resend loop still exists...

@@ -327,6 +327,9 @@ module EventParser
                 chat.send_event(event, EVENT_USERMESSAGE)
             else
                 chat.send_event(event, EVENT_MESSAGE)
+                #try to add the user, just to make sure he's in
+                #TODO this could probably be optimized
+                chat.users.add(network.users[event[PRESENCE]])
             end
             return
         elsif !event[CHANNEL]

@@ -1,3 +1,10 @@
+2005-09-01 17:35 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed stupid typo in config
+    Chats now store the 2 users in the chat
+    Fixed tab numbering bugs
+    Tabs no longer loose status colors when opening/closing tabs
+
 2005-08-28 15:14 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Changed alias format slightly to be more flexible
