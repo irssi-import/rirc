@@ -684,6 +684,7 @@ class Buffer
     def parse_xml(istring)
         #add some root tags around the string to keep Rexml happy
         doc = REXML::Document.new('<msg>'+istring+'</msg>')
+        puts istring if $args['debug']
         string = ''
         tags = {}
         x = doc.root[0]
@@ -691,7 +692,7 @@ class Buffer
         #loop through the tags
         #TODO - maybe this should handle children of children...?
         while x
-        
+            puts x if $args['debug']
             #hey look, its a text node, we just append it to the result string
             if x.class == REXML::Text
                 string += x.value
