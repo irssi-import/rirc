@@ -201,21 +201,23 @@ class Buffer
             md = re.match(line[MSG])
             
             while md.class == MatchData
-                dup = false
-                @links.each_with_index do |link, index|
-                    next if dup == true
-                    if link['link'] == md[0]
-                        dup = true
-                        #puts 'link is a dup'
-                        break
-                    elsif line[TIME].to_i < link['timestamp']
-                        @links.insert(index, {'link' => md[0], 'name' => line[PRESENCE].to_s, 'timestamp' => line[TIME].to_i, 'time' => Time.at(line[TIME].to_i).strftime('%H:%M')})
-                        dup = true
-                        #puts 'adding link'
-                        break
+                if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
+                    dup = false
+                    @links.each_with_index do |link, index|
+                        next if dup == true
+                        if link['link'] == md[0]
+                            dup = true
+                            #puts 'link is a dup'
+                            break
+                        elsif line[TIME].to_i < link['timestamp']
+                            @links.insert(index, {'link' => md[0], 'name' => line[PRESENCE].to_s, 'timestamp' => line[TIME].to_i, 'time' => Time.at(line[TIME].to_i).strftime('%H:%M')})
+                            dup = true
+                            #puts 'adding link'
+                            break
+                        end
                     end
+                    @links.insert(-1, {'link' => md[0], 'name' => line[PRESENCE].to_s, 'timestamp' => line[TIME].to_i, 'time' => Time.at(line[TIME].to_i).strftime('%H:%M')}) unless dup
                 end
-                @links.insert(-1, {'link' => md[0], 'name' => line[PRESENCE].to_s, 'timestamp' => line[TIME].to_i, 'time' => Time.at(line[TIME].to_i).strftime('%H:%M')}) unless dup
                 md = re.match(md.post_match)
             end
         end
@@ -502,7 +504,7 @@ class Buffer
     end
 	
 	#add a command to the command buffer
-	def addcommand(string)
+	def addcommand(string, increment=true)
 		return if string.length == 0
         return if string == @commandbuffer[@commandindex]
         #puts string, @commandbuffer[@commandindex], @commandbuffer[@commandindex-1]
@@ -510,7 +512,7 @@ class Buffer
 		while @commandbuffer.length > $config['commandbuffersize'].to_i
 			@commandbuffer.delete_at(0)
 		end
-		@commandindex += 1#= @commandbuffer.length
+		@commandindex += 1 if increment#= @commandbuffer.length
 	end
 	
 	#get the last command in the command buffer
@@ -533,6 +535,10 @@ class Buffer
 			return @commandbuffer[@commandindex]
 		end
 	end
+    
+    def gotolastcommand
+        @commandindex = @commandbuffer.length
+    end
 	
 	#parse the colors in the text
     #TODO - Do we need to make this support nested tags?
@@ -595,8 +601,9 @@ class Buffer
 		md = re.match(string)
 		
 		while md.class == MatchData
-			links.push(md[0])
-            #@links.push(md[0]) unless @links.include?(md[0])
+            if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
+                links.push(md[0])
+            end
 			md = re.match(md.post_match)
 		end
 		
@@ -700,7 +707,7 @@ class Buffer
                     #regular expression to match color tags
                     re = Regexp.new('((%(C[0-9]{1}[0-5]*|U|B|I)).?\2)')
                     #scan the string and update the offset value
-                    string.scan(re){|z| offset += ($2.length)*2}
+                    string.scan(re){|z| offset += ($2.length)*2 if $2}
                     #get the start and stop values
                     start = string.length-offset
                     stop = x.text.length+start

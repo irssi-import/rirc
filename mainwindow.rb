@@ -31,7 +31,7 @@ class MainWindow
 			end
 			
 			if event.keyval == Gdk::Keyval.from_name('Up')
-                storecommand
+                storecommand(false)
 				getlastcommand
 			elsif event.keyval == Gdk::Keyval.from_name('Down')
                 storecommand
@@ -352,6 +352,7 @@ class MainWindow
         #puts '"'+message+'"'
 		$main.command_parse(message, network, presence, @currentbuffer)
 		widget.text = ''
+        @currentbuffer.gotolastcommand
 	end
 	
 	def get_username
@@ -362,10 +363,10 @@ class MainWindow
 		@usernamebutton.show
 	end
     
-    def storecommand
+    def storecommand(x=true)
         text = @messageinput.text
         if text.length > 0
-            @currentbuffer.addcommand(text)
+            @currentbuffer.addcommand(text, x)
         end
     end
 	
