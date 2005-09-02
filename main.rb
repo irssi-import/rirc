@@ -515,17 +515,20 @@ end
 #Main.test
 
 #start the ball rolling...
-begin
-	$config = Configuration.new
+if $args['debug']
+    puts 'no rescue'
+    $config = Configuration.new
 	$main = Main.new
 	$main.start
-rescue Interrupt => detail
-	puts 'got keyboard interrupt'
-    if $args['debug']
-        puts detail.message
-        puts detail.backtrace
+else
+    begin
+        $config = Configuration.new
+        $main = Main.new
+        $main.start
+    rescue Interrupt => detail
+        puts 'got keyboard interrupt'
+        $main.window.quit
+        $main.quit
     end
-	$main.window.quit
-	$main.quit
 end
 
