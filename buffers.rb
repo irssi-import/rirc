@@ -707,7 +707,8 @@ class Buffer
                     #regular expression to match color tags
                     re = Regexp.new('((%(C[0-9]{1}[0-5]*|U|B|I)).?\2)')
                     #scan the string and update the offset value
-                    string.scan(re){|z| offset += ($2.length)*2 if $2}
+                    string.scan(re){|z| offset += ($2.length)*2} if $2
+                    puts istring unless $2
                     #get the start and stop values
                     start = string.length-offset
                     stop = x.text.length+start
