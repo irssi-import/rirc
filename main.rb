@@ -519,8 +519,12 @@ begin
 	$config = Configuration.new
 	$main = Main.new
 	$main.start
-rescue Interrupt
+rescue Interrupt => detail
 	puts 'got keyboard interrupt'
+    if $args['debug']
+        puts detail.message
+        puts detail.backtrace
+    end
 	$main.window.quit
 	$main.quit
 end
