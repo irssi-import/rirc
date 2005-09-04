@@ -257,24 +257,27 @@ module PluginAPI
     #load a plugin
     def plugin_load(name)
         #expand the name
+        return unless file = Plugin.find_plugin(name)
         $config['plugins'].push(name) unless $config['plugins'].include?(name)
-        file = 'plugins/'+name+'.rb'
         
         #check if it exists, if so, load it
-        #TODO - maybe have ~/.rirc/plugins as a per-user plugin location....
         if File.exists?(file)
             begin
                 load(file, true)
-            rescue Exception
-                puts 'Error loading plugin '+name+' : '+$!
+            rescue Exception => details
+                puts 'Error loading plugin '+name+' : '+details.message
+                puts details.backtrace
                 $config['plugins'].delete(name)
+                return false
             end
             
         #no plugin found
         else
             puts 'plugin file '+file+' not found'
             $config['plugins'].delete(name)
+            return false
         end
+        return true
     end
     
     #wrapper function for class method
@@ -292,18 +295,16 @@ end
 #the plugin class, all plugins are derivatives of this class
 class Plugin
     include Plugins
-    attr_reader :name
-    
-    def initialize(name)
-        @name = name
-    end
     
     #register a plugin
     def self.register(plugin)
-        #make sure its named
-        unless plugin.name
-            puts 'plugin must have a name'
-            return
+        if /([\w\-]+)\.rb/.match(caller[0])
+            unless find_plugin($1)
+                raise SystemCallError, 'No such file '+$1+' to load as plugin', caller
+            end
+            name = $1
+        else
+            raise SystemCallError, 'Plugin does not have a name', caller
         end
         
         #plugin must be a child of Plugin class..
@@ -313,7 +314,7 @@ class Plugin
         end
         
         #make sure its not already defined
-        if lookup(plugin.name)
+        if lookup(name)
             puts 'a plugin with this name is already registered'
             return
         end
@@ -322,10 +323,10 @@ class Plugin
         @@plugins ||= {}
         
         #stuff the data in it
-        @@plugins[plugin] = {'callbacks' => Array.new, 'callbacks_after' => Array.new, 'methods' => Array.new} if plugin and !@@plugins[plugin]
+        @@plugins[plugin] = {'name' => name, 'callbacks' => Array.new, 'callbacks_after' => Array.new, 'methods' => Array.new} if plugin and !@@plugins[plugin]
         
         #call the plugins load() method
-        $main.serverlist.send_user_event({'msg' => 'Loading Plugin '+plugin.name}, EVENT_NOTICE)
+        $main.serverlist.send_user_event({'msg' => 'Loading Plugin '+name}, EVENT_NOTICE)
         plugin.load
     end
     
@@ -333,7 +334,7 @@ class Plugin
     def self.unregister(plugin)
     
         #make sure the plugin is registered
-        return unless @@plugins and @@plugins[plugin]
+        return false unless @@plugins and @@plugins[plugin]
         
         #remove all the callbacks
         @@plugins[plugin]['callbacks'].each do |c|
@@ -353,9 +354,10 @@ class Plugin
             puts 'removed method '+c[0]+' for class '+c[1].to_s
         end
         
+        $config['plugins'].delete(@@plugins[plugin]['name'])
+        
         #delete the plugin from the hash
         @@plugins.delete(plugin)
-        $config['plugins'].delete(plugin.name)
         
         #call the unload function if the plugin wants to do any additional cleanup
         plugin.unload
@@ -371,7 +373,7 @@ class Plugin
     def self.lookup(name)
         @@plugins ||= {}
         @@plugins.each do |plugin, values|
-            if plugin.name == name
+            if values['name'] == name
                 return plugin
             end
         end
@@ -390,7 +392,7 @@ class Plugin
             
         #error
         else
-            puts 'plugin '+plugin.name+' not registered'
+            puts 'plugin not registered'
         end
     end
     
@@ -405,7 +407,7 @@ class Plugin
             
         #error
         else
-            puts 'plugin '+plugin.name+' not registered'
+            puts 'plugin not registered'
         end
     end
     
@@ -419,10 +421,22 @@ class Plugin
         
         #error
         else
-            puts 'plugin '+plugin.name+' not registered'
+            puts 'plugin not registered'
         end
     end
     
+    def self.find_plugin(name)
+        name += '.rb'
+        
+        if File.directory?(File.join(ENV['HOME'], '.rirc', 'plugins')) and Dir.entries(File.join(ENV['HOME'], '.rirc', 'plugins')).include?(name)
+            return File.join(ENV['HOME'], '.rirc', 'plugins', name)
+        elsif Dir.entries('plugins').include?(name)
+            return File.join('plugins', name)
+        else
+            return false
+        end
+    end
+
     #stub for unload function to allow plugins to do additional cleanup
     def unload
     end

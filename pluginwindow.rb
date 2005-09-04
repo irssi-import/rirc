@@ -22,7 +22,12 @@ class PluginWindow
         
         #puts Dir.entries('plugins')
         
-        plugins = Dir.entries('plugins').select do |i|
+        plugins = Dir.entries('plugins')
+        if File.directory?(File.join(ENV['HOME'], '.rirc', 'plugins'))
+            plugins += Dir.entries(File.join(ENV['HOME'], '.rirc', 'plugins'))
+        end
+        
+        plugins = plugins.select do |i|
             name, ext = i.split('.')
             if ext
                 ext.downcase == 'rb'
@@ -71,16 +76,18 @@ class PluginWindow
     
     def load_plugin
         if selection = get_selection and selection[1] == 0
-            $main.plugin_load(selection[0]) 
-            selection[1] = 1
+            if $main.plugin_load(selection[0]) 
+                selection[1] = 1
+            end
         end
     end
     
     def unload_plugin
         if selection = get_selection and selection[1] == 1
             if plugin = Plugin.lookup(selection[0])
-                Plugin.unregister(plugin)
-                selection[1] = 0
+                if Plugin.unregister(plugin)
+                    selection[1] = 0
+                end
             end
         end
     end
