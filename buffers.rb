@@ -1481,9 +1481,9 @@ class ChatBuffer < Buffer
     end
     
     def close
+        @connected = nil
         $main.serverlist.unnumber(@number)
         @server.removefrombox(@button)
-        @connected = nil
         @number = nil
     end
     
