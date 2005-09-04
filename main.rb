@@ -43,6 +43,23 @@ class Object
     end
 end
 
+module Gdk
+    class Color
+        def to_hex
+            hex = '#'
+            to_a.each do |c|
+                e = c >> 8
+                d = e.to_s(16)
+                if d.length == 1
+                    d = '0'+d
+                end
+                hex += d
+            end
+            hex
+        end
+    end
+end
+
 def duration(seconds, precision=2)
     
 	if seconds < 0

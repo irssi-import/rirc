@@ -361,6 +361,7 @@ class Plugin
         
         #call the unload function if the plugin wants to do any additional cleanup
         plugin.unload
+        true
     end
     
     #list registered plugins.
@@ -439,5 +440,98 @@ class Plugin
 
     #stub for unload function to allow plugins to do additional cleanup
     def unload
+    end
+    
+    #stub for configure function
+    def configure
+    []
+    end
+end
+
+class PluginConfig
+    def initialize(options)
+        return if options.length == 0 
+        @glade = GladeXML.new("glade/pluginconf.glade") {|handler| method(handler)}
+        
+        @tooltips = Gtk::Tooltips.new
+        
+        @table = @glade['optiontable']
+        @table.resize(options.length, 2)
+        @table.border_width = 10
+        @table.column_spacings = 10
+        @table.row_spacings = 5
+        @configarray = {}
+        
+        handle_options(options)
+        @window = @glade['confwindow']
+        @window.show_all
+    end
+    
+    def handle_options(options)
+        i = 0
+        options.each do |option|
+            if option['type'] and option['name'] and option['description']
+                #fill in defaults for unset values
+                option['tooltip'] ||= nil
+                option['value'] ||= nil
+                option['xopt'] ||= Gtk::SHRINK
+                option['yopt'] ||= Gtk::FILL
+                
+                if option['type'] == Gdk::Color
+                    widget = Gtk::ColorButton.new
+                    widget.color = option['value'] if option['value']
+                    widget.signal_connect('color_set') {|widget| color_changed(widget)}
+                elsif option['type'] == String
+                    #I guess we need some trick to allow combo boxes too...
+                    widget = Gtk::Entry.new
+                    widget.text = option['value'] if option['value']
+                    widget.signal_connect('changed') {|widget| text_changed(widget)}
+                elsif option['type'] == Array
+                    widget = Gtk::Entry.new
+                    widget.text = option['value'].join(',') if option['value']
+                    widget.signal_connect('changed') {|widget| array_changed(widget)}
+                else
+                    puts 'unknown type '+option['type'].to_s
+                    next
+                end
+                @tooltips.set_tip(widget, option['tooltip'], '') if option['tooltip']
+                @configarray[widget] = {'name' => option['name'], 'value' => option['value']}
+                @table.attach(Gtk::Label.new(option['description']), 0, 1, i, i+1, Gtk::SHRINK, Gtk::FILL)
+                @table.attach(widget, 1, 2, i, i+1, Gtk::SHRINK, Gtk::FILL)
+                i += 1
+            else
+                puts 'missing required options'
+            end
+        end
+    end
+    
+    def color_changed(widget)
+        change_setting(widget, widget.color)
+    end
+    
+    def text_changed(widget)
+        change_setting(widget, widget.text)
+    end
+    
+    def array_changed(widget)
+        change_setting(widget, widget.text.split(',').uniq)
+    end
+    
+	def change_setting(widget, setting)
+		#puts 'changed setting of '+widget.name+' to '+setting.to_s
+		@configarray[widget]['value'] = setting
+	end
+    
+    def update_config
+        @configarray.each do |k, v|
+            #puts v['name']+' = '+v['value'].to_s
+			$config.set_value(v['name'], v['value'])
+		end
+        destroy
+        $config.send_config
+    end
+    
+    def destroy
+        @window.destroy
     end
 end

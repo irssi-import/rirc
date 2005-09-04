@@ -57,9 +57,11 @@ class PluginWindow
                 if selection[1] == 1
                     @glade['plugin_unload'].sensitive = true
                     @glade['plugin_load'].sensitive = false
+                    @glade['plugin_options'].sensitive = true
                 else
                     @glade['plugin_load'].sensitive = true
                     @glade['plugin_unload'].sensitive = false
+                    @glade['plugin_options'].sensitive = false
                 end
             end
         end
@@ -93,6 +95,11 @@ class PluginWindow
     end
     
     def config_plugin
+        if selection = get_selection and selection[1] == 1
+            if plugin = Plugin.lookup(selection[0])
+                PluginConfig.new(plugin.configure)
+            end
+        end
     end
     
     def destroy

@@ -1,3 +1,7 @@
+2005-09-04 19.41 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added GUI config hooks for plugins
+
 2005-09-04 17.14 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Improved plugin loading to prevent plugins registering themselves with deceptive names
