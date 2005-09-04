@@ -22,12 +22,17 @@ class PluginWindow
         
         #puts Dir.entries('plugins')
         
-        plugins = Dir.entries('plugins')
+        plugins = []
+        
+        if File.directory?('plugins')
+            plugins += Dir.entries('plugins')
+        end
+        
         if File.directory?(File.join(ENV['HOME'], '.rirc', 'plugins'))
             plugins += Dir.entries(File.join(ENV['HOME'], '.rirc', 'plugins'))
         end
         
-        plugins = plugins.select do |i|
+        plugins = plugins.uniq.select do |i|
             name, ext = i.split('.')
             if ext
                 ext.downcase == 'rb'
@@ -35,8 +40,6 @@ class PluginWindow
                 false
             end
         end
-        
-        puts plugins
         
         plugins.each do |plugin|
             name, extension = plugin.split('.')

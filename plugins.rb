@@ -431,7 +431,7 @@ class Plugin
         
         if File.directory?(File.join(ENV['HOME'], '.rirc', 'plugins')) and Dir.entries(File.join(ENV['HOME'], '.rirc', 'plugins')).include?(name)
             return File.join(ENV['HOME'], '.rirc', 'plugins', name)
-        elsif Dir.entries('plugins').include?(name)
+        elsif File.directory?('plugins') and Dir.entries('plugins').include?(name)
             return File.join('plugins', name)
         else
             return false
