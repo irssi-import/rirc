@@ -140,104 +140,104 @@ class LocalConnection
 	end
 end
 
-#~ class RbSSHConnection
-	#~ def initialize(host)
-		#~ @input = nil
-		#~ @output = nil
-		#~ @error = nil
+class NetSSHConnection
+	def initialize(settings, connectionwindow)
+		@input = nil
+		@output = nil
+		@error = nil
 		
-		#~ options = {}
+		options = {}
 		
-		#~ options[:keys] = $ssh_keys if $ssh_keys
+		options[:keys] = $ssh_keys if $ssh_keys
 		
-		#~ options[:compression] = $ssh_compression if $ssh_compression
+		options[:compression] = $ssh_compression if $ssh_compression
 		
-		#~ options[:username] = $ssh_username if $ssh_username
+		options[:username] = $ssh_username if $ssh_username
 		
-		#~ options[:password] = $ssh_password if $ssh_password
+		options[:password] = $ssh_password if $ssh_password
 		
-		#~ #begin
-		#~ @session = Net::SSH.start(host, options)
-		#~ #rescue StandardError
-		#~ #	puts 'error '+$!
-		#~ #	return false
-		#~ #end
+		#begin
+		@session = Net::SSH.start(host, options)
+		#rescue StandardError
+		#	puts 'error '+$!
+		#	return false
+		#end
 		
-		#~ @input, @output, @error = @session.process.popen3( $ssh_binpath )
-		#~ sleep 2
-		#~ if @error.data_available?
-			#~ error = 'ERROR: ' + @error.read
-			#~ raise(IOError, error, caller)
-			#~ #return false
-		#~ end
+		@input, @output, @error = @session.process.popen3( $ssh_binpath )
+		sleep 2
+		if @error.data_available?
+			error = 'ERROR: ' + @error.read
+			raise(IOError, error, caller)
+			#return false
+		end
 		
-		#~ puts @error.gets
+		puts @error.gets
 		
-		#~ @sshthread = Thread.new{
-			#~ #Net::SSH.start( host ) do |session|
-			#~ #Thread.current['up'] = true
-			#~ #Thread.current['session'] = session
-			#~ @session.loop
-		#~ #end
-		#~ }
-		#~ #while !@sshthread['up']
-			#~ #stall until thread is up
-		#~ #end
-		#~ puts 'connected via ssh'
-	#~ end
+		@sshthread = Thread.new{
+			#Net::SSH.start( host ) do |session|
+			#Thread.current['up'] = true
+			#Thread.current['session'] = session
+			@session.loop
+		#end
+		}
+		#while !@sshthread['up']
+			#stall until thread is up
+		#end
+		puts 'connected via ssh'
+	end
 	
-	#~ def send(data)
-		#~ begin
-		#~ @input.puts(data)
-		#~ rescue IOError
-			#~ puts 'closed stream, disconnecting '+$!
-			#~ close
-			#~ return false
-		#~ rescue StandardError
-			#~ puts 'closed stream, disconnecting '+$!
-			#~ close
-			#~ return false
-		#~ end
-		#~ return true
-	#~ end
+	def send(data)
+		begin
+		@input.puts(data)
+		rescue IOError
+			puts 'closed stream, disconnecting '+$!
+			close
+			return false
+		rescue StandardError
+			puts 'closed stream, disconnecting '+$!
+			close
+			return false
+		end
+		return true
+	end
 	
-	#~ def listen(object)
-		#~ @listenthread = Thread.start{
-			#~ while true
-				#~ begin
-				#~ if @output.data_available?
-					#~ #puts 'data'
-					#~ out = @output.read
-					#~ #puts out
-					#~ Thread.start{object.parse_lines(out)}
-				#~ end
-				#~ sleep 1#sleep a little
-				#~ rescue IOError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ rescue StandardError
-					#~ puts 'listen: closed stream, disconnecting '+$!
-					#~ close
-					#~ object.disconnect
-					#~ object.connect
-					#~ break
-				#~ end
-			#~ end
-		#~ }
-	#~ end
+	def listen(object)
+		@listenthread = Thread.start{
+			while true
+				begin
+				if @output.data_available?
+					#puts 'data'
+					out = @output.read
+					#puts out
+					Thread.start{object.parse_lines(out)}
+				end
+				sleep 1#sleep a little
+				rescue IOError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				rescue StandardError
+					puts 'listen: closed stream, disconnecting '+$!
+					close
+					object.disconnect
+					object.connect
+					break
+				end
+			end
+		}
+	end
 	
-	#~ def close
-	#~ @session.close if @session
-	#~ @sshthread.kill if @sshthread
-	#~ @input = nil
-	#~ @output = nil
-	#~ @error = nil
-	#~ end
+	def close
+	@session.close if @session
+	@sshthread.kill if @sshthread
+	@input = nil
+	@output = nil
+	@error = nil
+	end
 	
-#~ end
+end
 
 
 class UnixSockConnection

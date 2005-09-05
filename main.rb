@@ -7,7 +7,13 @@ require 'thread'
 require 'monitor'
 require "rexml/document"
 require "yaml"
-$platform = RUBY_PLATFORM
+if RUBY_PLATFORM.include?('win32')
+	$platform = 'win32'
+	$rircfolder = ENV['APPDATA']+'/rirc'
+else
+	$platform = 'linux'
+	$rircfolder = ENV['HOME']+'/.rirc'
+end
 
 $args = {}
 
@@ -245,12 +251,15 @@ class Main
 		return if @connection
 			@connectionwindow.send_text('Connecting...')
 			begin
+			puts method
 			if method == 'ssh'
 				@connection = SSHConnection.new(settings, @connectionwindow)
 			elsif method == 'socket'
 				@connection = UnixSockConnection.new(settings, @connectionwindow)
             elsif method == 'local'
                 @connection = LocalConnection.new(settings, @connectionwindow)
+			elsif method == 'net_ssh'
+				@connection = NetSSHConnection.new(settings, @connectionwindow)
 			else
 				@connectionwindow.send_text('invalid connection method')
 				return

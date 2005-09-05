@@ -13,6 +13,10 @@ class ConnectionWindow
 		@net_ssh_button = @glade['net_ssh']
 		@net_ssh_button.sensitive = false
         @socket_button.sensitive = false
+	@net_ssh_button.sensitive = true
+		if $platform == 'win32'
+			@local_button.sensitive = false
+		end
 		
 		#@ssh_button.active = true
 		@config = {}
@@ -21,7 +25,11 @@ class ConnectionWindow
 		
 		@config[@ssh_button] = {}
 		@config[@ssh_button]['host'] = 'localhost'
-		@config[@ssh_button]['username'] = `whoami`.chomp
+		if $platform == 'linux'
+			@config[@ssh_button]['username'] = `whoami`.chomp
+		else
+			@config[@ssh_button]['username'] = 'irssi2'
+		end
 		@config[@ssh_button]['binpath'] = '/usr/bin/irssi2'
         @config[@ssh_button]['port'] = '22'
 		
@@ -29,7 +37,11 @@ class ConnectionWindow
         @config[@local_button] ['binpath'] = '/usr/bin/irssi2'
         
 		@config[@socket_button] = {}
-		@config[@socket_button]['location'] = ENV['HOME']+'/.irssi2/client-listener'
+		if $platform == 'linux'
+			@config[@socket_button]['location'] = ENV['HOME']+'/.irssi2/client-listener'
+		elsif $platform == 'win32'
+			@config[@socket_button]['location'] = ''
+		end
 		
 		@config[@net_ssh_button] = {}
 		
@@ -69,15 +81,15 @@ class ConnectionWindow
 			end
 		end
 
-		unless File.directory?(ENV['HOME']+'/.rirc')
-            Dir.mkdir(ENV['HOME']+'/.rirc')
+		unless File.directory?($rircfolder)
+            Dir.mkdir($rircfolder)
         end
-		File.open(ENV['HOME']+'/.rirc/settings.yaml', "w") {|f| YAML.dump(settings, f)}
+		File.open($rircfolder+'/settings.yaml', "w") {|f| YAML.dump(settings, f)}
 	end
 	
 	def load_settings
-		return if !File.exists?(ENV['HOME']+'/.rirc/settings.yaml')
-		settings = YAML.load_file(ENV['HOME']+'/.rirc/settings.yaml')
+		return if !File.exists?($rircfolder+'/settings.yaml')
+		settings = YAML.load_file($rircfolder+'/settings.yaml')
 		
 		group = @glade['ssh'].group
 		group.each do |button|
