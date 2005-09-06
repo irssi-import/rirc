@@ -6,7 +6,6 @@ Big things:
     Fixup the Net::SSH connection method for windows lusers and finish porting rirc to windows (if I can be bothered)
     Investigate dumping textview for some kind of line based, custom widget
     Clean up code, seperate functions into public/protected/private, standardize function/variable naming and lots more commenting (Ugh)
-    Add a GUI for managing plugins, and hooks so plugins can be configured via a GUI
     
 Little things:
     network buffers should also maybe do event get (really need cras to improve the LDAP filters for this)

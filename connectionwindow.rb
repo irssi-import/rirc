@@ -13,7 +13,7 @@ class ConnectionWindow
 		@net_ssh_button = @glade['net_ssh']
 		@net_ssh_button.sensitive = false
         @socket_button.sensitive = false
-	@net_ssh_button.sensitive = true
+        @net_ssh_button.sensitive = $netssh
 		if $platform == 'win32'
 			@local_button.sensitive = false
 		end
@@ -44,6 +44,12 @@ class ConnectionWindow
 		end
 		
 		@config[@net_ssh_button] = {}
+        @config[@net_ssh_button] ['host'] = 'localhost'
+		if $platform == 'linux'
+			@config[@net_ssh_button]['username'] = `whoami`.chomp
+		else
+			@config[@net_ssh_button]['username'] = 'irssi2'
+		end
 		
 		@option_frame = @glade['option_frame']
 		

@@ -142,83 +142,42 @@ end
 
 class NetSSHConnection
 	def initialize(settings, connectionwindow)
-		@input = nil
-		@output = nil
-		@error = nil
-		
-		options = {}
-		
-		options[:keys] = $ssh_keys if $ssh_keys
-		
-		options[:compression] = $ssh_compression if $ssh_compression
-		
-		options[:username] = $ssh_username if $ssh_username
-		
-		options[:password] = $ssh_password if $ssh_password
-		
-		#begin
-		@session = Net::SSH.start(host, options)
-		#rescue StandardError
-		#	puts 'error '+$!
-		#	return false
-		#end
-		
-		@input, @output, @error = @session.process.popen3( $ssh_binpath )
+        
+		@session = Net::SSH.start(settings['host'], settings['username'])
+        
+		@input, @output, @error = @session.process.popen3( '/usr/bin/irssi2'        )
 		sleep 2
 		if @error.data_available?
 			error = 'ERROR: ' + @error.read
 			raise(IOError, error, caller)
-			#return false
 		end
 		
-		puts @error.gets
-		
 		@sshthread = Thread.new{
-			#Net::SSH.start( host ) do |session|
-			#Thread.current['up'] = true
-			#Thread.current['session'] = session
 			@session.loop
-		#end
 		}
-		#while !@sshthread['up']
-			#stall until thread is up
-		#end
 		puts 'connected via ssh'
 	end
 	
 	def send(data)
 		begin
-		@input.puts(data)
-		rescue IOError
-			puts 'closed stream, disconnecting '+$!
-			close
-			return false
-		rescue StandardError
-			puts 'closed stream, disconnecting '+$!
-			close
+			@input.puts(data)
+		rescue Errno::EPIPE
+			puts 'Write error: '+$!
 			return false
 		end
 		return true
 	end
 	
 	def listen(object)
-		@listenthread = Thread.start{
+		@listenthread = Thread.start do
 			while true
 				begin
 				if @output.data_available?
-					#puts 'data'
 					out = @output.read
-					#puts out
-					Thread.start{object.parse_lines(out)}
+					object.parse_lines(out)
 				end
-				sleep 1#sleep a little
+				sleep 0.5#sleep a little, this seems to be important
 				rescue IOError
-					puts 'listen: closed stream, disconnecting '+$!
-					close
-					object.disconnect
-					object.connect
-					break
-				rescue StandardError
 					puts 'listen: closed stream, disconnecting '+$!
 					close
 					object.disconnect
@@ -226,15 +185,15 @@ class NetSSHConnection
 					break
 				end
 			end
-		}
+		end
 	end
 	
 	def close
 	@session.close if @session
 	@sshthread.kill if @sshthread
-	@input = nil
-	@output = nil
-	@error = nil
+	@input.close
+	@output.close
+	@error.close
 	end
 	
 end

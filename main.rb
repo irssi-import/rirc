@@ -15,6 +15,14 @@ else
 	$rircfolder = ENV['HOME']+'/.rirc'
 end
 
+begin
+    $:.unshift "lib"
+    require 'net/ssh'
+    $netssh = true
+rescue LoadError
+    $netssh = false
+end
+
 $args = {}
 
 Thread.current.priority = 1
@@ -251,7 +259,6 @@ class Main
 		return if @connection
 			@connectionwindow.send_text('Connecting...')
 			begin
-			puts method
 			if method == 'ssh'
 				@connection = SSHConnection.new(settings, @connectionwindow)
 			elsif method == 'socket'
