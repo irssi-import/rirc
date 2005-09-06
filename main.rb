@@ -19,9 +19,11 @@ begin
     $:.unshift "lib"
     require 'net/ssh'
     $netssh = true
-rescue LoadError
-    $netssh = false
+#rescue LoadError
+#    $netssh = false
 end
+
+puts $netssh
 
 $args = {}
 

@@ -143,7 +143,7 @@ end
 class NetSSHConnection
 	def initialize(settings, connectionwindow)
         
-		@session = Net::SSH.start(settings['host'], settings['username'])
+		@session = Net::SSH.start(settings['host'], settings['username'], :auth_methods => %w(password))
         
 		@input, @output, @error = @session.process.popen3( '/usr/bin/irssi2'        )
 		sleep 2
@@ -152,9 +152,9 @@ class NetSSHConnection
 			raise(IOError, error, caller)
 		end
 		
-		@sshthread = Thread.new{
-			@session.loop
-		}
+		#@sshthread = Thread.new{
+		#	@session.loop
+		#}
 		puts 'connected via ssh'
 	end
 	
@@ -176,7 +176,7 @@ class NetSSHConnection
 					out = @output.read
 					object.parse_lines(out)
 				end
-				sleep 0.5#sleep a little, this seems to be important
+				sleep 0.01#sleep a little, this seems to be important
 				rescue IOError
 					puts 'listen: closed stream, disconnecting '+$!
 					close

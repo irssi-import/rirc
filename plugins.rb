@@ -429,8 +429,8 @@ class Plugin
     def self.find_plugin(name)
         name += '.rb'
         
-        if File.directory?(File.join(ENV['HOME'], '.rirc', 'plugins')) and Dir.entries(File.join(ENV['HOME'], '.rirc', 'plugins')).include?(name)
-            return File.join(ENV['HOME'], '.rirc', 'plugins', name)
+        if File.directory?(File.join($rircfolder, 'plugins')) and Dir.entries(File.join($rircfolder, 'plugins')).include?(name)
+            return File.join($rircfolder, 'plugins', name)
         elsif File.directory?('plugins') and Dir.entries('plugins').include?(name)
             return File.join('plugins', name)
         else

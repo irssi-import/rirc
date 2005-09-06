@@ -28,8 +28,8 @@ class PluginWindow
             plugins += Dir.entries('plugins')
         end
         
-        if File.directory?(File.join(ENV['HOME'], '.rirc', 'plugins'))
-            plugins += Dir.entries(File.join(ENV['HOME'], '.rirc', 'plugins'))
+        if File.directory?(File.join($rircfolder, 'plugins'))
+            plugins += Dir.entries(File.join($rircfolder, 'plugins'))
         end
         
         plugins = plugins.uniq.select do |i|
