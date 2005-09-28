@@ -46,7 +46,7 @@ class MainWindow
         #force a scroll to end on resize events
         @messages.signal_connect('size_allocate') { || scroll_to_end(@currentbuffer, true); false}
 
-		@userbar = @glade['userbar']
+		#@userbar = @glade['userbar']
 		@userlist = @glade['userlist']
 		@panel = @glade['hpaned1']
 		@mainbox = @glade['mainbox']
@@ -316,6 +316,7 @@ class MainWindow
 			@userlist.model = @currentbuffer.userlist
 			@userlist.append_column(@currentbuffer.modecolumn)
             @userlist.append_column(@currentbuffer.usercolumn)
+            @userlist.search_column=1
 			@userlist.show_all
 			@topic.show
 			@topic.text =@currentbuffer.topic
