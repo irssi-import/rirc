@@ -1,3 +1,8 @@
+2005-09-28 19:28 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Some fixes to the userlist
+    Added a fallback quit to prevent rirc waiting forever for irssi2 to ack
+
 2005-09-28 18.42 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     I dunno, lots of stuff I guess...

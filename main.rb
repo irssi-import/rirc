@@ -546,7 +546,12 @@ class Main
             @quitting = true
             $config.send_config
             send_command('quit', 'quit')
-            puts 'sending quit'
+            puts 'sending quit (timeout 5 seconds...)'
+            sleep 5
+            unless @quit
+                puts 'failed to get quit confirmation, doing it manually'
+                do_quit
+            end
         end
         true
     end
@@ -560,7 +565,6 @@ class Main
 		exit
 	end
 end
-#Main.test
 
 #start the ball rolling...
 if $args['debug']

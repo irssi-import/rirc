@@ -58,6 +58,8 @@ class MainWindow
 		@messages.buffer = @serverlist.buffer
 		@serverlist.button.active = true
 		@connection = nil
+        
+        #@panel.signal_connect('size_allocate') { || @userlist.set_size_request(0, -1);puts 'rezize'; false}
 		
 		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
 		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}

@@ -85,6 +85,7 @@ module ReplyParser
     def reply_quit(line, network, channel, reply)
         puts 'got quit confirmation'
         if @quitting
+            @quit = true
             do_quit
         end
     end

@@ -14,6 +14,7 @@ Little things:
     NetSplit detection (might be better in irssi2 itself)
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
     "Diff" topics so you can see what changed...? (probably a plugin)
+    pgup/down chat scrolling (wait for scw)
 
 Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
