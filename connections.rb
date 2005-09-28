@@ -143,9 +143,16 @@ end
 class NetSSHConnection
 	def initialize(settings, connectionwindow)
         
-		@session = Net::SSH.start(settings['host'], settings['username'], :auth_methods => %w(password))
+        begin
+            @session = Net::SSH.start(settings['host'], settings['username'], :auth_methods => %w(password))
         
-		@input, @output, @error = @session.process.popen3( '/usr/bin/irssi2'        )
+            @input, @output, @error = @session.process.popen3( '/usr/bin/irssi2'        )
+            
+        rescue Errno::EHOSTUNREACH
+            raise(IOError, 'Could not connect to host')
+        rescue Net::SSH::AuthenticationFailed
+            raise(IOError, 'Authentication Failed')
+        end
 		sleep 2
 		if @error.data_available?
 			error = 'ERROR: ' + @error.read
@@ -191,9 +198,9 @@ class NetSSHConnection
 	def close
 	@session.close if @session
 	@sshthread.kill if @sshthread
-	@input.close
-	@output.close
-	@error.close
+	@input = nil
+	@output = nil
+	@error = nil
 	end
 	
 end
@@ -205,7 +212,7 @@ class UnixSockConnection
 			begin
 			@socket = UNIXSocket.open(settings['location'])
 			rescue
-				raise(IOError, 'Error: Could not connect to socket')
+				raise(IOError, 'Could not connect to socket')
 			end
 			connectionwindow.send_text('Connected via unix socket')
 		else
@@ -264,7 +271,7 @@ class InetdConnection
         begin
         @socket = TCPSocket.new(settings['host'], settings['port'].to_i)
         rescue
-            raise(IOError, 'Error: Could not connect to socket')
+            raise(IOError, 'Could not connect to socket')
         end
         connectionwindow.send_text('Connected via TCP socket')
 	end

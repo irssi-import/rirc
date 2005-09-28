@@ -69,6 +69,7 @@
 			  <property name="active">False</property>
 			  <property name="inconsistent">False</property>
 			  <property name="draw_indicator">True</property>
+			  <signal name="toggled" handler="redraw_options" last_modification_time="Wed, 28 Sep 2005 23:38:36 GMT"/>
 			</widget>
 			<packing>
 			  <property name="padding">0</property>
@@ -152,6 +153,7 @@
 			  <property name="inconsistent">False</property>
 			  <property name="draw_indicator">True</property>
 			  <property name="group">local</property>
+			  <signal name="toggled" handler="redraw_options" last_modification_time="Wed, 28 Sep 2005 23:38:24 GMT"/>
 			</widget>
 			<packing>
 			  <property name="padding">0</property>

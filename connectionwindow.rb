@@ -46,7 +46,7 @@ class ConnectionWindow
         
         @config[@inetd_button] = {}
         @config[@inetd_button]['host'] = 'localhost'
-        @config[@inetd_button]['port'] = '1189'
+        @config[@inetd_button]['port'] = '1027'
 		
 		@config[@net_ssh_button] = {}
         @config[@net_ssh_button] ['host'] = 'localhost'
