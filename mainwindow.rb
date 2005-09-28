@@ -143,7 +143,27 @@ class MainWindow
 	end
 	
 	def set_username
-	end
+        x = nil
+        label = Gtk::Label.new("New username")
+        entry = Gtk::Entry.new
+        entry.text = @currentbuffer.server.username
+        dialog = Gtk::Dialog.new("Username", nil,
+                     Gtk::Dialog::MODAL | Gtk::Dialog::DESTROY_WITH_PARENT,
+                     [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_ACCEPT],
+                     [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_REJECT])
+        dialog.vbox.add(label)
+        dialog.vbox.add(entry)
+        dialog.show_all
+        dialog.run do |response|
+          case response
+            when Gtk::Dialog::RESPONSE_ACCEPT
+                x = entry.text
+          end
+          dialog.destroy
+        end
+        puts x
+        $main.send_command('nick'+x, 'presence change;network='+@currentbuffer.server.name+';mypresence='+@currentbuffer.server.presence+';name='+x) if x
+    end
 	
 	def topic_change(widget)
 		#add_message("Topic changed to: "+ widget.text, 'notice')

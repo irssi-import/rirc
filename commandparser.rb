@@ -36,11 +36,23 @@ module CommandParser
     end
     
     def check_aliases(command)
+        #~ return command unless command[0].chr == '/'
+        
+        #~ cmd, args = command.split(' ', 2)
+        #~ cmd.sub!('/', '')
+        #~ if $config['aliases'].has_key?(cmd)
+            #~ puts cmd+' => '+$config['aliases'][cmd]
+        #~ end
+        
+        #~ command
         $config['aliases'].each do |original, cmdalias|
             if command[0, original.length+1].downcase == '/'+original.downcase
                 #puts 'found alias '+original
                 if cmdalias.include?('$')
-                    args = command[original.length+1..-1].strip.split(' ')
+                    args = command[original.length+1..-1]
+                    return command unless args[0].chr == ' ' or args.length == 0
+                    puts args[0].chr, args.length
+                    args = args.strip.split(' ')
                     #puts args
                     
                     cmd = cmdalias.deep_clone
@@ -56,6 +68,7 @@ module CommandParser
                     end
                     return cmd
                 else
+                    return command unless command[original.length+1..-1].length == 0 or command[original.length+1..-1][0].chr == ' '
                     return command.sub(command[0, original.length+1], cmdalias)
                 end
             end
