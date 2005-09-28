@@ -1,6 +1,7 @@
 
 class MainWindow
 	attr_reader :currentbuffer
+    #include KeyBind
 	def initialize
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
@@ -89,6 +90,9 @@ class MainWindow
 		
         x = $config['windowwidth'].to_i if $config['windowwidth']
 		y = $config['windowheight'].to_i if $config['windowheight']
+        
+        @glade['window1'].default_width = x
+        @glade['window1'].default_height = y
         @glade['window1'].resize(x, y)
         
         @panel.position = $config['panelposition'].to_i if $config['panelposition']
@@ -469,7 +473,7 @@ class MainWindow
 			name = tag.name.split('_', 3)
 			if name[0]  == 'link'
                 link = to_uri(name[2])
-				system($config['linkclickaction'].sub('%s', link))
+				fork{exec($config['linkclickaction'].sub('%s', link))}
 				break
 			end
 		end
@@ -580,7 +584,8 @@ class MainWindow
 	end
     
     def window_buttons(widget, event)
-        
+        #x = event_to_string(event)
+        #puts x
         if (event.state & Gdk::Window::MOD1_MASK) != 0
             puts 'pressed alt-'+Gdk::Keyval.to_name(event.keyval) if $args['debug']
             key = Gdk::Keyval.to_name(event.keyval)

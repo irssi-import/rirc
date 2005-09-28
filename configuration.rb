@@ -39,13 +39,13 @@ class Configuration
 		@values['whois'] = "%C2[%C2%n%C2]%C2 %m"
         @values['topic_change'] = '-%C1--%C1 Topic set to %C6%t%C6 by %C6%u%C6'
         @values['topic'] = '-%C1--%C1 Topic for %C6%c%C6 is %C6%t%C6'
-		@values['topic_setby'] = '-%C1--%C1 Topic for %6%c%6 set by %C6%u%C6 at %C6%a%C6'
+		@values['topic_setby'] = '-%C1--%C1 Topic for %C6%c%C6 set by %C6%u%C6 at %C6%a%C6'
         @values['add_mode'] = '-%C1--%C1 %s gave %m to %u'
         @values['remove_mode'] = '-%C1--%C1 %s removed %m from %u'
         @values['nickchange'] = '-%C1--%C1 %u is now known as %n'
         @values['usernickchange'] = '-%C1--%C1 You are now known as %n'
         
-		@values['linkclickaction'] = 'firefox -remote "openURL(%s,new-tab)"'
+		@values['linkclickaction'] = 'firefox %s'
         
         @values['tabcompletesuffix'] = ';'
 		

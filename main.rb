@@ -155,6 +155,7 @@ require 'users'
 require 'buffers'
 require 'replies'
 require 'connections'
+#require 'keybinding'
 require 'mainwindow'
 require 'configwindow'
 require 'connectionwindow'
@@ -198,26 +199,28 @@ class Main
 	
     def reply_reaper
         @reaperthread = Thread.new do
-            Thread.current.priority = -5
+            Thread.current.priority = -3
             while true
                 @replies.each do |key, reply|
                     if reply.complete
                         puts 'REAPING - reply '+reply.name+' is complete, parsing'
                         @replies.delete(key)
                         reply_parse(reply)
-                    elsif (Time.new - reply.start).to_i > 10
-                        if reply.retries < 2
+                    elsif (Time.new - reply.start).to_i > 15
+                        puts (Time.new - reply.start).to_i, reply.name
+                        #next
+                        if reply.retries < 1
                             puts 'REAPING - reply '+reply.name+' is incomplete and expired, resending'
-                            @replies[key].retries = reply.retries+1
                             @replies.delete(key)
                             send_command(key, reply.origcommand)
+                            @replies[key].retries = reply.retries+1
                         else
                             puts 'REAPING - reply '+reply.name+' has been retried twice, deleting'
                             @replies.delete(key)
                         end
                     end
                 end
-                sleep 10
+                sleep 15
             end
         end
     end
@@ -242,15 +245,25 @@ class Main
                 server.channels.each do |channel|
                     if !channel.usersync and channel.connected
                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
+                        while !channel.usersync
+                            puts 'user sleeping', channel.name
+                            sleep 2
+                        end
                     end
                 end
                 
                 server.channels.each do |channel|
                     if !channel.eventsync and channel.connected
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))')
+                        while !channel.eventsync
+                            puts 'event sleeping', channel.name
+                            sleep 2
+                        end
                     end
                 end
-                send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(mypresence='+server.presence+')(event=msg)(!(|(init=*)(deinit=*)(raw=*)(channel=*))')
+                if server.connected
+                    send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(mypresence='+server.presence+')(event=msg)(!(|(init=*)(deinit=*)(raw=*)(channel=*))')
+                end
             end
         end
         @syncchannels = nil

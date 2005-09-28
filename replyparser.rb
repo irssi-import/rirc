@@ -208,10 +208,11 @@ module ReplyParser
             target = network
             if channel
                 target = channel
-            elsif line[PRESENCE] and !line[NO_AUTOREPLY]
+            elsif line[PRESENCE] and !line[NO_AUTOREPLY] and !line[CHANNEL]
                 unless target = network.has_chat?(line[PRESENCE])
                     target = network.addchat(line[PRESENCE])
-                    #puts 'chat for '+line[PRESENCE]
+                    puts 'chat for '+line[PRESENCE]
+                    puts line['original']
                 end
                 target.connect unless target.connected
             end
