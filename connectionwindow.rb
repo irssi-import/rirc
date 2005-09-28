@@ -11,6 +11,7 @@ class ConnectionWindow
 		@ssh_button = @glade['ssh']
 		@socket_button = @glade['socket'] 
 		@net_ssh_button = @glade['net_ssh']
+        @inetd_button = @glade['inetd']
 		@net_ssh_button.sensitive = false
         @socket_button.sensitive = false
         @net_ssh_button.sensitive = $netssh
@@ -42,6 +43,10 @@ class ConnectionWindow
 		elsif $platform == 'win32'
 			@config[@socket_button]['location'] = ''
 		end
+        
+        @config[@inetd_button] = {}
+        @config[@inetd_button]['host'] = 'localhost'
+        @config[@inetd_button]['port'] = '1189'
 		
 		@config[@net_ssh_button] = {}
         @config[@net_ssh_button] ['host'] = 'localhost'
@@ -58,11 +63,12 @@ class ConnectionWindow
 		@option[@socket_button] = @glade['socket_table']
 		@option[@net_ssh_button] = @glade['net_ssh_table']
         @option[@local_button] = @glade['local_table']
+        @option[@inetd_button] = @glade['inetd_table']
 		
-		redraw_options
 		load_settings
 		@glade[@config['default_method']].active = true
 		fill_entries
+        redraw_options
         
         @autoconnect = @config['autoconnect']
 	end

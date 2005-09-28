@@ -134,6 +134,7 @@ class Buffer
 	
 	#set the button color
 	def recolor
+        return if $main.quitting
 		label = @button.child
 		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status))
         if @button.active?

@@ -257,3 +257,59 @@ class UnixSockConnection
 	end
 	
 end
+
+
+class InetdConnection
+	def initialize(settings, connectionwindow)
+        begin
+        @socket = TCPSocket.new(settings['host'], settings['port'].to_i)
+        rescue
+            raise(IOError, 'Error: Could not connect to socket')
+        end
+        connectionwindow.send_text('Connected via TCP socket')
+	end
+	
+	def send(data)
+		begin
+		@socket.send(data, 0)
+		rescue SystemCallError
+			puts 'Broken Pipe to Irssi, disconnecting '+$!
+			close
+			return false
+		end
+		return true
+	end
+
+	def listen(object)
+		@listenthread = Thread.start{
+			input = ''
+			begin
+			while line = @socket.recv(70)
+				if line.length == 0
+					sleep 1
+				end
+				input += line
+				if input.count("\n") > 0
+					pos = input.rindex("\n")
+					string = input[0, pos]
+					input = input[pos, input.length]
+					Thread.start{
+						object.parse_lines(string)
+					}
+				end
+			end
+			
+			rescue SystemCallError
+			puts 'Broken Pipe to Irssi, disconnecting '+$!
+			close
+		end
+		}
+	end
+	
+	def close
+		@listenthread.kill
+		@socket.close
+		@client = nil
+	end
+	
+end

@@ -278,6 +278,8 @@ class Main
 				@connection = SSHConnection.new(settings, @connectionwindow)
 			elsif method == 'socket'
 				@connection = UnixSockConnection.new(settings, @connectionwindow)
+			elsif method == 'inetd'
+				@connection = InetdConnection.new(settings, @connectionwindow)
             elsif method == 'local'
                 @connection = LocalConnection.new(settings, @connectionwindow)
 			elsif method == 'net_ssh'
