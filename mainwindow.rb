@@ -105,6 +105,9 @@ class MainWindow
 		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
 		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
         
+		@messages.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+		@messages.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
+        
         #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
 		
         font = Pango::FontDescription.new($config['main_font'])
@@ -628,16 +631,16 @@ class MainWindow
     end
 	
 	def focus_input
-		start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
-		stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
-		if @currentbuffer.buffer.get_text(start, stop) and @currentbuffer.buffer.get_text(start, stop).length <= 0
-            position = @messageinput.position
+		#~ start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
+		#~ stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
+		#~ if @currentbuffer.buffer.get_text(start, stop) and @currentbuffer.buffer.get_text(start, stop).length <= 0
+            #~ position = @messageinput.position
+			#~ @messageinput.grab_focus
+			#~ @messageinput.select_region(0, 0)
+			#~ @messageinput.position= position
+		#~ else
 			@messageinput.grab_focus
-			@messageinput.select_region(0, 0)
-			@messageinput.position= position
-		else
-			@messages.grab_focus
-		end
+		#end
 	end
 	
 	def quit

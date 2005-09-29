@@ -1,3 +1,7 @@
+2005-09-29 16:58 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed selected text coloring
+
 2005-09-29 12:06 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Prevent some dialog windows from having more then one instance
