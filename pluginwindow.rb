@@ -54,22 +54,24 @@ class PluginWindow < SingleWindow
             #puts iter[0], iter[1]
         end
         
-        @pluginlist.selection.signal_connect('changed') do |widget|
-            selection = widget.selected
-            if selection
-                if selection[1] == 1
-                    @glade['plugin_unload'].sensitive = true
-                    @glade['plugin_load'].sensitive = false
-                    @glade['plugin_options'].sensitive = true
-                else
-                    @glade['plugin_load'].sensitive = true
-                    @glade['plugin_unload'].sensitive = false
-                    @glade['plugin_options'].sensitive = false
-                end
-            end
-        end
+        @pluginlist.selection.signal_connect('changed') {|widget| update_buttons(widget)}
         
         @open = true
+    end
+    
+    def update_buttons(widget)
+        selection = widget.selected
+        if selection
+            if selection[1] == 1
+                @glade['plugin_unload'].sensitive = true
+                @glade['plugin_load'].sensitive = false
+                @glade['plugin_options'].sensitive = true
+            else
+                @glade['plugin_load'].sensitive = true
+                @glade['plugin_unload'].sensitive = false
+                @glade['plugin_options'].sensitive = false
+            end
+        end
     end
     
     def get_selection
@@ -87,6 +89,7 @@ class PluginWindow < SingleWindow
                 selection[1] = 1
             end
         end
+        update_buttons(@pluginlist.selection)
     end
     
     def unload_plugin
@@ -97,6 +100,7 @@ class PluginWindow < SingleWindow
                 end
             end
         end
+        update_buttons(@pluginlist.selection)
     end
     
     def config_plugin

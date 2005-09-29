@@ -1,3 +1,8 @@
+2005-09-29 21:34 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added padding to vertical channel list boxes
+    Pluginlist buttons now update after loading/unloading
+
 2005-09-29 19:37 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed small bug in window duplication prevention

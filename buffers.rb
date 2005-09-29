@@ -826,6 +826,7 @@ class RootBuffer < Buffer
 		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
 			empty_box
 			@box = Gtk::VBox.new
+            @box.border_width = 5
 		elsif @box != Gtk::HBox and ($config['channellistposition'] == 'top' or $config['channellistposition'] == 'bottom')
 			empty_box
 			@box = Gtk::HBox.new
@@ -1034,7 +1035,7 @@ class ServerBuffer < Buffer
 		elsif @box != Gtk::HBox and ($config['channellistposition'] == 'top' or $config['channellistposition'] == 'bottom')
 			empty_box
 			@box = Gtk::HBox.new
-		end
+        end
 
 		@box.pack_start(@button)
 		
