@@ -5,8 +5,9 @@ require 'rbconfig'
 require 'base64'
 require 'thread'
 require 'monitor'
-require "rexml/document"
-require "yaml"
+require 'rexml/document'
+require 'yaml'
+
 if RUBY_PLATFORM.include?('win32')
 	$platform = 'win32'
 	$rircfolder = ENV['APPDATA']+'/rirc'
@@ -56,6 +57,12 @@ Thread.abort_on_exception = true
 class Object
     def deep_clone
         Marshal.load(Marshal.dump(self))
+    end
+end
+
+class SingleWindow
+    def open?
+        return @open
     end
 end
 
@@ -189,7 +196,7 @@ class Main
 	def start
 		Gtk.init
         reply_reaper
-		@connectionwindow = ConnectionWindow.new
+		@connectionwindow = ConnectionWindow.new unless @connectionwindow and @connectionwindow.open?
 		@window = MainWindow.new
 		if @connectionwindow.autoconnect == true
 			@connectionwindow.start_connect
@@ -319,7 +326,7 @@ class Main
 				channel.disconnect
 			}
 		}
-        @connectionwindow = ConnectionWindow.new
+        @connectionwindow = ConnectionWindow.new unless @connectionwindow and @connectionwindow.open
 	end
 	
 	#connect to a network
@@ -417,7 +424,7 @@ class Main
 		if !sent
 			@connection = nil
 			disconnect
-			@connectionwindow = ConnectionWindow.new
+			@connectionwindow = ConnectionWindow.new unless @xonnectionwindow and @connectionwindow.open
 		end
 	end
 	

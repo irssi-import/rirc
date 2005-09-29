@@ -1,4 +1,4 @@
-class PluginWindow
+class PluginWindow < SingleWindow
     def initialize
         @glade = GladeXML.new("glade/plugins.glade") {|handler| method(handler)}
         @pluginstore = Gtk::ListStore.new(String, Integer)
@@ -68,6 +68,8 @@ class PluginWindow
                 end
             end
         end
+        
+        @open = true
     end
     
     def get_selection
@@ -106,6 +108,7 @@ class PluginWindow
     end
     
     def destroy
+        @open = false
         @glade['pluginwindow'].destroy
     end
 end

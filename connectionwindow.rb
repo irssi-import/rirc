@@ -1,4 +1,4 @@
-class ConnectionWindow
+class ConnectionWindow < SingleWindow
 	attr_reader :autoconnect
 	def initialize
 		require 'yaml'
@@ -67,6 +67,8 @@ class ConnectionWindow
         @option[@local_button] = @glade['local_table']
         @option[@inetd_button] = @glade['inetd_table']
 		
+        @open = true
+        
 		load_settings
 		@glade[@config['default_method']].active = true
 		fill_entries
@@ -180,6 +182,7 @@ class ConnectionWindow
 	end
 	
 	def destroy
+        @open = false
 		@window.destroy
 	end
 	

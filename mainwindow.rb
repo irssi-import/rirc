@@ -425,11 +425,11 @@ class MainWindow
     end
     
     def on_networks1_activate
-        NetworkPresenceConf.new($main.networks, $main.protocols)
+        @networkpresence = NetworkPresenceConf.new($main.networks, $main.protocols) unless @networkpresence and @networkpresence.open?
     end
     
     def on_plugins1_activate
-        PluginWindow.new
+        @pluginwindow = PluginWindow.new unless @pluginwindow and @pluginwindow.open?
     end
 	
 	def updatetopic

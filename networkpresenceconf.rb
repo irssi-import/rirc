@@ -6,7 +6,7 @@
     #~ end
 #~ end
 
-class NetworkPresenceConf
+class NetworkPresenceConf < SingleWindow
     def initialize(networks, protocols)
         @glade = GladeXML.new("glade/network-presences.glade") {|handler| method(handler)}
         @networklist = Gtk::ListStore.new(String)
@@ -56,6 +56,8 @@ class NetworkPresenceConf
         @gatewayhandler = 0
         
         draw_networks
+        
+        @open = true
         
         @glade['networkpresencewindow'].show_all
         
@@ -520,6 +522,7 @@ class NetworkPresenceConf
     end
     
     def destroy
+        @open = false
         @glade['networkpresencewindow'].destroy
         @glade['networkproperties'].destroy
         @glade['presenceproperties'].destroy

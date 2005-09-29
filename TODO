@@ -3,12 +3,10 @@ TODO
 Big things:
     Dynamic scrollback fetching
     On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
-    Fixup the Net::SSH connection method for windows lusers and finish porting rirc to windows (if I can be bothered)
-    Investigate dumping textview for some kind of line based, custom widget
+    Investigate dumping textview for some kind of line based, custom widget (use SCW when its got a ruby binding)
     Clean up code, seperate functions into public/protected/private, standardize function/variable naming and lots more commenting (Ugh)
     
 Little things:
-    network buffers should also maybe do event get (really need cras to improve the LDAP filters for this)
     Make the right click menus more useful
     Make keybindings configurable
     NetSplit detection (might be better in irssi2 itself)
@@ -20,8 +18,4 @@ Bugs:
     Selected text in the textview changes color when the textview isn't in focus, an ugly workaround hack is keeping this looking nice for now tho.
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
     Can't set colors for input from config as the cursor becomes hidden
-    fails to catch nickname changes made by other clients... (investigate)
-    client and nickname do not always match up
-    looks like event resend loop still exists...
     restoring colors from default doesn't work, the colors don't know they've been updated
-    Make most dialog windows incapable of spawning multiple instances
