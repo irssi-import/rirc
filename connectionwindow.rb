@@ -50,6 +50,8 @@ class ConnectionWindow
 		
 		@config[@net_ssh_button] = {}
         @config[@net_ssh_button] ['host'] = 'localhost'
+        @config[@net_ssh_button] ['port'] = '22'
+        @config[@net_ssh_button] ['binpath'] = '/usr/bin/irssi2'
 		if $platform == 'linux'
 			@config[@net_ssh_button]['username'] = `whoami`.chomp
 		else

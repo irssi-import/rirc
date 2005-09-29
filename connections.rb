@@ -144,18 +144,20 @@ class NetSSHConnection
 	def initialize(settings, connectionwindow)
         
         begin
-            @session = Net::SSH.start(settings['host'], settings['username'], :auth_methods => %w(password))
+            @session = Net::SSH.start(settings['host'], settings['username'], :auth_methods => %w(password), :port => settings['port'])
         
-            @input, @output, @error = @session.process.popen3( '/usr/bin/irssi2'        )
+            @input, @output, @error = @session.process.popen3(settings['binpath'])
             
         rescue Errno::EHOSTUNREACH
             raise(IOError, 'Could not connect to host')
         rescue Net::SSH::AuthenticationFailed
             raise(IOError, 'Authentication Failed')
+        rescue Errno::ECONNREFUSED
+            raise(IOError, 'Connection Refused')
         end
 		sleep 2
 		if @error.data_available?
-			error = 'ERROR: ' + @error.read
+			error = @error.read
 			raise(IOError, error, caller)
 		end
 		

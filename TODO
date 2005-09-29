@@ -24,3 +24,4 @@ Bugs:
     client and nickname do not always match up
     looks like event resend loop still exists...
     restoring colors from default doesn't work, the colors don't know they've been updated
+    Make most dialog windows incapable of spawning multiple instances
