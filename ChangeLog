@@ -1,3 +1,7 @@
+2005-09-29 19:37 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed small bug in window duplication prevention
+
 2005-09-29 16:58 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed selected text coloring

@@ -326,7 +326,7 @@ class Main
 				channel.disconnect
 			}
 		}
-        @connectionwindow = ConnectionWindow.new unless @connectionwindow and @connectionwindow.open
+        @connectionwindow = ConnectionWindow.new unless @connectionwindow and @connectionwindow.open?
 	end
 	
 	#connect to a network

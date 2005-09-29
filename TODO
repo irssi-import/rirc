@@ -18,3 +18,4 @@ Bugs:
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
     Can't set colors for input from config as the cursor becomes hidden
     restoring colors from default doesn't work, the colors don't know they've been updated
+    Can't select text in the msg window with text in the message entry
