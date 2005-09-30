@@ -265,13 +265,13 @@ class Buffer
 			
 	end
     
-    def presence2username(name)
+    def presence2username(name, padding=true)
         return name unless $config['show_usermode']
         if self.class == ChannelBuffer
             if users.include?(name)
                 user = users[name]
                 mode = user.get_modes
-                mode = ' ' if mode =='' and $config['pad_usermode']
+                mode = ' ' if mode =='' and padding and $config['pad_usermode']
                 return mode+name
             end
         end
@@ -346,7 +346,7 @@ class Buffer
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and line[PRESENCE]
             pattern += $config.get_pattern('action')
-            pattern['%u'] = presence2username(line[PRESENCE])
+            pattern['%u'] = presence2username(line[PRESENCE], false)
             if line[MSG_XHTML]
                 pattern = escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
@@ -377,7 +377,7 @@ class Buffer
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and username
             pattern += $config.get_pattern('action')
-            pattern['%u'] = presence2username(username)
+            pattern['%u'] = presence2username(username, false)
             users.push(username)
         elsif username
             pattern += $config.get_pattern('usermessage')

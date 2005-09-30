@@ -17,7 +17,6 @@ Little things:
     Add predefined sorting that trumps the sorting algorithm
     Add Local and Global tab numbering systems
     Make irssi0's tab setup as an option
-    optionally put usermode in the nick (if none optionally have "")
 
 Bugs:
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
