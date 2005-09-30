@@ -10,6 +10,7 @@ class Buffer
         @links = []
         @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
         @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
+        @buffer.create_tag('italic', {'style' => Pango::FontDescription::STYLE_ITALIC})
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
