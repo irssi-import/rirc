@@ -169,6 +169,9 @@ class MainWindow
     end
 	
 	def topic_change(widget)
+        if widget.text != @currentbuffer.topic and @currentbuffer.class == ChannelBuffer
+            $main.send_command('topicchange', 'channel change;network='+@currentbuffer.server.name+';mypresence='+@currentbuffer.server.presence+';channel='+@currentbuffer.name+';topic='+escape(widget.text))
+        end
 		#add_message("Topic changed to: "+ widget.text, 'notice')
 	end
     
@@ -639,7 +642,7 @@ class MainWindow
 			#~ @messageinput.select_region(0, 0)
 			#~ @messageinput.position= position
 		#~ else
-			@messageinput.grab_focus
+			#@messageinput.grab_focus
 		#end
 	end
 	

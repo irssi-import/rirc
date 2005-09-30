@@ -1,3 +1,9 @@
+2005-09-30 15:30 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed focusing issues
+    Topic changes from event_get do not change the topic anymore
+    Added topic setting
+
 2005-09-29 21:34 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added padding to vertical channel list boxes

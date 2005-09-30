@@ -233,14 +233,14 @@ module ReplyParser
         elsif line[EVENT] == 'channel_changed'
             if line[TOPIC] and line['init']
                 #send the topic stuff as 2 lines
-                channel.topic = line[TOPIC]
+                #channel.topic = line[TOPIC]
                 line['line'] = 2
                 channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 line['line'] = 1
                 channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 @window.updatetopic
             elsif line[TOPIC]
-                channel.topic = line[TOPIC]
+                #channel.topic = line[TOPIC]
                 channel.send_event(line, EVENT_TOPIC, BUFFER_START)
                 @window.updatetopic
             end
