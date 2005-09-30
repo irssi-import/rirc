@@ -26,6 +26,8 @@ class Configuration
 		@statuscolors = [@values['defaultcolor'], @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
 		
 		@values['usetimestamp'] = true
+        @values['show_usermode'] = true
+        @values['pad_usermode'] = false
 		@values['timestamp'] = "[%H:%M]"
 		@values['message'] = "%C2<%C2%u%C2>%C2 %m"
 		@values['usermessage'] = "%C4<%C4%u%C4>%C4 %m"

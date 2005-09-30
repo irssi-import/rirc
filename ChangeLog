@@ -1,3 +1,8 @@
+2005-10-01 00:21 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Usermodes can optionally now be put in messages
+    Users with no mode can optionally have " " prepended to help with alignment
+
 2005-09-30 22:28 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added configurable keybindings

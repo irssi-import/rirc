@@ -265,6 +265,19 @@ class Buffer
 			
 	end
     
+    def presence2username(name)
+        return name unless $config['show_usermode']
+        if self.class == ChannelBuffer
+            if users.include?(name)
+                user = users[name]
+                mode = user.get_modes
+                mode = ' ' if mode =='' and $config['pad_usermode']
+                return mode+name
+            end
+        end
+        return name
+    end
+    
     def get_last_line_id(user)
         @linebuffer.reverse_each do |line|
             if line[PRESENCE] == user
@@ -333,7 +346,7 @@ class Buffer
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and line[PRESENCE]
             pattern += $config.get_pattern('action')
-            pattern['%u'] = line[PRESENCE]
+            pattern['%u'] = presence2username(line[PRESENCE])
             if line[MSG_XHTML]
                 pattern = escape_xml(pattern)
                 pattern['%m'] = line[MSG_XHTML]
@@ -344,7 +357,7 @@ class Buffer
         else
             pattern += $config.get_pattern('message')
             if line[PRESENCE]
-                pattern['%u'] = line[PRESENCE]
+                pattern['%u'] = presence2username(line[PRESENCE])
                 users.push(line[PRESENCE])
             end
             if line[MSG_XHTML]
@@ -364,11 +377,11 @@ class Buffer
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and username
             pattern += $config.get_pattern('action')
-            pattern['%u'] = username
+            pattern['%u'] = presence2username(username)
             users.push(username)
         elsif username
             pattern += $config.get_pattern('usermessage')
-            pattern['%u'] = username
+            pattern['%u'] = presence2username(username)
             users.push(username)
         end
         pattern['%m'] = line[MSG].to_s

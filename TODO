@@ -12,6 +12,12 @@ Little things:
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
     "Diff" topics so you can see what changed...? (probably a plugin)
     pgup/down chat scrolling (wait for scw)
+    Possible bindable actions: Close tab, next tab, previous tab, move tab left, move tab right (problem is that you sort alphabetically, though). Close all tabs but current Close all tabs, disconnect. some kind of alias that lets you set a command to be sent on the current buffer...
+    Make Tab sorting configurable (Case sensitive, case insensitive, date of opening, date of most recent activity, date of your last activity)
+    Add predefined sorting that trumps the sorting algorithm
+    Add Local and Global tab numbering systems
+    Make irssi0's tab setup as an option
+    optionally put usermode in the nick (if none optionally have "")
 
 Bugs:
     Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things

@@ -186,7 +186,7 @@
 		    <widget class="GtkTable" id="promptconfig">
 		      <property name="border_width">5</property>
 		      <property name="visible">True</property>
-		      <property name="n_rows">20</property>
+		      <property name="n_rows">21</property>
 		      <property name="n_columns">3</property>
 		      <property name="homogeneous">False</property>
 		      <property name="row_spacing">2</property>
@@ -209,8 +209,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">2</property>
-			  <property name="bottom_attach">3</property>
+			  <property name="top_attach">3</property>
+			  <property name="bottom_attach">4</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -233,8 +233,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">3</property>
-			  <property name="bottom_attach">4</property>
+			  <property name="top_attach">4</property>
+			  <property name="bottom_attach">5</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -257,8 +257,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">5</property>
-			  <property name="bottom_attach">6</property>
+			  <property name="top_attach">6</property>
+			  <property name="bottom_attach">7</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -281,8 +281,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">7</property>
-			  <property name="bottom_attach">8</property>
+			  <property name="top_attach">8</property>
+			  <property name="bottom_attach">9</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -305,8 +305,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">9</property>
-			  <property name="bottom_attach">10</property>
+			  <property name="top_attach">10</property>
+			  <property name="bottom_attach">11</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -328,8 +328,8 @@
 			<packing>
 			  <property name="left_attach">2</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">2</property>
-			  <property name="bottom_attach">3</property>
+			  <property name="top_attach">3</property>
+			  <property name="bottom_attach">4</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -375,8 +375,8 @@
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">2</property>
-			  <property name="top_attach">2</property>
-			  <property name="bottom_attach">3</property>
+			  <property name="top_attach">3</property>
+			  <property name="bottom_attach">4</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options">fill</property>
 			</packing>
@@ -399,8 +399,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">4</property>
-			  <property name="bottom_attach">5</property>
+			  <property name="top_attach">5</property>
+			  <property name="bottom_attach">6</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -423,8 +423,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">6</property>
-			  <property name="bottom_attach">7</property>
+			  <property name="top_attach">7</property>
+			  <property name="bottom_attach">8</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -447,8 +447,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">8</property>
-			  <property name="bottom_attach">9</property>
+			  <property name="top_attach">9</property>
+			  <property name="bottom_attach">10</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -471,8 +471,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">10</property>
-			  <property name="bottom_attach">11</property>
+			  <property name="top_attach">11</property>
+			  <property name="bottom_attach">12</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -495,8 +495,8 @@
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">12</property>
-			  <property name="bottom_attach">13</property>
+			  <property name="top_attach">13</property>
+			  <property name="bottom_attach">14</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -552,8 +552,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">5</property>
-			  <property name="bottom_attach">6</property>
+			  <property name="top_attach">6</property>
+			  <property name="bottom_attach">7</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options">fill</property>
 			</packing>
@@ -575,8 +575,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">7</property>
-			  <property name="bottom_attach">8</property>
+			  <property name="top_attach">8</property>
+			  <property name="bottom_attach">9</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options">fill</property>
 			</packing>
@@ -598,8 +598,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">9</property>
-			  <property name="bottom_attach">10</property>
+			  <property name="top_attach">10</property>
+			  <property name="bottom_attach">11</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options">fill</property>
 			</packing>
@@ -622,8 +622,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">13</property>
-			  <property name="bottom_attach">14</property>
+			  <property name="top_attach">14</property>
+			  <property name="bottom_attach">15</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -646,8 +646,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">14</property>
-			  <property name="bottom_attach">15</property>
+			  <property name="top_attach">15</property>
+			  <property name="bottom_attach">16</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -670,8 +670,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">15</property>
-			  <property name="bottom_attach">16</property>
+			  <property name="top_attach">16</property>
+			  <property name="bottom_attach">17</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -693,8 +693,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">4</property>
-			  <property name="bottom_attach">5</property>
+			  <property name="top_attach">5</property>
+			  <property name="bottom_attach">6</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -716,8 +716,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">6</property>
-			  <property name="bottom_attach">7</property>
+			  <property name="top_attach">7</property>
+			  <property name="bottom_attach">8</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -739,8 +739,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">8</property>
-			  <property name="bottom_attach">9</property>
+			  <property name="top_attach">9</property>
+			  <property name="bottom_attach">10</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -762,8 +762,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">10</property>
-			  <property name="bottom_attach">11</property>
+			  <property name="top_attach">11</property>
+			  <property name="bottom_attach">12</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -785,8 +785,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">12</property>
-			  <property name="bottom_attach">13</property>
+			  <property name="top_attach">13</property>
+			  <property name="bottom_attach">14</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -808,8 +808,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">13</property>
-			  <property name="bottom_attach">14</property>
+			  <property name="top_attach">14</property>
+			  <property name="bottom_attach">15</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -831,8 +831,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">14</property>
-			  <property name="bottom_attach">15</property>
+			  <property name="top_attach">15</property>
+			  <property name="bottom_attach">16</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -854,8 +854,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">15</property>
-			  <property name="bottom_attach">16</property>
+			  <property name="top_attach">16</property>
+			  <property name="bottom_attach">17</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -877,8 +877,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">3</property>
-			  <property name="bottom_attach">4</property>
+			  <property name="top_attach">4</property>
+			  <property name="bottom_attach">5</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -901,8 +901,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">16</property>
-			  <property name="bottom_attach">17</property>
+			  <property name="top_attach">17</property>
+			  <property name="bottom_attach">18</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -925,8 +925,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">17</property>
-			  <property name="bottom_attach">18</property>
+			  <property name="top_attach">18</property>
+			  <property name="bottom_attach">19</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -948,8 +948,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">17</property>
-			  <property name="bottom_attach">18</property>
+			  <property name="top_attach">18</property>
+			  <property name="bottom_attach">19</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -971,8 +971,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">16</property>
-			  <property name="bottom_attach">17</property>
+			  <property name="top_attach">17</property>
+			  <property name="bottom_attach">18</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -995,8 +995,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">11</property>
-			  <property name="bottom_attach">12</property>
+			  <property name="top_attach">12</property>
+			  <property name="bottom_attach">13</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -1018,8 +1018,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">11</property>
-			  <property name="bottom_attach">12</property>
+			  <property name="top_attach">12</property>
+			  <property name="bottom_attach">13</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -1042,8 +1042,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">18</property>
-			  <property name="bottom_attach">19</property>
+			  <property name="top_attach">19</property>
+			  <property name="bottom_attach">20</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -1066,8 +1066,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">0</property>
 			  <property name="right_attach">1</property>
-			  <property name="top_attach">19</property>
-			  <property name="bottom_attach">20</property>
+			  <property name="top_attach">20</property>
+			  <property name="bottom_attach">21</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -1088,8 +1088,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">18</property>
-			  <property name="bottom_attach">19</property>
+			  <property name="top_attach">19</property>
+			  <property name="bottom_attach">20</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
@@ -1110,8 +1110,78 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 			<packing>
 			  <property name="left_attach">1</property>
 			  <property name="right_attach">3</property>
-			  <property name="top_attach">19</property>
-			  <property name="bottom_attach">20</property>
+			  <property name="top_attach">20</property>
+			  <property name="bottom_attach">21</property>
+			  <property name="x_options">fill</property>
+			  <property name="y_options"></property>
+			</packing>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckButton" id="show_usermode">
+			  <property name="visible">True</property>
+			  <property name="can_focus">True</property>
+			  <property name="label" translatable="yes">Show Mode</property>
+			  <property name="use_underline">True</property>
+			  <property name="relief">GTK_RELIEF_NORMAL</property>
+			  <property name="focus_on_click">True</property>
+			  <property name="active">False</property>
+			  <property name="inconsistent">False</property>
+			  <property name="draw_indicator">True</property>
+			  <signal name="toggled" handler="tickbox_changed" last_modification_time="Fri, 30 Sep 2005 22:16:08 GMT"/>
+			</widget>
+			<packing>
+			  <property name="left_attach">1</property>
+			  <property name="right_attach">2</property>
+			  <property name="top_attach">2</property>
+			  <property name="bottom_attach">3</property>
+			  <property name="x_options">fill</property>
+			  <property name="y_options"></property>
+			</packing>
+		      </child>
+
+		      <child>
+			<widget class="GtkCheckButton" id="pad_usermode">
+			  <property name="visible">True</property>
+			  <property name="can_focus">True</property>
+			  <property name="label" translatable="yes">Pad others</property>
+			  <property name="use_underline">True</property>
+			  <property name="relief">GTK_RELIEF_NORMAL</property>
+			  <property name="focus_on_click">True</property>
+			  <property name="active">False</property>
+			  <property name="inconsistent">False</property>
+			  <property name="draw_indicator">True</property>
+			  <signal name="toggled" handler="tickbox_changed" last_modification_time="Fri, 30 Sep 2005 22:16:21 GMT"/>
+			</widget>
+			<packing>
+			  <property name="left_attach">2</property>
+			  <property name="right_attach">3</property>
+			  <property name="top_attach">2</property>
+			  <property name="bottom_attach">3</property>
+			  <property name="x_options">fill</property>
+			  <property name="y_options"></property>
+			</packing>
+		      </child>
+
+		      <child>
+			<widget class="GtkLabel" id="label40">
+			  <property name="visible">True</property>
+			  <property name="label" translatable="yes">Usernames</property>
+			  <property name="use_underline">False</property>
+			  <property name="use_markup">False</property>
+			  <property name="justify">GTK_JUSTIFY_LEFT</property>
+			  <property name="wrap">False</property>
+			  <property name="selectable">False</property>
+			  <property name="xalign">0</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
+			</widget>
+			<packing>
+			  <property name="left_attach">0</property>
+			  <property name="right_attach">1</property>
+			  <property name="top_attach">2</property>
+			  <property name="bottom_attach">3</property>
 			  <property name="x_options">fill</property>
 			  <property name="y_options"></property>
 			</packing>
