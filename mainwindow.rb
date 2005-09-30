@@ -1,7 +1,7 @@
 
 class MainWindow
 	attr_reader :currentbuffer
-    #include KeyBind
+    include KeyBind
 	def initialize
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
 		
@@ -78,7 +78,14 @@ class MainWindow
 		@defaultmenu = Gtk::Menu.new
 		@defaultmenu.append(Gtk::MenuItem.new("thing1"))
 		@defaultmenu.append(Gtk::MenuItem.new("thing2"))
-        @keyintmap = {'q' => 11, 'w' => 12, 'e' => 13, 'r' => 14, 't'=> 15, 'y' => 16, 'u' => 17, 'i' => 18, 'o' => 19, 'p' => 20}
+        
+        @bindable_functions = []
+        @bindable_functions.push({'name' => 'switchtab', 'arguments' => 1})
+        @bindable_functions.push({'name' => 'open_linkwindow', 'arguments' => 0})
+        @bindable_functions.push({'name' => 'open_preferences', 'arguments' => 0})
+        @bindable_functions.push({'name' => 'open_networks', 'arguments' => 0})
+        @bindable_functions.push({'name' => 'open_keybindings', 'arguments' => 0})
+        #@keyintmap = {'q' => 11, 'w' => 12, 'e' => 13, 'r' => 14, 't'=> 15, 'y' => 16, 'u' => 17, 'i' => 18, 'o' => 19, 'p' => 20}
 	end
 	
 	def draw_from_config(unhide=true)
@@ -164,7 +171,6 @@ class MainWindow
           end
           dialog.destroy
         end
-        puts x
         $main.send_command('nick'+x, 'presence change;network='+@currentbuffer.server.name+';mypresence='+@currentbuffer.server.presence+';name='+x) if x
     end
 	
@@ -420,24 +426,6 @@ class MainWindow
 		$config.set_value('windowheight', height) if height
     end
 	
-	def on_preferences1_activate
-        update_dimensions
-		configwindow = ConfigWindow.new
-		configwindow.show_all
-	end
-    
-    def on_disconnect1_activate
-        $main.disconnect
-    end
-    
-    def on_networks1_activate
-        @networkpresence = NetworkPresenceConf.new($main.networks, $main.protocols) unless @networkpresence and @networkpresence.open?
-    end
-    
-    def on_plugins1_activate
-        @pluginwindow = PluginWindow.new unless @pluginwindow and @pluginwindow.open?
-    end
-	
 	def updatetopic
 		if @currentbuffer.class == ChannelBuffer
 			@topic.text =@currentbuffer.topic
@@ -613,26 +601,68 @@ class MainWindow
 	end
     
     def window_buttons(widget, event)
-        #x = event_to_string(event)
-        #puts x
-        if (event.state & Gdk::Window::MOD1_MASK) != 0
-            puts 'pressed alt-'+Gdk::Keyval.to_name(event.keyval) if $args['debug']
-            key = Gdk::Keyval.to_name(event.keyval)
-            if key =~ /\d/
-                key = 10 if key.to_i == 0
-                tab = @serverlist.number2tab(key.to_i)
-                switchchannel(tab)
-                return true
-            elsif key =~ /[qwertyuiop]+/
-                tab = @serverlist.number2tab(@keyintmap[key].to_i)
-                switchchannel(tab)
-                return true
-            elsif key == 'l'
-                LinkWindow.new(@currentbuffer.links)
-            end
+        x = event_to_string(event)
+        return unless x and $config['keybindings'][x]
+        command, args = $config['keybindings'][x].split('(', 2)
+        args ||= ''
+        args.chomp!(')')
+        args = args.split(',').map{|e| e.downcase}
+        if command and self.respond_to?(command)
+            self.send(command, *args)
+            return true #block any futher things
+        else
+            return false
         end
+        #eval($config['keybindings'][x])
+        #~ if (event.state & Gdk::Window::MOD1_MASK) != 0
+            #~ puts 'pressed alt-'+Gdk::Keyval.to_name(event.keyval) if $args['debug']
+            #~ key = Gdk::Keyval.to_name(event.keyval)
+            #~ if key =~ /\d/
+                #~ key = 10 if key.to_i == 0
+                #~ tab = @serverlist.number2tab(key.to_i)
+                #~ switchchannel(tab)
+                #~ return true
+            #~ elsif key =~ /[qwertyuiop]+/
+                #~ tab = @serverlist.number2tab(@keyintmap[key].to_i)
+                #~ switchchannel(tab)
+                #~ return true
+            #~ elsif key == 'l'
+                #~ LinkWindow.new(@currentbuffer.links)
+            #~ end
+        #~ end
     end
-	
+    
+    def switchtab(number)
+        tab = @serverlist.number2tab(number.to_i)
+        switchchannel(tab)
+    end
+    
+    def open_linkwindow
+        LinkWindow.new(@currentbuffer.links)
+    end
+
+	def open_preferences
+        update_dimensions
+		configwindow = ConfigWindow.new
+		configwindow.show_all
+	end
+    
+    def do_disconnect
+        $main.disconnect
+    end
+    
+    def open_networks
+        @networkpresence = NetworkPresenceConf.new($main.networks, $main.protocols) unless @networkpresence and @networkpresence.open?
+    end
+    
+    def open_plugins
+        @pluginwindow = PluginWindow.new unless @pluginwindow and @pluginwindow.open?
+    end
+    
+    def open_keybindings
+        @keybindingwindow = KeyBindingWindow.new($config['keybindings'], @bindable_functions) unless @keybindingwindow and @keybindingwindow.open?
+	end
+    
 	def focus_input
 		#~ start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
 		#~ stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))

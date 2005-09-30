@@ -45,7 +45,7 @@ class Configuration
         @values['nickchange'] = '-%C1--%C1 %u is now known as %n'
         @values['usernickchange'] = '-%C1--%C1 You are now known as %n'
         
-		@values['linkclickaction'] = 'firefox %s'
+		@values['linkclickaction'] = 'firefox "%s"'
         
         @values['tabcompletesuffix'] = ';'
 		
@@ -67,6 +67,20 @@ class Configuration
         @values['plugins'] = []
         
         @values['aliases'] = {}
+        
+        @values['keybindings'] = {}
+        
+        @values['keybindings']['Alt-l'] = 'open_linkwindow'
+        
+        9.times do |i|
+            @values['keybindings']['Alt-'+i.to_s] = 'switchtab('+i.to_s+')'
+        end
+        
+        j = 10
+        %w{0 q w e r t y u i o p}.each do |c|
+            @values['keybindings']['Alt-'+c] = 'switchtab('+j.to_s+')'
+            j += 1
+        end
         
         #store defaults
         @defaults = duplicate_config

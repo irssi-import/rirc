@@ -43,10 +43,10 @@
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Disconnect</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_disconnect1_activate" last_modification_time="Tue, 16 Aug 2005 16:40:30 GMT"/>
+		      <signal name="activate" handler="do_disconnect" last_modification_time="Fri, 30 Sep 2005 19:48:12 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image10">
+			<widget class="GtkImage" id="image12">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-disconnect</property>
 			  <property name="icon_size">1</property>
@@ -64,10 +64,10 @@
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Networks</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_networks1_activate" last_modification_time="Fri, 29 Jul 2005 19:02:21 GMT"/>
+		      <signal name="activate" handler="open_networks" last_modification_time="Fri, 30 Sep 2005 19:48:12 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image11">
+			<widget class="GtkImage" id="image13">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-network</property>
 			  <property name="icon_size">1</property>
@@ -103,11 +103,20 @@
 		<widget class="GtkMenu" id="edit1_menu">
 
 		  <child>
+		    <widget class="GtkMenuItem" id="key_bindings1">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Key Bindings</property>
+		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="open_keybindings" last_modification_time="Fri, 30 Sep 2005 19:48:12 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
 		    <widget class="GtkMenuItem" id="plugins1">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Plugins</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_plugins1_activate" last_modification_time="Thu, 01 Sep 2005 21:00:24 GMT"/>
+		      <signal name="activate" handler="open_plugins" last_modification_time="Fri, 30 Sep 2005 19:48:12 GMT"/>
 		    </widget>
 		  </child>
 
@@ -116,10 +125,10 @@
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">_Preferences</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_preferences1_activate" last_modification_time="Sun, 01 May 2005 12:44:33 GMT"/>
+		      <signal name="activate" handler="open_preferences" last_modification_time="Fri, 30 Sep 2005 19:48:12 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image12">
+			<widget class="GtkImage" id="image14">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-properties</property>
 			  <property name="icon_size">1</property>

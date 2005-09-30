@@ -64,6 +64,9 @@ class SingleWindow
     def open?
         return @open
     end
+    
+    def focus
+    end
 end
 
 module Gdk
@@ -162,7 +165,7 @@ require 'users'
 require 'buffers'
 require 'replies'
 require 'connections'
-#require 'keybinding'
+require 'keybinding'
 require 'mainwindow'
 require 'configwindow'
 require 'connectionwindow'
