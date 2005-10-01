@@ -29,8 +29,10 @@ class Configuration
         @values['show_usermode'] = true
         @values['pad_usermode'] = false
 		@values['timestamp'] = "[%H:%M]"
-		@values['message'] = "%C2<%C2%u%C2>%C2 %m"
-		@values['usermessage'] = "%C4<%C4%u%C4>%C4 %m"
+        @values['usernameformat'] = "%C4<%C4%u%C4>%C4"
+		@values['message'] = "%m"
+        @values['otherusernameformat'] = "%C2<%C2%u%C2>%C2"
+		@values['usermessage'] = "%m"
 		@values['action'] = "%C1*%C1 %u %m"
 		@values['notice'] = "-%C1--%C1 %m"
 		@values['error'] = "%C0***%C0 %m"
@@ -244,7 +246,7 @@ class Configuration
 		
     def get_pattern(name)
         if @values[name].class == String
-            return @values[name] #don't escape_xml here
+            return @values[name].deep_clone #don't escape_xml here
         else
             return ''
         end

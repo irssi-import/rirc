@@ -10,7 +10,6 @@ class MainWindow
 		@serverlist = $main.serverlist
 		@usernamebutton = @glade["username"]
 		@topic = @glade["topic"]
-		@messages = @glade["message_window"]
 		@messageinput = @glade["message_input"]
 		@messagescroll = @glade['message_scroll']
         @messagevadjustment = @messagescroll.vadjustment
@@ -44,7 +43,7 @@ class MainWindow
         
         #TODO, make this work only if the end of the buffer is visible?
         #force a scroll to end on resize events
-        @messages.signal_connect('size_allocate') { || scroll_to_end(@currentbuffer, true); false}
+        #@messages.signal_connect('size_allocate') { || scroll_to_end(@currentbuffer, true); false}
 
 		#@userbar = @glade['userbar']
 		@userlist = @glade['userlist']
@@ -55,14 +54,16 @@ class MainWindow
 		@usercount = @glade['usercount']
 		@currentbuffer = @serverlist
 		drawuserlist(false)
-		@messages.buffer = @serverlist.buffer
+		#@messages.buffer = @serverlist.buffer
+        @messagescroll.add(@serverlist.view)
+        #@messages.show_all
 		@serverlist.button.active = true
 		@connection = nil
         
         #@panel.signal_connect('size_allocate') { || @userlist.set_size_request(0, -1);puts 'rezize'; false}
 		
-		@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
-		@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
+		#@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
+		#@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
         
         @glade['window1'].signal_connect('key_press_event') { |widget, event| window_buttons(widget, event)}
 		
@@ -106,23 +107,23 @@ class MainWindow
         
         @panel.position = $config['panelposition'].to_i if $config['panelposition']
 		
-		@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+		#@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
+		#@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
 		
-		@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+		#@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+		#@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
         
-		@messages.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
-		@messages.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
+		#@messages.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+		#@messages.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         
         #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
 		
         font = Pango::FontDescription.new($config['main_font'])
         
-        @messages.modify_font(font)
+        #@messages.modify_font(font)
         
         if unhide
-            @glade['window1'].show
+            @glade['window1'].show_all
         end
 		@messageinput.grab_focus
 	end
@@ -182,7 +183,7 @@ class MainWindow
 	end
     
     def recalculate_buffer_length
-        return unless @messages.realized?
+        #return unless @messages.realized?
         #~ Thread.new {
         #~ sleep 0.05
         #~ win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
@@ -198,11 +199,11 @@ class MainWindow
     end
     
 	def scroll_to_end(channel, force = false)
-		return if @currentbuffer != channel
-		#check if we were at the end before the message was sent, if so, move down again
-		if mark_onscreen?(@currentbuffer.oldendmark) or force
-            @messages.scroll_mark_onscreen(@currentbuffer.endmark)
-        end
+		#~ return if @currentbuffer != channel
+		#~ #check if we were at the end before the message was sent, if so, move down again
+		#~ if mark_onscreen?(@currentbuffer.oldendmark) or force
+            #~ @messages.scroll_mark_onscreen(@currentbuffer.endmark)
+        #~ end
 	end
 	
 	def mark_onscreen?(mark)
@@ -211,14 +212,14 @@ class MainWindow
 	end
 	
 	def iter_onscreen?(iter)
-		rect = @messages.visible_rect
-		y, height = @messages.get_line_yrange(iter)
+		#~ rect = @messages.visible_rect
+		#~ y, height = @messages.get_line_yrange(iter)
 		
-		if y >= rect.y and y <= rect.y+rect.height
-			return true
-		else
-			return false
-		end
+		#~ if y >= rect.y and y <= rect.y+rect.height
+			#~ return true
+		#~ else
+			#~ return false
+		#~ end
 	end
 	
     #get the substring to use for tab completion.
@@ -307,11 +308,14 @@ class MainWindow
 		@messageinput.text = @currentbuffer.currentcommand
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
-		@messages.buffer = @currentbuffer.activate
+		#@messages.model = @currentbuffer.activate
+        @messagescroll.children.each {|child| @messagescroll.remove(child)}
+        @messagescroll.add(@currentbuffer.activate)
+        @messagescroll.show_all
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-        @messages.scroll_mark_onscreen(@currentbuffer.endmark)
+       # @messages.scroll_mark_onscreen(@currentbuffer.endmark)
 	end
     
 	def updateusercount

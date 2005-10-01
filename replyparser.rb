@@ -175,7 +175,7 @@ module ReplyParser
             
             #if no networks are connected, raise the network window
             if i == 0
-                @window.on_networks1_activate
+                @window.open_networks
             end
             syncchannels
         end

@@ -7,6 +7,7 @@ require 'thread'
 require 'monitor'
 require 'rexml/document'
 require 'yaml'
+require 'scw'
 
 if RUBY_PLATFORM.include?('win32')
 	$platform = 'win32'

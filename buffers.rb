@@ -1,16 +1,21 @@
 class Buffer
-	attr_reader :oldendmark, :currentcommand, :buffer, :button, :links
+	attr_reader :oldendmark, :currentcommand, :liststore, :button, :links, :view
 	attr_writer :currentcommand
     extend Plugins
     include PluginAPI
 	def initialize(name)
-		@buffer = Gtk::TextBuffer.new
+		#@buffer = Gtk::TextBuffer.new
         
         #TODO italics...?
         @links = []
-        @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
-        @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
-        @buffer.create_tag('italic', {'style' => Pango::FontDescription::STYLE_ITALIC})
+        #~ @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
+        #~ @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
+        #~ @buffer.create_tag('italic', {'style' => Pango::FontDescription::STYLE_ITALIC})
+        @view = Scw::View.new
+        @liststore = Gtk::ListStore.new(Scw::Timestamp, Scw::Presence, String)
+        @view.model = @liststore
+        #@view.align_presences = true
+        @view.scroll_on_append = true
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
@@ -20,7 +25,7 @@ class Buffer
 			switchchannel(self)
 		end
         
-        update_colors
+        #update_colors
         
         @linebuffer = []
         
@@ -34,14 +39,14 @@ class Buffer
     
     def update_colors
         #puts 'updating colors for '+@button.label
-        16.times do |x|
-            if $config['color'+x.to_s] and tag = @buffer.tag_table.lookup('color'+x.to_s)
-                #puts 'updating '+tag.to_s
-                tag.foreground_gdk = $config['color'+x.to_s]
-            elsif $config['color'+x.to_s] 
-                @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
-            end
-        end
+        #~ 16.times do |x|
+            #~ if $config['color'+x.to_s] and tag = @buffer.tag_table.lookup('color'+x.to_s)
+                #~ #puts 'updating '+tag.to_s
+                #~ tag.foreground_gdk = $config['color'+x.to_s]
+            #~ elsif $config['color'+x.to_s] 
+                #~ @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
+            #~ end
+        #~ end
     end
     
     def rightclickmenu(event)
@@ -94,7 +99,7 @@ class Buffer
 		@button.signal_handler_unblock(@togglehandler)
 		@status = ACTIVE
 		recolor
-		return @buffer
+		return @view
 	end
 	
     #set a channel as inactive
@@ -169,34 +174,36 @@ class Buffer
         raise ArgumentError unless line.class == Line
 		
 		if insert_location == BUFFER_END
-			insert = @buffer.end_iter
+			#insert = @buffer.end_iter
             @linebuffer.push(line)
 		elsif insert_location == BUFFER_START
-			insert = @buffer.start_iter
+			#insert = @buffer.start_iter
             @linebuffer.unshift(line)
 		end
 		
-		if $config['usetimestamp']
-            re = /((%%(C[0-9]{1}[0-5]*|U|B|I)).*\2)/
+		#~ if $config['usetimestamp']
+            #~ re = /((%%(C[0-9]{1}[0-5]*|U|B|I)).*\2)/
             
-            timestamp = $config['timestamp'].deep_clone
+            #~ timestamp = $config['timestamp'].deep_clone
             
-            md = re.match(timestamp)
+            #~ md = re.match(timestamp)
             
-            while md.class == MatchData
-                text = md[1].gsub(md[2], '^^'+md[3])
-                timestamp.gsub!(md[1], text)
+            #~ while md.class == MatchData
+                #~ text = md[1].gsub(md[2], '^^'+md[3])
+                #~ timestamp.gsub!(md[1], text)
                 
-                md = re.match(timestamp)
-            end
+                #~ md = re.match(timestamp)
+            #~ end
                     
         
-			pattern = Time.at(line[TIME].to_i).strftime(timestamp)
+			#~ pattern = Time.at(line[TIME].to_i).strftime(timestamp)
             
-            pattern.gsub!(/(\^\^(C[0-9]{1}[0-5]*|U|B|I))/){|s| '%'+$2}
-		else
+            #~ pattern.gsub!(/(\^\^(C[0-9]{1}[0-5]*|U|B|I))/){|s| '%'+$2}
+		#~ else
 			pattern = ''
-		end
+		#end
+        
+        uname = ''
         
         if line[MSG]
             re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([.\/]{1}[^\s\n\(\)\[\]\r]+|))}
@@ -227,18 +234,18 @@ class Buffer
 		links = []
 		users = []
 		
-		@oldlineend = @buffer.end_iter
-		@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, true)
+		#@oldlineend = @buffer.end_iter
+		#@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, true)
         
         local = self
         
         begin
             cmd = 'buffer_'+type
             if self.respond_to?(cmd)
-                res = callback(cmd, line, pattern, users, insert_location)
+                res = callback(cmd, line, pattern, uname, users, insert_location)
                 return if res === true
                 res2 = self.send(cmd, *res)
-                pattern, users, insert_location = callback_after(cmd, *res2)
+                uname, pattern, users, insert_location = callback_after(cmd, *res2)
             else
                 return
             end
@@ -247,24 +254,99 @@ class Buffer
             puts 'Error sending : '+$!
             puts exception.backtrace
         end
+        
+        puts parse_tags(uname), parse_tags(pattern)
 		
 		if pattern.length > 0
 			recolor
 			if insert_location == BUFFER_START
-				if @buffer.char_count > 0
-					pattern += "\n"
-				end
-			elsif insert.offset != 0
-				pattern = "\n"+pattern
+                #iter = @liststore.prepend
+                #iter[0] = pattern
+				#if @buffer.char_count > 0
+				#	pattern += "\n"
+				#end
+			elsif insert_location == BUFFER_END
+                iter = @liststore.append
+                iter[0] = line[TIME].to_i
+                iter[1] = parse_tags(uname)
+                iter[2] = parse_tags(pattern)
+				#pattern = "\n"+pattern
 			end
-			colortext(pattern, insert, users, line[ID])
+			#colortext(pattern, insert_location, users, line[ID])
 		end
 		
-		@newlineend = @buffer.end_iter
+		#@newlineend = @buffer.end_iter
 		
 		$main.scroll_to_end(self)
 			
 	end
+    
+    def parse_tags(string)
+        re = /((%(C[0-9]{1}[0-5]*|U|B|I))(.+?)\2)/
+		md = re.match(string)
+		
+		while md.class == MatchData
+            
+            tag = nil
+            
+            if md[2] =~ /^%C[0-9]{1}[0-5]*$/
+                #tag = md[2].gsub!('%C', 'color')
+                colorid = md[2].gsub!('%C', '')
+                tag = 'span'
+                attributes = 'foreground="'+$config['color'+colorid].to_hex+'"'
+                
+            elsif md[2] == '%U'
+                tag = 'u'
+                
+            elsif md[2] == '%B'
+                tag = 'b'
+                
+            elsif md[2] == '%I'
+                tag = 'i'
+            end
+            
+            new = md[4]
+            
+            if attributes
+                x = '<'+tag+' '+attributes+'>'
+            else
+                x = '<'+tag+'>'
+            end
+            
+            y = '</'+tag+'>'
+            
+            new = x+new+y
+            
+            string.sub!(md[1], new)
+            
+            #remove the tags from the text
+            #text = md[0].gsub(md[2], '')
+    
+            #strip the tags for this tag from the string
+            #for some reason []= fucked up for some people, sub is probably better anyway
+            #string.sub!(md[1], text)
+            
+            #~ if tag
+                #~ #create a tag with a range
+                #~ start, stop = md.offset(1)
+                #~ stop -= (md[2].length)*2
+                #~ tags[Range.new(start, stop)] = tag
+            #~ end
+			
+			#go around again
+			md = re.match(string)
+		end
+        
+        #strip out any empty patterns
+        re = /((%(C[0-9]{1}[0-5]*|U|B|I))\2)/
+        md = re.match(string)
+        while md.class == MatchData
+            string.sub!(md[0], '')
+            md = re.match(string)
+        end
+        
+        return string
+    end
     
     def presence2username(name, padding=true)
         return name unless $config['show_usermode']
@@ -279,74 +361,74 @@ class Buffer
         return name
     end
     
-    def get_last_line_id(user)
-        @linebuffer.reverse_each do |line|
-            if line[PRESENCE] == user
-                return line[ID]
-            end
-        end
+    #~ def get_last_line_id(user)
+        #~ @linebuffer.reverse_each do |line|
+            #~ if line[PRESENCE] == user
+                #~ return line[ID]
+            #~ end
+        #~ end
         
-        return nil
-    end
+        #~ return nil
+    #~ end
     
-    def get_line_by_id(id)
-        #gets the start and stop marks for a line in the buffer
-        return unless id
+    #~ def get_line_by_id(id)
+        #~ #gets the start and stop marks for a line in the buffer
+        #~ return unless id
         
-        start = @buffer.get_mark(id+'_start')
-        stop = @buffer.get_mark(id+'_end')
+        #~ start = @buffer.get_mark(id+'_start')
+        #~ stop = @buffer.get_mark(id+'_end')
         
-        return [start, stop]
-    end
+        #~ return [start, stop]
+    #~ end
     
-    def remove_line(start, stop)
-        #remove the line between start and stop marks, returns true if line is at the end
-        return unless start and stop
+    #~ def remove_line(start, stop)
+        #~ #remove the line between start and stop marks, returns true if line is at the end
+        #~ return unless start and stop
         
-        puts @buffer.get_text(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
+        #~ puts @buffer.get_text(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
         
-        @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
+        #~ @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
         
-        if @buffer.get_iter_at_mark(stop).offset == @buffer.end_iter.offset
-            iter = @buffer.get_iter_at_mark(start)
-            iter.offset += 1
-            @buffer.delete(iter, @buffer.end_iter)
-            return true
-        else
-            @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
-        end
+        #~ if @buffer.get_iter_at_mark(stop).offset == @buffer.end_iter.offset
+            #~ iter = @buffer.get_iter_at_mark(start)
+            #~ iter.offset += 1
+            #~ @buffer.delete(iter, @buffer.end_iter)
+            #~ return true
+        #~ else
+            #~ @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
+        #~ end
             
-    end
+    #~ end
     
-    def replace_line(id, replacement)
-        #replaces a line in the buffer
-        start, stop = get_line_by_id(id)
+    #~ def replace_line(id, replacement)
+        #~ #replaces a line in the buffer
+        #~ start, stop = get_line_by_id(id)
         
-        return unless start and stop
+        #~ return unless start and stop
     
-        if remove_line(start, stop)
-            replacement += "\n"
-        end
+        #~ if remove_line(start, stop)
+            #~ replacement += "\n"
+        #~ end
         
-        @buffer.insert(@buffer.get_iter_at_mark(start), replacement)
-    end
+        #~ @buffer.insert(@buffer.get_iter_at_mark(start), replacement)
+    #~ end
     
-    def delete_line(id)
-        #deletes a line in the buffer
-        start, stop = get_line_by_id(id)
+    #~ def delete_line(id)
+        #~ #deletes a line in the buffer
+        #~ start, stop = get_line_by_id(id)
         
-        return unless start and stop
+        #~ return unless start and stop
     
-        remove_line(start, stop)
+        #~ remove_line(start, stop)
         
-        @buffer.delete_mark(start)
-        @buffer.delete_mark(stop)
-    end
+        #~ @buffer.delete_mark(start)
+        #~ @buffer.delete_mark(stop)
+    #~ end
     
-    def buffer_message(line, pattern, users, insert_location)
+    def buffer_message(line, pattern, uname, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and line[PRESENCE]
-            pattern += $config.get_pattern('action')
+            pattern = $config.get_pattern('action')
             pattern['%u'] = presence2username(line[PRESENCE], false)
             if line[MSG_XHTML]
                 pattern = escape_xml(pattern)
@@ -356,9 +438,11 @@ class Buffer
                 pattern = escape_xml(pattern)
             end
         else
-            pattern += $config.get_pattern('message')
+            pattern = $config.get_pattern('message')
             if line[PRESENCE]
-                pattern['%u'] = presence2username(line[PRESENCE])
+                uname = $config.get_pattern('otherusernameformat')
+                uname['%u'] = presence2username(line[PRESENCE])
+                uname = escape_xml(uname)
                 users.push(line[PRESENCE])
             end
             if line[MSG_XHTML]
@@ -371,28 +455,30 @@ class Buffer
                 pattern = escape_xml(pattern)
             end
         end
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_usermessage(line, pattern, users, insert_location)
+    def buffer_usermessage(line, pattern, uname, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and username
-            pattern += $config.get_pattern('action')
+            pattern = $config.get_pattern('action')
             pattern['%u'] = presence2username(username, false)
             users.push(username)
         elsif username
-            pattern += $config.get_pattern('usermessage')
-            pattern['%u'] = presence2username(username)
+            pattern = $config.get_pattern('usermessage')
+            uname = $config.get_pattern('usernameformat')
+            uname['%u'] = presence2username(username)
+            uname = escape_xml(uname)
             users.push(username)
         end
         pattern['%m'] = line[MSG].to_s
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_join(line, pattern, users, insert_location)
+    def buffer_join(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('join')
+        pattern = $config.get_pattern('join')
         pattern['%u'] = line[PRESENCE]
         users.push(line[PRESENCE])
         pattern['%c'] = line[CHANNEL]
@@ -402,20 +488,20 @@ class Buffer
             pattern['%h'] = line[ADDRESS].to_s
         end
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end    
         
-    def buffer_userjoin(line, pattern, users, insert_location)
+    def buffer_userjoin(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('userjoin')
+        pattern = $config.get_pattern('userjoin')
         pattern['%c'] = line[CHANNEL]
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_part(line, pattern, users, insert_location)
+    def buffer_part(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('part')
+        pattern = $config.get_pattern('part')
         pattern['%u'] = line[PRESENCE]
         users.push(line[PRESENCE])
         pattern['%r'] = line[REASON].to_s
@@ -426,34 +512,34 @@ class Buffer
             pattern['%h'] = line[ADDRESS].to_s
         end
         pattern = escape_xml(pattern)
-       return [pattern, users, insert_location]
+       return [uname, pattern, users, insert_location]
     end
     
-    def buffer_userpart(line, pattern, users, insert_location)
+    def buffer_userpart(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('userpart')
+        pattern = $config.get_pattern('userpart')
         pattern['%c'] = line[CHANNEL]
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
 
-    def buffer_error(line, pattern, users, insert_location)
+    def buffer_error(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('error')
+        pattern = $config.get_pattern('error')
         pattern['%m'] = line[ERR]
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_notice(line, pattern, users, insert_location)
+    def buffer_notice(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
-        pattern += $config.get_pattern('notice')
+        pattern = $config.get_pattern('notice')
         pattern['%m'] = line[MSG]
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_topic(line, pattern, users, insert_location)
+    def buffer_topic(line, pattern, uname, users, insert_location)
         setstatus(NEWDATA) if insert_location == BUFFER_END
         if line['init'] and line['line'] == 2
             pattern += $config.get_pattern('topic_setby')
@@ -472,15 +558,15 @@ class Buffer
             users.push(line[TOPIC_SET_BY])
         end
         pattern = escape_xml(pattern)
-       return [pattern, users, insert_location]
+       return [uname, pattern, users, insert_location]
     end
     
-    def buffer_modechange(line, pattern, users, insert_location)
+    def buffer_modechange(line, pattern, uname, users, insert_location)
         if line[ADD]
-            pattern += $config.get_pattern('add_mode')
+            pattern = $config.get_pattern('add_mode')
 	    pattern['%m'] = line[ADD]
         elsif line[REMOVE]
-            pattern += $config.get_pattern('remove_mode')
+            pattern = $config.get_pattern('remove_mode')
 	    pattern['%m'] = line[REMOVE]
         else
             return
@@ -490,33 +576,33 @@ class Buffer
         pattern['%u'] = line[PRESENCE]
         users.push(line[SOURCE_PRESENCE], line[PRESENCE])
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_nickchange(line, pattern, users, insert_location)
-        pattern += $config.get_pattern('nickchange')
+    def buffer_nickchange(line, pattern, uname, users, insert_location)
+        pattern = $config.get_pattern('nickchange')
         
         pattern['%u'] = line[PRESENCE].to_s
         pattern['%n'] = line[NAME].to_s
         
         users.push(line[NAME])
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def buffer_usernickchange(line, pattern, users, insert_location)
-        pattern += $config.get_pattern('usernickchange')
+    def buffer_usernickchange(line, pattern, uname, users, insert_location)
+        pattern = $config.get_pattern('usernickchange')
         
         pattern['%n'] = line[NAME].to_s
         
         users.push(line[NAME])
         pattern = escape_xml(pattern)
-        return [pattern, users, insert_location]
+        return [uname, pattern, users, insert_location]
     end
     
-    def endmark
-        return @buffer.create_mark('end', @buffer.end_iter, true)
-    end
+    #~ def endmark
+        #~ return @buffer.create_mark('end', @buffer.end_iter, true)
+    #~ end
 	
 	#add a command to the command buffer
 	def addcommand(string, increment=true)

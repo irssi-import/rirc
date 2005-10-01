@@ -1,3 +1,7 @@
+2005-10-01 19:14 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Initial work porting to ScwView
+
 2005-10-01 00:54 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Implemented italic tag
