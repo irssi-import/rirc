@@ -69,3 +69,5 @@ EVENT_MODECHANGE = 'modechange'
 EVENT_NICKCHANGE = 'nickchange'
 EVENT_USERNICKCHANGE = 'usernickchange'
 #EVENT_CTCP = 'ctcp'
+
+TAGMAP = {'color'=>'foreground', 'font-weight' => 'weight', 'font-style' => 'style', 'background-color' => 'background'}

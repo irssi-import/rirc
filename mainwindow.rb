@@ -65,6 +65,7 @@ class MainWindow
 		#@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
 		#@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
         
+        
         @glade['window1'].signal_connect('key_press_event') { |widget, event| window_buttons(widget, event)}
 		
 		@me = self
@@ -424,8 +425,8 @@ class MainWindow
 	end
     
     def update_dimensions
-        $config.set_value('panelposition', @panel.position) if @panel
-        width, height = @glade['window1'].size if @glade['window1']
+        width, height = @glade['window1'].size
+        $config.set_value('panelposition', @panel.position)
         $config.set_value('windowwidth', width) if width
 		$config.set_value('windowheight', height) if height
     end
@@ -679,7 +680,7 @@ class MainWindow
 			#@messageinput.grab_focus
 		#end
 	end
-	
+    
 	def quit
         update_dimensions
 		$main.quit

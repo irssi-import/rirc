@@ -5,7 +5,6 @@ require 'rbconfig'
 require 'base64'
 require 'thread'
 require 'monitor'
-require 'rexml/document'
 require 'yaml'
 require 'scw'
 

@@ -117,8 +117,8 @@ module CommandParser
                     send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(message)+";mypresence="+presence)
                 end
                 line = {}
-                line['presence'] = presence
-                line['msg'] = message
+                line[PRESENCE] = presence
+                line[MSG] = message
                 @window.currentbuffer.send_user_event(line, EVENT_USERMESSAGE)
             end
         elsif !network

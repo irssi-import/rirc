@@ -4,13 +4,7 @@ class Buffer
     extend Plugins
     include PluginAPI
 	def initialize(name)
-		#@buffer = Gtk::TextBuffer.new
-        
-        #TODO italics...?
         @links = []
-        #~ @buffer.create_tag('bold', {'weight' =>  Pango::FontDescription::WEIGHT_BOLD})
-        #~ @buffer.create_tag('underline', {'underline' => Pango::AttrUnderline::SINGLE})
-        #~ @buffer.create_tag('italic', {'style' => Pango::FontDescription::STYLE_ITALIC})
         @view = Scw::View.new
         @liststore = Gtk::ListStore.new(Scw::Timestamp, Scw::Presence, String)
         @view.model = @liststore
@@ -25,7 +19,9 @@ class Buffer
 			switchchannel(self)
 		end
         
-        #update_colors
+        @view.signal_connect("activated") do |view,id,data|
+          puts "Activated #{id} with #{data}"
+        end
         
         @linebuffer = []
         
@@ -180,28 +176,8 @@ class Buffer
 			#insert = @buffer.start_iter
             @linebuffer.unshift(line)
 		end
-		
-		#~ if $config['usetimestamp']
-            #~ re = /((%%(C[0-9]{1}[0-5]*|U|B|I)).*\2)/
-            
-            #~ timestamp = $config['timestamp'].deep_clone
-            
-            #~ md = re.match(timestamp)
-            
-            #~ while md.class == MatchData
-                #~ text = md[1].gsub(md[2], '^^'+md[3])
-                #~ timestamp.gsub!(md[1], text)
-                
-                #~ md = re.match(timestamp)
-            #~ end
-                    
         
-			#~ pattern = Time.at(line[TIME].to_i).strftime(timestamp)
-            
-            #~ pattern.gsub!(/(\^\^(C[0-9]{1}[0-5]*|U|B|I))/){|s| '%'+$2}
-		#~ else
-			pattern = ''
-		#end
+        pattern = ''
         
         uname = ''
         
@@ -213,7 +189,7 @@ class Buffer
                 if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
                     dup = false
                     @links.each_with_index do |link, index|
-                        next if dup == true
+                        next if dup == true or !link['timestamp']
                         if link['link'] == md[0]
                             dup = true
                             #puts 'link is a dup'
@@ -233,9 +209,6 @@ class Buffer
 		
 		links = []
 		users = []
-		
-		#@oldlineend = @buffer.end_iter
-		#@oldendmark = @buffer.create_mark('oldend', @buffer.end_iter, true)
         
         local = self
         
@@ -255,31 +228,69 @@ class Buffer
             puts exception.backtrace
         end
         
-        puts parse_tags(uname), parse_tags(pattern)
+        #puts parse_tags(uname), parse_tags(pattern)
 		
 		if pattern.length > 0
 			recolor
 			if insert_location == BUFFER_START
                 #iter = @liststore.prepend
                 #iter[0] = pattern
-				#if @buffer.char_count > 0
-				#	pattern += "\n"
-				#end
 			elsif insert_location == BUFFER_END
                 iter = @liststore.append
                 iter[0] = line[TIME].to_i
                 iter[1] = parse_tags(uname)
                 iter[2] = parse_tags(pattern)
-				#pattern = "\n"+pattern
 			end
-			#colortext(pattern, insert_location, users, line[ID])
 		end
-		
-		#@newlineend = @buffer.end_iter
 		
 		$main.scroll_to_end(self)
 			
 	end
+    
+    def xhtml_im2pango(string)
+        re = /\<span style=[\"\'](.+?)[\"\']\>([^\<]+)\<\/span\>/i
+        md = re.match(string)
+        
+        while md.class == MatchData
+            x = parse_style(md[1])
+            
+            replacement = '<s '+x+'>'+md[2]+'</s>'
+            
+            string.sub!(md[0], replacement)
+            
+            md = re.match(string)
+        end
+        
+        return string.gsub!('<s ', '<span ').gsub!('</s>', '</span>')
+    end
+    
+    def parse_style(style)
+        result = []
+        styles = style.split(';').map{|e| e.downcase.strip}
+        
+        styles.each do |style|
+            attribute, value = style.split(':', 2).map{|e| e.strip}
+            
+            if TAGMAP[attribute]
+                attribute = TAGMAP[attribute]
+            elsif attribute == 'text-decoration' and value == 'underline'
+                attribute = 'underline'
+                value = 'single'
+            end
+            
+            if attribute == 'foreground' or attribute == 'background'
+                re = Regexp.new('#[a-fA-F0-9]+')
+                #pad any hex colors out to 7 characters
+                while value =~ re and value.length < 7
+                    value['#'] = '#0'
+                end
+            end
+            
+            result.push(attribute+'="'+value+'"')
+        end
+        
+        return result.join(' ')
+    end
     
     def parse_tags(string)
         re = /((%(C[0-9]{1}[0-5]*|U|B|I))(.+?)\2)/
@@ -290,7 +301,6 @@ class Buffer
             tag = nil
             
             if md[2] =~ /^%C[0-9]{1}[0-5]*$/
-                #tag = md[2].gsub!('%C', 'color')
                 colorid = md[2].gsub!('%C', '')
                 tag = 'span'
                 attributes = 'foreground="'+$config['color'+colorid].to_hex+'"'
@@ -318,22 +328,7 @@ class Buffer
             new = x+new+y
             
             string.sub!(md[1], new)
-            
-            #remove the tags from the text
-            #text = md[0].gsub(md[2], '')
-    
-            #strip the tags for this tag from the string
-            #for some reason []= fucked up for some people, sub is probably better anyway
-            #string.sub!(md[1], text)
-            
-            #~ if tag
-                #~ #create a tag with a range
-                #~ start, stop = md.offset(1)
-                #~ stop -= (md[2].length)*2
-                #~ tags[Range.new(start, stop)] = tag
-            #~ end
-			
-			#go around again
+
 			md = re.match(string)
 		end
         
@@ -344,6 +339,18 @@ class Buffer
             string.sub!(md[0], '')
             md = re.match(string)
         end
+        
+        re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([.\/]{1}[^\s\n\(\)\[\]\r]+|))}
+		md = re.match(string)
+		
+		while md.class == MatchData
+            if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
+                links.push(md[0])
+                string.sub!(md[0], '<action id="url">'+md[0]+'</action>')
+            end
+			md = re.match(md.post_match)
+		end
+        
         
         return string
     end
@@ -361,70 +368,6 @@ class Buffer
         return name
     end
     
-    #~ def get_last_line_id(user)
-        #~ @linebuffer.reverse_each do |line|
-            #~ if line[PRESENCE] == user
-                #~ return line[ID]
-            #~ end
-        #~ end
-        
-        #~ return nil
-    #~ end
-    
-    #~ def get_line_by_id(id)
-        #~ #gets the start and stop marks for a line in the buffer
-        #~ return unless id
-        
-        #~ start = @buffer.get_mark(id+'_start')
-        #~ stop = @buffer.get_mark(id+'_end')
-        
-        #~ return [start, stop]
-    #~ end
-    
-    #~ def remove_line(start, stop)
-        #~ #remove the line between start and stop marks, returns true if line is at the end
-        #~ return unless start and stop
-        
-        #~ puts @buffer.get_text(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
-        
-        #~ @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
-        
-        #~ if @buffer.get_iter_at_mark(stop).offset == @buffer.end_iter.offset
-            #~ iter = @buffer.get_iter_at_mark(start)
-            #~ iter.offset += 1
-            #~ @buffer.delete(iter, @buffer.end_iter)
-            #~ return true
-        #~ else
-            #~ @buffer.delete(@buffer.get_iter_at_mark(start), @buffer.get_iter_at_mark(stop))
-        #~ end
-            
-    #~ end
-    
-    #~ def replace_line(id, replacement)
-        #~ #replaces a line in the buffer
-        #~ start, stop = get_line_by_id(id)
-        
-        #~ return unless start and stop
-    
-        #~ if remove_line(start, stop)
-            #~ replacement += "\n"
-        #~ end
-        
-        #~ @buffer.insert(@buffer.get_iter_at_mark(start), replacement)
-    #~ end
-    
-    #~ def delete_line(id)
-        #~ #deletes a line in the buffer
-        #~ start, stop = get_line_by_id(id)
-        
-        #~ return unless start and stop
-    
-        #~ remove_line(start, stop)
-        
-        #~ @buffer.delete_mark(start)
-        #~ @buffer.delete_mark(stop)
-    #~ end
-    
     def buffer_message(line, pattern, uname, users, insert_location)
         setstatus(NEWMSG) if insert_location == BUFFER_END
         if line[TYPE] == 'action' and line[PRESENCE]
@@ -432,7 +375,7 @@ class Buffer
             pattern['%u'] = presence2username(line[PRESENCE], false)
             if line[MSG_XHTML]
                 pattern = escape_xml(pattern)
-                pattern['%m'] = line[MSG_XHTML]
+                pattern['%m'] = xhtml_im2pango(line[MSG_XHTML])
             else
                 pattern['%m'] = line[MSG].to_s
                 pattern = escape_xml(pattern)
@@ -441,13 +384,13 @@ class Buffer
             pattern = $config.get_pattern('message')
             if line[PRESENCE]
                 uname = $config.get_pattern('otherusernameformat')
-                uname['%u'] = presence2username(line[PRESENCE])
                 uname = escape_xml(uname)
+                uname['%u'] = '<action id="user">'+escape_xml(presence2username(line[PRESENCE]))+'</action>'
                 users.push(line[PRESENCE])
             end
             if line[MSG_XHTML]
                 pattern = escape_xml(pattern)
-                pattern['%m'] = line[MSG_XHTML]
+                pattern['%m'] = xhtml_im2pango(line[MSG_XHTML])
             elsif line[MSG]
                 pattern['%m'] = line[MSG]
                 pattern = escape_xml(pattern)
@@ -467,8 +410,8 @@ class Buffer
         elsif username
             pattern = $config.get_pattern('usermessage')
             uname = $config.get_pattern('usernameformat')
-            uname['%u'] = presence2username(username)
             uname = escape_xml(uname)
+            uname['%u'] = '<action id="user">'+escape_xml(presence2username(username))+'</action>'
             users.push(username)
         end
         pattern['%m'] = line[MSG].to_s
@@ -599,10 +542,6 @@ class Buffer
         pattern = escape_xml(pattern)
         return [uname, pattern, users, insert_location]
     end
-    
-    #~ def endmark
-        #~ return @buffer.create_mark('end', @buffer.end_iter, true)
-    #~ end
 	
 	#add a command to the command buffer
 	def addcommand(string, increment=true)
@@ -640,255 +579,6 @@ class Buffer
     def gotolastcommand
         @commandindex = @commandbuffer.length
     end
-	
-	#parse the colors in the text
-    #TODO - Do we need to make this support nested tags?
-	def colortext(string, insert, users, id)
-        
-        #parse it for XHTML-IM tags
-        string, tags = parse_xml(string)
-        
-        re = /((%(C[0-9]{1}[0-5]*|U|B|I)).+?\2)/
-		md = re.match(string)
-		
-		while md.class == MatchData
-            
-            tag = nil
-            
-            if md[2] =~ /^%C[0-9]{1}[0-5]*$/
-                tag = md[2].gsub!('%C', 'color')
-                colorid = md[2].gsub!('%C', '')
-                
-            elsif md[2] == '%U'
-                tag = 'underline'
-                
-            elsif md[2] == '%B'
-                tag = 'bold'
-                
-            elsif md[2] == '%I'
-                tag = 'italic'
-            end
-            
-            #remove the tags from the text
-            text = md[0].gsub(md[2], '')
-    
-            #strip the tags for this tag from the string
-            #for some reason []= fucked up for some people, sub is probably better anyway
-            string.sub!(md[1], text)
-            
-            if tag
-                #create a tag with a range
-                start, stop = md.offset(1)
-                stop -= (md[2].length)*2
-                tags[Range.new(start, stop)] = tag
-            end
-			
-			#go around again
-			md = re.match(string)
-		end
-        
-        #strip out any empty patterns
-        re = /((%(C[0-9]{1}[0-5]*|U|B|I))\2)/
-        md = re.match(string)
-        while md.class == MatchData
-            string.sub!(md[0], '')
-            md = re.match(string)
-        end
-		
-		links = []
-		
-		#re = %r{(([a-zA-Z]+\://|[\w\-]+\.)[\w.\-]+\.[\w.\-,]+([^\s\n\(\)\[\]\r]+|))}
-        re= %r{((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))([.\/]{1}[^\s\n\(\)\[\]\r]+|))}
-		md = re.match(string)
-		
-		while md.class == MatchData
-            if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
-                links.push(md[0])
-            end
-			md = re.match(md.post_match)
-		end
-		
-		user_tags = {}
-		link_tags = {}
-		
-		users.each do |user|
-            next unless user
-			if index = string.index(user)
-				user_tags[Range.new(index, index+user.length)] = user
-			end
-		end
-		
-		links.each do |link|
-			if index = string.index(link)
-				link_tags[Range.new(index, index+link.length)] = link
-			end
-		end
-        
-		sendtobuffer(string, tags, insert, user_tags, link_tags, id)
-	end
-    
-    #parse xhtml-im styles into tags
-    def get_tag(key, value)
-        if key == 'color'
-            
-            value.gsub!('\'', '')
-            #if we already have the color in a tag, use it
-            if @buffer.tag_table.lookup('color_'+value)
-                return 'color_'+value
-            end
-            
-            re = Regexp.new('#[a-fA-F0-9]+')
-            
-            #if color is a hex value, and its not fully padded, try to pad it
-            while value =~ re and value.length < 7
-                value['#'] = '#0'
-            end
-            
-            #pass the color to GDK, and catch the exception if its invalid
-            begin
-                color = Gdk::Color.parse(value)
-            rescue ArgumentError
-                $main.throw_error('Invalid color '+value)
-                return '0'
-            end
-            
-            #assuming everything worked out, create the color tag
-            @buffer.create_tag('color_'+value, {'foreground_gdk'=>color})
-            return 'color_'+value
-        
-        #handle the 'bold' font weight
-        elsif key == 'font-weight'
-            if value == 'bold'
-                return 'bold'
-            end
-        
-        #handle 'underline'
-        elsif key == 'text-decoration'
-            if value == 'underline'
-                return 'underline'
-            end
-        end
-    end
-    
-    #split up xhtml-im styles into their components
-    def parse_style(style)
-        styles = style.split(';')
-        tags = []
-        styles.each do |x|
-            k, v = x.split(':').map{|e| e.strip.downcase}
-            tags.push(get_tag(k, v))
-        end
-        return tags
-    end
-    
-    #parse xhtml-im strings
-    def parse_xml(istring)
-        #add some root tags around the string to keep Rexml happy
-        doc = REXML::Document.new('<msg>'+istring+'</msg>')
-        puts istring if $args['debug']
-        string = ''
-        tags = {}
-        x = doc.root[0]
-        
-        #loop through the tags
-        #TODO - maybe this should handle children of children...?
-        while x
-            puts x if $args['debug']
-            #hey look, its a text node, we just append it to the result string
-            if x.class == REXML::Text
-                string += x.value
-            
-            #its a xml element, do some stuff
-            elsif x.class == REXML::Element
-            
-                #check if it has style
-                if x.attributes['style']
-                
-                    #do some magic to account for the % color tags in the string in the tag offsets
-                    offset = 0
-                    #regular expression to match color tags
-                    re = Regexp.new('((%(C[0-9]{1}[0-5]*|U|B|I)).?\2)')
-                    #scan the string and update the offset value
-                    string.scan(re){|z| offset += ($2.length)*2 if $2}
-                    #get the start and stop values
-                    start = string.length-offset
-                    
-                    if x.text
-                        stop = x.text.length+start
-                        #append the string
-                        string += x.text
-                    else
-                        stop = start
-                    end
-                    
-                    #get any tags derived from the style
-                    taglist = parse_style(x.attributes['style'])
-                    
-                    #bundle all the tags up nicely
-                    taglist.each do |tag|
-                        tags[Range.new(start, stop)] = tag
-                    end
-                end
-            end
-            
-            #go around again
-            x = x.next_sibling
-        end
-        
-        #not sure, worst case fallback?
-        if string == ''
-            string = istring
-        end
-        
-        return [string, tags]
-    end
-	
-	#send the text to the buffer
-	def sendtobuffer(string, tags, insert, user_tags, link_tags, id)
-		offset = insert.offset
-		@buffer.insert(insert, string)
-		iter = @buffer.get_iter_at_offset(offset)
-        #puts id
-        @buffer.create_mark(id+'_start', iter, false)
-        iter = @buffer.get_iter_at_offset(offset)
-		start = iter.offset
-		tags.each do |k, v|
-			if v and @buffer.tag_table.lookup(v)
-				tag_start = @buffer.get_iter_at_offset(k.begin+start)
-				tag_end = @buffer.get_iter_at_offset(k.end+start)
-				@buffer.apply_tag(v, tag_start, tag_end)
-			else
-				puts 'invalid tag '+v.to_s
-			end
-		end
-		
-		link_tags.each do |k, v|
-			name = 'link_'+rand(1000).to_s+'_'+v
-			while @buffer.tag_table.lookup(name)#
-				name = 'link_'+rand(1000).to_s+'_'+v
-			end
-			tag = Gtk::TextTag.new(name)
-			@buffer.tag_table.add(tag)
-			tag_start = @buffer.get_iter_at_offset(k.begin+start)
-			tag_end = @buffer.get_iter_at_offset(k.end+start)
-			@buffer.apply_tag(tag, tag_start, tag_end)
-		end
-		
-		user_tags.each do |k, v|
-			name = 'user_'+rand(1000).to_s+'_'+v
-			while @buffer.tag_table.lookup(name)#
-				name = 'user_'+rand(1000).to_s+'_'+v
-			end
-			tag = Gtk::TextTag.new(name)
-			@buffer.tag_table.add(tag)
-			tag_start = @buffer.get_iter_at_offset(k.begin+start)
-			tag_end = @buffer.get_iter_at_offset(k.end+start)
-			@buffer.apply_tag(tag, tag_start, tag_end)
-		end
-        
-        iter = @buffer.get_iter_at_offset(offset+string.length)
-        @buffer.create_mark(id+'_end', iter, true)
-	end
 end
 
 #The 'Servers' buffer, not sure if this will be required in the future...

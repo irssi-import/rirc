@@ -17,7 +17,7 @@
   <property name="skip_pager_hint">False</property>
   <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
-  <signal name="destroy" handler="quit" last_modification_time="Thu, 28 Apr 2005 10:23:34 GMT"/>
+  <signal name="delete_event" handler="quit" last_modification_time="Sat, 01 Oct 2005 18:04:07 GMT"/>
 
   <child>
     <widget class="GtkVBox" id="vbox1">
@@ -275,8 +275,8 @@
 			  </child>
 			</widget>
 			<packing>
-			  <property name="shrink">True</property>
-			  <property name="resize">False</property>
+			  <property name="shrink">False</property>
+			  <property name="resize">True</property>
 			</packing>
 		      </child>
 
@@ -339,7 +339,7 @@
 			</widget>
 			<packing>
 			  <property name="shrink">True</property>
-			  <property name="resize">True</property>
+			  <property name="resize">False</property>
 			</packing>
 		      </child>
 		    </widget>
