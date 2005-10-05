@@ -1,3 +1,9 @@
+2005-10-05 17:22- Andrew Thompson <vagabond@cataclysm-software.net>
+
+    More scwview porting
+    new tabmodel partially integrated
+    removal of old tab system
+
 2005-10-03 09:37- Andrew Thompson <vagabond@cataclysm-software.net>
 
     Comitted initial tablist code, non functional or ingtegrated

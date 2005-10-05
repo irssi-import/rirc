@@ -27,8 +27,13 @@ class ConfigWindow
 		child = @treestore.append(parent)
 		child[0] = "Colors"
 		
+        @glade['temp2'].remove(@glade['miscconfig'])
+        @glade['temp1'].remove(@glade['colorconfig'])
+        
+        @glade['temp1'].destroy
+        @glade['temp2'].destroy
+        
 		@categories = {'Miscallenous' => @glade['miscconfig'], 'Templates'=>@glade['promptconfig'], 'Colors' => @glade['colorconfig']}
-
 		renderer = Gtk::CellRendererText.new
 		
 		col = Gtk::TreeViewColumn.new("", renderer, :text => 0)

@@ -1,6 +1,6 @@
 
 class MainWindow
-	attr_reader :currentbuffer
+	attr_reader :currentbuffer, :tabmodel
     include KeyBind
 	def initialize
 		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
@@ -57,8 +57,22 @@ class MainWindow
 		#@messages.buffer = @serverlist.buffer
         @messagescroll.add(@serverlist.view)
         #@messages.show_all
-		@serverlist.button.active = true
 		@connection = nil
+        
+        even = $config['scw_even'].to_hex
+        odd = $config['scw_odd'].to_hex
+        
+        Gtk::RC.parse_string("style \"scwview\" {
+                      ScwView::even-row-color = \"#{even}\"
+                       ScwView::odd-row-color = \"#{odd}\"
+                       ScwView::column-spacing = 5
+                       ScwView::row-padding = 2
+                       }\n
+                       widget \"*.ScwView\" style \"scwview\"")
+        
+        @tablist = TreeTabList.new($main.tabmodel)
+        
+        #@tablist.set_active(@serverlist)
         
         #@panel.signal_connect('size_allocate') { || @userlist.set_size_request(0, -1);puts 'rezize'; false}
 		
@@ -88,11 +102,12 @@ class MainWindow
         @bindable_functions.push({'name' => 'open_networks', 'arguments' => 0})
         @bindable_functions.push({'name' => 'open_keybindings', 'arguments' => 0})
         #@keyintmap = {'q' => 11, 'w' => 12, 'e' => 13, 'r' => 14, 't'=> 15, 'y' => 16, 'u' => 17, 'i' => 18, 'o' => 19, 'p' => 20}
+        draw_from_config
 	end
 	
 	def draw_from_config(unhide=true)
         return if $main.quitting
-		@serverlist.redraw
+		#@serverlist.redraw
 		redraw_channellist
         
 		#resize the window if we have some saved sizes...
@@ -107,6 +122,27 @@ class MainWindow
         @glade['window1'].resize(x, y)
         
         @panel.position = $config['panelposition'].to_i if $config['panelposition']
+        
+        even = $config['scw_even'].to_hex
+        odd = $config['scw_odd'].to_hex
+        
+        Gtk::RC.parse_string("style \"scwview\" {
+                      ScwView::even-row-color = \"#{even}\"
+                       ScwView::odd-row-color = \"#{odd}\"
+                       ScwView::column-spacing = 5
+                       ScwView::row-padding = 2
+                       }\n
+                       widget \"*.ScwView\" style \"scwview\"")
+        
+        @font = Pango::FontDescription.new($config['main_font'])
+        
+        #TODO modify_text?
+        update_view(@serverlist.view)
+        @serverlist.servers.each do |server|
+            update_view(server.view)
+            server.channels.each {|channel| update_view(channel.view)}
+            server.chats.each {|chat| update_view(chat.view)}
+        end
 		
 		#@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
 		#@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
@@ -118,8 +154,6 @@ class MainWindow
 		#@messages.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         
         #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
-		
-        font = Pango::FontDescription.new($config['main_font'])
         
         #@messages.modify_font(font)
         
@@ -128,30 +162,40 @@ class MainWindow
         end
 		@messageinput.grab_focus
 	end
+    
+    def update_view(view)
+        view.reset_rc_styles
+        view.align_presences = $config['scw_align_presences']
+        view.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+        view.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+        view.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+        view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
+        view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+        view.modify_font(@font)
+    end
 	
 	def redraw_channellist
-		 if @channellist
-			@channellist.remove(@serverlist.box) if @serverlist.box
-			@channellist.destroy
-		end
-		
+        @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
+        @glade['h_top'].reorder_child(@tablist.widget, 0)
+        return
+        if @glade['h_top'].children.include?(@tablist.widget)
+            @glade['h_top'].remove(@tablist.widget)
+        elsif @glade['v_top'].children.include?(@tablist.widget)
+            @glade['v_top'].remove(@tablist.widget)
+        end
+        
 		if $config['channellistposition'] == 'right'
-			@channellist = Gtk::VBox.new
-			@glade['h_top'].pack_start(@channellist, false, false, 5)
+			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
 		elsif $config['channellistposition'] == 'left'
-			@channellist = Gtk::VBox.new
-			@glade['h_top'].pack_start(@channellist, false, false, 5)
-			@glade['h_top'].reorder_child(@channellist, 0)
+			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
+			@glade['h_top'].reorder_child(@tablist.widget, 0)
 		elsif $config['channellistposition'] == 'top'
-			@channellist = Gtk::HBox.new
-			@glade['v_top'].pack_start(@channellist, false, false, 5)
-			@glade['v_top'].reorder_child(@channellist, 0)
+			@glade['v_top'].pack_start(@tablist, false, false, 5)
+			@glade['v_top'].reorder_child(@tablist.widget, 0)
 		elsif $config['channellistposition'] == 'bottom'
-			@channellist = Gtk::HBox.new
-			@glade['v_top'].pack_start(@channellist, false, false, 5)
+			@glade['v_top'].pack_start(@tablist.widget, false, false, 5)
 		end
-		@channellist.show
-		@channellist.pack_start(@serverlist.box, false, false)
+		@tablist.widget.show
 	end
 	
 	def set_username
@@ -181,46 +225,6 @@ class MainWindow
             $main.send_command('topicchange', 'channel change;network='+@currentbuffer.server.name+';mypresence='+@currentbuffer.server.presence+';channel='+@currentbuffer.name+';topic='+escape(widget.text))
         end
 		#add_message("Topic changed to: "+ widget.text, 'notice')
-	end
-    
-    def recalculate_buffer_length
-        #return unless @messages.realized?
-        #~ Thread.new {
-        #~ sleep 0.05
-        #~ win = @messages.get_window(Gtk::TextView::WINDOW_TEXT)
-        #~ x, y = win.size
-        #~ #puts y
-        #~ x2, y2 = @messages.window_to_buffer_coords(Gtk::TextView::WINDOW_TEXT, 0, y)
-        #~ #puts y2
-        #~ #puts @messagevadjustment.upper
-        #~ @messagevadjustment.clamp_page(0, y2)
-        #~ @messagevadjustment.value = y2 - @messagevadjustment.page_size
-        #~ @messagevadjustment.value_changed
-        #~ }
-    end
-    
-	def scroll_to_end(channel, force = false)
-		#~ return if @currentbuffer != channel
-		#~ #check if we were at the end before the message was sent, if so, move down again
-		#~ if mark_onscreen?(@currentbuffer.oldendmark) or force
-            #~ @messages.scroll_mark_onscreen(@currentbuffer.endmark)
-        #~ end
-	end
-	
-	def mark_onscreen?(mark)
-        return false unless mark
-		return iter_onscreen?(@currentbuffer.buffer.get_iter_at_mark(mark))
-	end
-	
-	def iter_onscreen?(iter)
-		#~ rect = @messages.visible_rect
-		#~ y, height = @messages.get_line_yrange(iter)
-		
-		#~ if y >= rect.y and y <= rect.y+rect.height
-			#~ return true
-		#~ else
-			#~ return false
-		#~ end
 	end
 	
     #get the substring to use for tab completion.
@@ -289,17 +293,8 @@ class MainWindow
 		#make the new channel the current one, and toggle the buttons accordingly
         return unless channel
         update_dimensions
-        if channel.button.active? or channel == @channelbuffer
-            if !@currentbuffer.button.active? and channel == @currentbuffer
-                @currentbuffer.activate
-                return
-            elsif channel == @currentbuffer
-                return
-            end
-        end
 
 		@currentbuffer.currentcommand = @messageinput.text
-		@currentbuffer.deactivate
         if @currentbuffer.class == ChannelBuffer
             @userlist.remove_column(@currentbuffer.modecolumn)
             @userlist.remove_column(@currentbuffer.usercolumn)
@@ -309,14 +304,13 @@ class MainWindow
 		@messageinput.text = @currentbuffer.currentcommand
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
-		#@messages.model = @currentbuffer.activate
         @messagescroll.children.each {|child| @messagescroll.remove(child)}
-        @messagescroll.add(@currentbuffer.activate)
+        @messagescroll.add(@currentbuffer.view)
         @messagescroll.show_all
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-       # @messages.scroll_mark_onscreen(@currentbuffer.endmark)
+        @messageinput.grab_focus
 	end
     
 	def updateusercount
@@ -501,14 +495,6 @@ class MainWindow
 		end
 		
 	end
-    
-    def to_uri(uri)
-        if uri =~ /^[a-zA-Z]+\:\/\/.+/
-            return uri
-        else
-            return 'http://'+uri
-        end
-    end
 	
 	def textview_popup_menu(widget, event, x, y)
 		iter = widget.get_iter_at_location(x, y)
@@ -638,8 +624,8 @@ class MainWindow
     end
     
     def switchtab(number)
-        tab = @serverlist.number2tab(number.to_i)
-        switchchannel(tab)
+        tab = $main.tabmodel.number2tab(number.to_i)
+        $main.tabmodel.set_active(tab)
     end
     
     def open_linkwindow
@@ -666,19 +652,6 @@ class MainWindow
     
     def open_keybindings
         @keybindingwindow = KeyBindingWindow.new($config['keybindings'], @bindable_functions) unless @keybindingwindow and @keybindingwindow.open?
-	end
-    
-	def focus_input
-		#~ start = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.selection_bound)
-		#~ stop = @currentbuffer.buffer.get_iter_at_mark(@currentbuffer.buffer.get_mark('insert'))
-		#~ if @currentbuffer.buffer.get_text(start, stop) and @currentbuffer.buffer.get_text(start, stop).length <= 0
-            #~ position = @messageinput.position
-			#~ @messageinput.grab_focus
-			#~ @messageinput.select_region(0, 0)
-			#~ @messageinput.position= position
-		#~ else
-			#@messageinput.grab_focus
-		#end
 	end
     
 	def quit

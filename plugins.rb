@@ -98,6 +98,8 @@ module Plugins
         c = self
         classes = Array.new
         
+        #TODO c.class.ancestors instead of this mess maybe?
+        
         while c != Object || nil
             classes.push(c)
             c = c.superclass

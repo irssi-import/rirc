@@ -36,12 +36,14 @@ module EventParser
             network = @serverlist.add(event[NETWORK], event[MYPRESENCE])
             network.connect
             @window.redraw_channellist
-            switchchannel(network)
+            #switchchannel(network)
+            @tabmodel.set_active(network)
         elsif @serverlist[event[NETWORK], event[MYPRESENCE]].connected.nil?
             network = @serverlist[event[NETWORK], event[MYPRESENCE]]
             network.connect
             @window.redraw_channellist
-            switchchannel(network)
+            #switchchannel(network)
+            @tabmodel.set_active(network)
         elsif !@serverlist[event[NETWORK], event[MYPRESENCE]].connected
             puts 'network '+event[NETWORK]+' exists but is not connected, reconnecting'
             network = @serverlist[event[NETWORK], event[MYPRESENCE]]
@@ -160,7 +162,8 @@ module EventParser
            # puts 'connecting '+event[CHANNEL]
             channel.connect
             #@window.redraw_channellist
-            switchchannel(channel)
+            #switchchannel(channel)
+            @tabmodel.set_active(channel)
             send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(mypresence='+network.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))')
         elsif channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]] and !channel.connected
             puts 'channel exists, but is not connected, reconnecting'

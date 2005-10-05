@@ -7,6 +7,8 @@ require 'thread'
 require 'monitor'
 require 'yaml'
 require 'scw'
+require 'observer'
+require 'contrib/orderedhash'
 
 if RUBY_PLATFORM.include?('win32')
 	$platform = 'win32'
@@ -167,6 +169,7 @@ require 'replies'
 require 'connections'
 require 'keybinding'
 require 'mainwindow'
+require 'tablist'
 require 'configwindow'
 require 'connectionwindow'
 require 'networkpresenceconf'
@@ -174,7 +177,7 @@ require 'linkwindow'
 require 'pluginwindow'
 
 class Main
-	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols, :quitting
+	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols, :quitting, :tabmodel
     extend Plugins
     include PluginAPI
     include EventParser
@@ -182,6 +185,7 @@ class Main
     include CommandParser
 	def initialize
 		@serverlist = RootBuffer.new(self)
+        @tabmodel = TabListModel.new(@serverlist)
 		@connection = nil
 		@replies = {}
 		@buffer = []
@@ -272,7 +276,7 @@ class Main
                     end
                 end
                 if server.connected
-                    send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(mypresence='+server.presence+')(event=msg)(!(|(init=*)(deinit=*)(raw=*)(channel=*))')
+                    #send_command('events-'+server.name, 'event get;end=*;limit=200;filter=&(network='+server.name+')(mypresence='+server.presence+')(event=msg)(!(|(init=*)(deinit=*)(raw=*)(channel=*))')
                 end
             end
         end

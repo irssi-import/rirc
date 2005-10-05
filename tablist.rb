@@ -1,21 +1,15 @@
-class Object
-    def deep_clone
-        Marshal.load(Marshal.dump(self))
-    end
-end
+#~ require 'gtk2'
+#~ require 'monitor'
+#~ require 'scw'
+#~ require 'orderedhash'
+#~ require 'main'
+#~ require 'observer'
 
-require 'gtk2'
-require 'monitor'
-require 'scw'
-require 'orderedhash'
-require 'main'
-require 'observer'
+#~ Gtk::init
 
-Gtk::init
+#~ $config = Configuration.new
 
-$config = Configuration.new
-
-$main = Main.new
+#~ $main = Main.new
 
 HIERARCHICAL = 0
 FLAT = 1
@@ -36,7 +30,7 @@ LAST_USER_ACTIVITY = 3
 class TabListModel
     include Observable
     attr_reader :root, :tree, :networks
-    def initialize(root, networks=false, numbering=GLOBAL, sort=ALPHA_INSENSITIVE)
+    def initialize(root, networks=true, numbering=GLOBAL, sort=ALPHA_INSENSITIVE)
         @predefined = ['#cataclysm-software', 'Vagabond']
         @tree = OrderedHash.new
         #set things up, I guess build the way the buffers are stored, load the search stuff, set up the numbering
@@ -154,9 +148,7 @@ class TabListModel
                 
                 stuff.push([item])
 
-                #stuff.each{|e| puts e[0].name}
                 stuff.sort(&@sort).each do |x|
-                    #puts x[0].name
                     if x[0] == item
                         temp.push(x[0], OrderedHash.new)
                     else
@@ -184,7 +176,6 @@ class TabListModel
                                     @numbers.insert(tab2number(y.keys[i-1]), item)
                                 else
                                     if y.length == 1
-                                        #puts prev_server(s)
                                         if prev_server(s)
                                             v = @tree[@root][prev_server(s)]
                                             num = tab2number(v[-1])
@@ -197,7 +188,6 @@ class TabListModel
                                     end
                                 end
                                 if @tree[@root].class == Array
-                                    #puts caller
                                 end
                                 @tree[@root][s] = y
                             end
@@ -210,7 +200,17 @@ class TabListModel
                 end
             end
         end
-        #puts 'notify'
+    end
+    
+    def setstatus(item, level)
+        changed
+        puts 'forwarding status change for '+item.name+' to '+level.to_s
+        notify_observers(:setstatus, item, level)
+    end
+    
+    def set_active(item)
+        changed
+        notify_observers(:set_active, item)
     end
     
     def prev_server(current)
@@ -279,32 +279,69 @@ class TabListModel
     end
     
     def draw_tree
-        #@numbers.each_with_index{|a, i| puts i.to_s+'=>'+a.name}
         puts @root.name
         @tree[@root].each do |a, b|
             puts "\t"+a.name if @networks
             if b.methods.include?('each')
-                #puts b.class
                 b.each do |c, d|
                     next if c == 0
                     puts "\t\t"+tab2number(c).to_s+':'+c.name
                 end
             else
                 puts "\t"+tab2number(a).to_s+':'+a.name unless @networks
-                #puts 'suck'
             end
         end
     end
 end
 
-    
-
-class BoxTabList
+class TabList
     attr_reader :model
     def initialize(model)
         @model = model
+        @status = {}
+        @active = nil
         model.add_observer(self)
+    end
+    
+    def update(action, tab, option=nil)
+        if action == :add
+            add(tab)
+        elsif action == :remove
+            remove(tab)
+        elsif action == :setstatus
+            setstatus(tab, option)
+        elsif action == :set_active
+            set_active(tab)
+        end
+    end
+    
+    def setstatus(buffer, status)
+        return unless buffer
+		if !@status[buffer] or status > @status[buffer] or status == 0
+            puts 'setting status of '+buffer.name+' to '+status.to_s
+			@status[buffer] = status
+			recolor(buffer)
+        else
+            puts 'not setting status of '+buffer.name+' to '+status.to_s
+            puts status, @status[buffer]
+        end
+	end
+end
+    
+
+class BoxTabList < TabList
+    def initialize(model)
+        super
         @buttons = {}
+        @togglehandlers = {}
+        fill_box
+        @box.show_all
+        
+        set_active(model.root)
+    end
+    
+    def widget
+        return @box
     end
     
     def fill_box
@@ -322,32 +359,19 @@ class BoxTabList
             
             end
         end
-        #cleanup
-    end
-    
-    def update(action, tab)
-        #puts 'update'
-        #puts action, tab
-        if action == :add
-            add(tab)
-        elsif action == :remove
-            remove(tab)
-        end
+        cleanup
     end
     
     def add(tab)
-        #return
         x = []
         x.push(add_button(@model.root))
         x.push(create_seperator)
         b = nil
         @model.tree[@model.root].each do |k, v|
             x.push(add_button(k))
-            #puts k.name
             if v.methods.include?('each')
                 v.each do |z, c|
                     x.push(add_button(z))
-                    #puts add_button(z)
                 end
                 x.push(create_seperator)
             else
@@ -360,7 +384,6 @@ class BoxTabList
         
         @box.children.each do |child|
             if child.class.ancestors.include?(Gtk::Separator) and x[i].class.ancestors.include?(Gtk::Separator)
-                #puts x[i]
                 prev = x[i]
                 i += 1
                 next
@@ -409,6 +432,7 @@ class BoxTabList
         cleanup
     end
     
+    #Ack, why oh why can't I code an insert that doesn't need a cleanup?
     def cleanup
         #removes double and trailing seperators
         prev = nil
@@ -422,14 +446,41 @@ class BoxTabList
         end
         if @box.children[-1].class.ancestors.include?(Gtk::Separator)
             @box.remove(box.children[-1])
-            #puts prev
         end
         @box.show_all
     end
     
+    def set_active(buffer)
+        if @active
+            @buttons[@active].signal_handler_block(@togglehandlers[@active])
+            @buttons[@active].active = false
+            @buttons[@active].signal_handler_unblock(@togglehandlers[@active])
+            oldactive = @active
+        end
+        setstatus(@active, ACTIVE)
+        @active = buffer
+        setstatus(oldactive, INACTIVE) if oldactive
+        
+        @buttons[@active].signal_handler_block(@togglehandlers[@active])
+        @buttons[@active].active = true
+        @buttons[@active].signal_handler_unblock(@togglehandlers[@active])
+        $main.window.switchchannel(buffer) if $main.window
+    end
+    
+	def recolor(buffer)
+        return if buffer == @active
+		label = @buttons[buffer].child
+		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status[buffer]))
+        label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@status[buffer]))
+        
+	end
+    
     def add_button(buffer)
         if !@buttons.include?(buffer)
             button = Gtk::ToggleButton.new(buffer.name)
+            @togglehandlers[buffer] = button.signal_connect('toggled')do |w|
+                set_active(buffer)
+            end
             @buttons[buffer] = button
         end
         return @buttons[buffer]
@@ -439,10 +490,8 @@ end
 class VBoxTabList < BoxTabList
     attr_reader :box
     def initialize(model)
-        super
         @box = Gtk::VBox.new
-        fill_box
-        @box.show_all
+        super
     end
     
     def create_seperator
@@ -460,11 +509,8 @@ end
 class HBoxTabList < BoxTabList
     attr_reader :box
     def initialize(model)
-        super
-        #puts @model
         @box = Gtk::HBox.new
-        fill_box
-        @box.show_all
+        super
     end
     
     def create_seperator
@@ -479,16 +525,174 @@ class HBoxTabList < BoxTabList
     end
 end
 
-root = RootBuffer.new(self)
+class TreeTabList < TabList
+    attr_reader :model, :view
+    def initialize(model)
+        super
+        @store = Gtk::TreeStore.new(String, String)
+        @view = Gtk::TreeView.new(@store)
+        @selecthandler = @view.selection.signal_connect('changed') do |w|
+            set_active(iter2buffer(w.selected))
+        end
+        @iters = {}
+        fill_list
+        renderer = Gtk::CellRendererText.new
+		
+		col = Gtk::TreeViewColumn.new("", renderer, :markup => 0)
+		@view.append_column(col)
+		@view.expand_all
+        @view.show_all
+        set_active(model.root)
+    end
+    
+    def widget
+        return @view
+    end
+    
+    def fill_list
+        parent = @store.append(nil)
+        parent[0] = @model.root.name
+        @iters[@model.root] = Gtk::TreeRowReference.new(@store, parent.path)
+        @model.tree[@model.root].each do |k, v|
+            child = @store.append(parent)
+            child[0] = k.name
+            @iters[k] = Gtk::TreeRowReference.new(@store, child.path)
+            @view.expand_row(parent.path, false)
+            if v.methods.include?('each')
+                v.each do |z, c|
+                    child2 = @store.append(child)
+                    child2[0] = z.name
+                    @iters[z] = Gtk::TreeRowReference.new(@store, child2.path)
+                    @view.expand_row(child.path, false)
+                end
+            else
+            
+            end
+        end
+        cleanup
+    end
+    
+    def add(item)
+        i = 0
+        @model.tree[@model.root].each do |k, v|
+            path = '0:'+i.to_s
+            this = @store.get_iter(path)
+            if this and this[0] != k.name
+                new = @store.insert_before(@store.get_iter(@iters[@model.root].path), this)
+                new[0] = k.name
+                @iters[k] = Gtk::TreeRowReference.new(@store, new.path)
+                @view.expand_row(@iters[@model.root].path, false)
+            elsif !this
+                new = @store.insert_before(@store.get_iter(@iters[@model.root].path), nil)
+                new[0] = k.name
+                @iters[k] = Gtk::TreeRowReference.new(@store, new.path)
+                @view.expand_row(@iters[@model.root].path, false)
+            end
+            j = 0
+            if v.methods.include?('each')
+                v.each do |z, c|
+                    path2 = '0:'+i.to_s+':'+j.to_s
+                    this2 = @store.get_iter(path2)
+                    if this2 and this2[0] != z.name
+                        puts path2, z.name
+                        new = @store.insert_before(@store.get_iter(@iters[k].path), this2)
+                        new[0] = z.name
+                        @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
+                        @view.expand_row(this.path, false)
+                    elsif !this2
+                        path2 = '0:'+i.to_s+':'+(j-1).to_s
+                        new = @store.insert_before(@store.get_iter(@iters[k].path), nil)
+                        new[0] = z.name
+                        @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
+                        @view.expand_row(this.path, false)
+                    end
+                    j += 1
+                end
+            end
+            i += 1
+        end
+        cleanup
+    end
+    
+    #ack, I wish I didn't need this
+    def cleanup
+        @store.each do |model, path, iter|
+            if !iter2buffer(iter)
+                puts iter
+                @store.remove(iter)
+            end
+        end
+    end
+    
+    def remove(item)
+        if @iters[item] and @iters[item].valid?
+            @store.remove(@store.get_iter(@iters[item].path))
+            @iters.delete(item)
+        end
+    end
+    
+    def clean_tag(tag)
+        re = /^\<span .+\>(.+?)\<\/span\>$/i
+        md = re.match(tag)
+        if md
+            return md[1]
+        else
+            return tag
+        end
+    end
+    
+    def iter2buffer(iter)
+        return nil unless iter
+        @iters.each do |b, i|
+            if (i.path.to_s) == (iter.path.to_s)
+                return b
+            end
+        end
+        return nil
+    end
+    
+    def set_active(buffer)
+        if buffer
+            if @active
+                oldactive = @active
+            end
+            setstatus(buffer, ACTIVE)
+            @active = buffer
+            setstatus(oldactive, INACTIVE) if oldactive
+            
+            @view.selection.signal_handler_block(@selecthandler)
+            @view.selection.select_iter(@store.get_iter(@iters[buffer].path)) if @iters[buffer]
+            @view.selection.signal_handler_unblock(@selecthandler)
+            $main.window.switchchannel(buffer) if $main.window
+        end
+    end
+    
+    def recolor(buffer)
+        return if buffer == @active
+        if @iters[buffer]
+            iter = @store.get_iter(@iters[buffer].path)
+            if @status[buffer] > 0
+                color = $config.getstatuscolor(@status[buffer]).to_hex
+                iter[0] = '<span color="'+color+'">'+clean_tag(iter[0])+'</span>'
+                puts 'recoloring '+buffer.name
+            else
+                iter[0] = clean_tag(iter[0])
+                puts 'not recoloring active buffer '+buffer.name
+            end
+        end
+    end
+end
 
-free = root.add('freenode', 'Vagabond')
-free.add('#irssi2')
-free.add('#Wings3d')
-free.add('#trotw')
-free.addchat('Vagabond')
+#~ root = RootBuffer.new(self)
 
-quake = root.add('Quakenet', 'Vagabond')
-quake.add('#cataclysm-software')
+#~ free = root.add('freenode', 'Vagabond')
+#~ free.add('#irssi2')
+#~ free.add('#Wings3d')
+#~ free.add('#trotw')
+#~ free.addchat('Vagabond')
+
+#~ quake = root.add('Quakenet', 'Vagabond')
+#~ quake.add('#cataclysm-software')
 
 
 #~ puts 'Forcing #cataclysm-software and Vagabond to sort first'
@@ -529,33 +733,49 @@ quake.add('#cataclysm-software')
 
 #~ Gtk::Window.new.add(p.box).show_all
 
-x = TabListModel.new(root, true, GLOBAL, ALPHA_INSENSITIVE)
 
-x.add(free.add('#cackooking'))
-
-x.add(free.add('#aardvark'))
-x.add(free.add('#zztop'))
+#~ x = TabListModel.new(root, true, GLOBAL, ALPHA_INSENSITIVE)
 
 #~ p =HBoxTabList.new(x)
 
 #~ Gtk::Window.new.add(p.box).show_all
 
-p =VBoxTabList.new(x)
+#p =TreeTabList.new(x)
 
-Gtk::Window.new.add(p.box).show_all
+#Gtk::Window.new.add(p.view).show_all
 
-b = root.add('EFnet', 'Vagabond')
-c = b.add('foo')
-x.add(b)
+#~ x = TabListModel.new(root, false, GLOBAL, ALPHA_INSENSITIVE)
 
-Thread.new do
-sleep 5
-#puts 'go time'
+#~ p =VBoxTabList.new(x)
+
+#~ Gtk::Window.new.add(p.box).show_all
+
+#~ p =TreeTabList.new(x)
+
+#~ Gtk::Window.new.add(p.view).show_all
+
+#~ b = root.add('EFnet', 'Vagabond')
+#~ c = b.add('foo')
 #x.add(b)
-#x.remove(free)
-x.draw_tree
-end
+
+#~ x.add(free.add('#cackooking'))
+
+#~ x.add(free.add('#aardvark'))
+#~ x.add(free.add('#zztop'))
+
+#~ Thread.new do
+#~ sleep 5
+#puts 'go time'
+#~ x.add(b)
+#~ sleep 1
+#~ p.set_active(c)
+#~ x.setstatus(c, 2)
+#~ sleep 4
+#x.setstatus(c, 4)
+#x.remove(quake)
+#x.draw_tree
+#~ end
 
 #x.draw_tree
 
-Gtk::main
+#~ Gtk::main

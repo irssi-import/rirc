@@ -105,7 +105,8 @@ module ReplyParser
                 network.connect
                 network.loggedin = true
                 @window.redraw_channellist
-                switchchannel(network)
+                #switchchannel(network)
+                @tabmodel.set_active(network)
             end
         end
         if line[REPLY_STATUS] == '+'
@@ -160,7 +161,8 @@ module ReplyParser
                         channel.topic = line[TOPIC]
                     end
                     channel.connect
-                    switchchannel(channel)
+                    #switchchannel(channel)
+                    @tabmodel.set_active(channel)
                 end
             end
         

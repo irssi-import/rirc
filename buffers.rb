@@ -1,5 +1,5 @@
 class Buffer
-	attr_reader :oldendmark, :currentcommand, :liststore, :button, :links, :view
+	attr_reader :oldendmark, :currentcommand, :liststore, :links, :view
 	attr_writer :currentcommand
     extend Plugins
     include PluginAPI
@@ -8,66 +8,44 @@ class Buffer
         @view = Scw::View.new
         @liststore = Gtk::ListStore.new(Scw::Timestamp, Scw::Presence, String)
         @view.model = @liststore
-        #@view.align_presences = true
+        @view.align_presences = $config['scw_align_presences']
         @view.scroll_on_append = true
+        @view.modify_font(Pango::FontDescription.new($config['main_font']))
+        @view.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
+        @view.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
+        @view.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
+        @view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
+        @view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+        
+        
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
-		@button = Gtk::ToggleButton.new(name)
-		@button.active = false
-		@togglehandler = @button.signal_connect('toggled')do |w|
-			switchchannel(self)
-		end
         
         @view.signal_connect("activated") do |view,id,data|
           puts "Activated #{id} with #{data}"
+          if id == 'url'
+                link = to_uri(data)
+				fork{exec($config['linkclickaction'].sub('%s', link))}
+            end
         end
         
         @linebuffer = []
-        
-        @button.signal_connect('button_press_event')do |w, event|
-            if event.button == 3
-                rightclickmenu(event)
-            end
-		end
+
         @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic', 'modechange', 'ctcp']
 	end
     
-    def update_colors
-        #puts 'updating colors for '+@button.label
-        #~ 16.times do |x|
-            #~ if $config['color'+x.to_s] and tag = @buffer.tag_table.lookup('color'+x.to_s)
-                #~ #puts 'updating '+tag.to_s
-                #~ tag.foreground_gdk = $config['color'+x.to_s]
-            #~ elsif $config['color'+x.to_s] 
-                #~ @buffer.create_tag('color'+x.to_s, {'foreground_gdk'=>$config['color'+x.to_s]}) if $config['color'+x.to_s]
-            #~ end
-        #~ end
-    end
-    
-    def rightclickmenu(event)
-        menu = genmenu
-        return unless menu
-        menu.show_all
-        menu.popup(nil, nil, event.button, event.time)
-        return true
-    end
+    #~ def rightclickmenu(event)
+        #~ menu = genmenu
+        #~ return unless menu
+        #~ menu.show_all
+        #~ menu.popup(nil, nil, event.button, event.time)
+        #~ return true
+    #~ end
     
     def genmenu
         return nil
     end
-    
-    def set_tab_label(label)
-        r = Regexp.new('([^_])(_)([^_])')
-        @button.label = label.gsub(r) {|x| $1+$2+'_'+$3}
-        recolor
-    end
-	
-    #trigger a channel switch...?
-	def switchchannel(channel)
-		return if @button.toplevel.class != Gtk::Window or !$main.window
-		$main.window.switchchannel(channel)
-	end
 	
     #spaceship operator
 	def <=>(object)
@@ -88,62 +66,33 @@ class Buffer
 		return retval
 	end
 	
-    #set a channel as active
-	def activate
-		@button.signal_handler_block(@togglehandler)
-		@button.active=true
-		@button.signal_handler_unblock(@togglehandler)
-		@status = ACTIVE
-		recolor
-		return @view
-	end
-	
-    #set a channel as inactive
-	def deactivate
-		@button.signal_handler_block(@togglehandler)
-		@button.active=false
-		@button.signal_handler_unblock(@togglehandler)
-		@status = INACTIVE
-		recolor
-	end
-	
-    #update the status of a channel
-	def setstatus(status)
-		if(status > @status)
-			@status = status
-			recolor
-		end
-	end
-	
     #disconnect a channel
 	def disconnect
         #puts caller
-		set_tab_label('('+@name+')')
-        if $config['number_tabs'] and @number
-            set_tab_label(@number.to_s+':'+@button.label)
-        end
+		#~ set_tab_label('('+@name+')')
+        #~ if $config['number_tabs'] and @number
+            #~ set_tab_label(@number.to_s+':'+@button.label)
+        #~ end
         @connected = false unless @connected.nil?
 	end
 	
     #reconnect a channel
 	def reconnect
-		set_tab_label(@name)
-        if $config['number_tabs'] and @number
-            set_tab_label(@number.to_s+':'+@button.label)
-        end
+		#~ set_tab_label(@name)
+        #~ if $config['number_tabs'] and @number
+            #~ set_tab_label(@number.to_s+':'+@button.label)
+        #~ end
 		@connected = true
 	end
-	
-	#set the button color
-	def recolor
-        return if $main.quitting
-		label = @button.child
-		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status))
-        if @button.active?
-            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(0))
-        else
-            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@status))
-        end
+    
+    #update the status of a channel
+	def setstatus(status)
+        puts 'requesting setting of status of '+@name+' to '+status.to_s
+        $main.tabmodel.setstatus(self, status)
+		#~ if(status > @status)
+			#~ @status = status
+			#~ recolor
+		#~ end
 	end
     
     #send an event from the user to the buffer
@@ -231,10 +180,12 @@ class Buffer
         #puts parse_tags(uname), parse_tags(pattern)
 		
 		if pattern.length > 0
-			recolor
+			#recolor
 			if insert_location == BUFFER_START
-                #iter = @liststore.prepend
-                #iter[0] = pattern
+                iter = @liststore.prepend
+                iter[0] = line[TIME].to_i
+                iter[1] = parse_tags(uname)
+                iter[2] = parse_tags(pattern)
 			elsif insert_location == BUFFER_END
                 iter = @liststore.append
                 iter[0] = line[TIME].to_i
@@ -242,8 +193,6 @@ class Buffer
                 iter[2] = parse_tags(pattern)
 			end
 		end
-		
-		$main.scroll_to_end(self)
 			
 	end
     
@@ -386,6 +335,7 @@ class Buffer
                 uname = $config.get_pattern('otherusernameformat')
                 uname = escape_xml(uname)
                 uname['%u'] = '<action id="user">'+escape_xml(presence2username(line[PRESENCE]))+'</action>'
+                #uname['%u'] = presence2username(line[PRESENCE])
                 users.push(line[PRESENCE])
             end
             if line[MSG_XHTML]
@@ -412,6 +362,7 @@ class Buffer
             uname = $config.get_pattern('usernameformat')
             uname = escape_xml(uname)
             uname['%u'] = '<action id="user">'+escape_xml(presence2username(username))+'</action>'
+            #uname['%u'] = presence2username(username)
             users.push(username)
         end
         pattern['%m'] = line[MSG].to_s
@@ -584,6 +535,7 @@ end
 #The 'Servers' buffer, not sure if this will be required in the future...
 class RootBuffer < Buffer
 	attr_reader :servers, :box, :name, :parent, :config, :username, :connected, :server
+    #TODO ditch the parent?
 	def initialize(parent)
 		super('Servers')
 		@username = ''
@@ -600,56 +552,15 @@ class RootBuffer < Buffer
 #		@box.pack_start(@button)
 		@status = INACTIVE
 		@connected = true
-        @button.show
         
-        redraw
+        #redraw
 	end
     
     def storedefault
         #get the default color for the text and store it so we can revert to it.
-        style = @button.style
-        $config.set_value('defaultcolor', style.fg(Gtk::STATE_NORMAL))
+        #~ style = @button.style
+        #~ $config.set_value('defaultcolor', style.fg(Gtk::STATE_NORMAL))
     end
-	
-    #redraw the buttonbox
-	def redraw
-		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
-			empty_box
-			@box = Gtk::VBox.new
-            @box.border_width = 5
-		elsif @box != Gtk::HBox and ($config['channellistposition'] == 'top' or $config['channellistposition'] == 'bottom')
-			empty_box
-			@box = Gtk::HBox.new
-		end
-        
-		@box.pack_start(@button)
-		
-		@servers.sort
-		
-		@servers.each do |server|
-            unless server.connected.nil?
-                server.redraw
-                insertintobox(server)
-            end
-		end
-        
-        update_colors
-		
-		@box.show_all
-        renumber
-		return @box
-	end
-	
-    #remove all the buttons from a box
-	def empty_box
-        return unless @box
-       # puts @box, @button
-		@box.remove(@button)
-		@servers.each do |server|
-			@box.remove(server.box)
-		end
-		@box.destroy
-	end
 	
     #add a network
 	def add(name, presence)
@@ -662,44 +573,9 @@ class RootBuffer < Buffer
 			newserver = ServerBuffer.new(name, presence, self)
 			@servers.push(newserver)
 			@servers = @servers.sort
-			insertintobox(newserver)
+            #$main.tabmodel.add(newserver)
+			#insertintobox(newserver)
 			return newserver
-		end
-	end
-	
-    #add a button to the button box
-	def insertintobox(newserver)
-        return if newserver.connected.nil?
-		#insert the widget
-		@box.pack_start(newserver.box, true, true)
-		for i in 0...(@servers.length)
-			if @servers[i] == newserver
-				#pick the right seperator to be using...
-				if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
-					seperator = Gtk::HSeparator.new
-				else
-					seperator = Gtk::VSeparator.new
-				end
-				
-				if i !=0 and i == @servers.length-1
-					@box.pack_start(seperator, false, false, 5)
-					@box.reorder_child(seperator, @servers.length*2)
-					@box.reorder_child(newserver.box, @servers.length*2)
-				elsif i > 0
-					@box.pack_start(seperator, false, false, 5)
-					@box.reorder_child(seperator, (i*2)+1)
-					@box.reorder_child(newserver.box, (i*2)+2)
-				elsif i == 0 and @servers.length > 1
-					@box.pack_start(seperator, false, false, 5)
-					@box.reorder_child(seperator, i+2)
-					@box.reorder_child(newserver.box, i+2)
-				else
-					@box.pack_start(seperator, false, false, 5)
-					@box.reorder_child(seperator, @servers.length+1)
-					@box.reorder_child(newserver.box, @servers.length+1)
-				end
-                seperator.show
-			end
 		end
 	end
     
@@ -726,51 +602,13 @@ class RootBuffer < Buffer
 			return name2index(key, presence)
 		end
 	end
-	
+    
 	def name2index(name, presence)
 		for i in 0...@servers.length
 			return @servers[i] if( name == @servers[i].name and presence == @servers[i].presence)
 		end
 		return nil
 	end
-    
-    def renumber
-        i = 1
-        @tabs = []
-        servers.each do |server|
-            next if server.connected.nil?
-            server.channels.each do |channel|
-                next if channel.connected.nil?
-                #puts channel.connected
-                channel.set_number(i)
-                #puts 'numbering '+channel.name+' as '+i.to_s
-                @tabs[i] = channel
-                i += 1
-            end
-            
-            server.chats.each do |chat|
-                next if chat.connected.nil?
-                chat.set_number(i)
-                @tabs[i] = chat
-                i += 1
-            end
-        end
-    end
-    
-    def unnumber(number)
-        return unless number
-        @tabs.delete_at(number.to_i)
-        
-        @tabs.each_with_index do |v,i|
-            if i >= number.to_i
-                v.set_number(i)
-            end
-        end
-    end
-    
-    def number2tab(number)
-        return @tabs[number.to_i]
-    end
     
 end
 
@@ -788,7 +626,6 @@ class ServerBuffer < Buffer
 		@channels = Array.new
 		@chats = Array.new
 		@users = UserList.new
-		@button.active = false
 		#~ if $config['channellistposition'] == 'right' or $config['channellistposition'] == 'left'
 			#~ @box = Gtk::VBox.new
 		#~ else
@@ -796,9 +633,8 @@ class ServerBuffer < Buffer
 		#~ end
 		#~ @box.pack_start(@button, false, false)
 		#~ @box.show
-		@status = INACTIVE
+		#@status = INACTIVE
 		#if($config.serverbuttons)
-			@button.show
 		#end
 		@connected = nil
         @loggedin = false
@@ -808,59 +644,14 @@ class ServerBuffer < Buffer
     def connect
         #puts 'connected '+@name
         @connected = true
-        @button.show
-        @parent.redraw
+        $main.tabmodel.add(self)
+        #@parent.redraw
     end
     
     def reconnect
         super
         @loggedin = false
     end
-    
-    #redraw the button box
-	def redraw
-		if @box != Gtk::VBox and ($config['channellistposition'] == 'right' or $config['channellistposition'] == 'left')
-			empty_box
-			@box = Gtk::VBox.new
-		elsif @box != Gtk::HBox and ($config['channellistposition'] == 'top' or $config['channellistposition'] == 'bottom')
-			empty_box
-			@box = Gtk::HBox.new
-        end
-
-		@box.pack_start(@button)
-		
-		@channels.sort! {|x, y| x.name <=> y.name}
-		
-		@channels.each do |channel|
-            channel.update_colors
-			insertintobox(channel)
-		end
-        
-		@chats.sort! {|x, y| x.name <=> y.name}
-		
-		@chats.each do |chat|
-            #puts chat.button.label
-            chat.update_colors
-			insertintobox(chat)
-		end
-        
-        update_colors
-        
-        @box.show_all
-	end
-    
-    #remove all the buttons from the box
-	def empty_box(destroy = true)
-        return unless @box
-		@box.remove(@button)
-		@channels.each do |channel|
-			@box.remove(channel.button)
-		end
-		@chats.each do |chat|
-			@box.remove(chat.button)
-		end
-		@box.destroy if destroy
-	end
 	
     #add a channel to the network
 	def add(name)
@@ -871,8 +662,9 @@ class ServerBuffer < Buffer
 		newchannel = ChannelBuffer.new(name, self)
 		@channels.push(newchannel)
 		@channels.sort! {|x, y| x.name <=> y.name}
-		insertintobox(newchannel)
-        @parent.renumber
+        #$main.tabmodel.add(newchannel)
+		#insertintobox(newchannel)
+        #@parent.renumber
 		return newchannel
 	end
 	
@@ -881,72 +673,10 @@ class ServerBuffer < Buffer
 		newchat = ChatBuffer.new(name, self)
 		@chats.push(newchat)
 		@chats.sort! {|x, y| x.name <=> y.name}
-		insertintobox(newchat)
-        @parent.renumber
+		#insertintobox(newchat)
+        #@parent.renumber
 		return newchat
 	end
-    
-    #insert the button into the box
-	def insertintobox(item)
-        return if item.connected.nil?
-        #@channels.sort! {|x, y| x.name <=> y.name}
-		#insert the widget
-        #@channels.each {|channel| puts channel.name unless channel.connected.nil?}
-        #puts ''
-		if item.class == ChannelBuffer
-			@box.pack_start(item.button, true, true)
-            i = 0
-			@channels.each do |channel|
-                next if channel.connected.nil?
-                #puts @channels[i].name+' at '+i.to_s
-				if channel == item
-                    #puts i, @channels.length
-                    @box.reorder_child(item.button, i+1)
-                    #puts item.name+' goes after '+(i-1).to_s+' and before '+(i+1).to_s
-                    i+=1
-					next
-				end
-                i+=1
-			end
-		elsif item.class == ChatBuffer
-            i = 0
-            @channels.each {|channel| i+=1 unless channel.connected.nil?}
-            #puts i
-			@box.pack_start(item.button, true, true)
-			@chats.each do |chat|
-                next if chat.connected.nil?
-                #puts @chat[i].name+' at '+i.to_s
-				if chat== item
-                    #puts i, @channels.length
-                    @box.reorder_child(item.button, i+1)
-                    #puts item.name+' goes after '+(i-1).to_s+' and before '+(i+1).to_s
-                    i+=1
-					next
-				end
-                i+=1
-			end
-		#~ elsif item.class == ChatBuffer
-			#~ @box.pack_start(item.button, true, true)
-			#~ for i in 0...(@chats.length)
-				#~ if @chats[i] == item
-					#~ @box.reorder_child(item.button, (i+@channels.length+1))
-					#~ return
-				#~ end
-			#~ end
-		end
-	end
-    
-    def removefrombox(button)
-        @box.remove(button)
-        #~ @box.each_forall do |x|
-            #~ puts x
-        #~ end
-        #children = @box.children
-        #puts children
-        #children.each { |x| puts x}
-        $main.switchchannel(getnextchannel)
-        @parent.renumber
-    end
     
     def getnextchannel
         nextchan = nil
@@ -967,16 +697,6 @@ class ServerBuffer < Buffer
         
         return nextchan
     end
-
-    #redraw the box
-	def redrawbox
-		for i in 0...(@channels.length)
-			@box.remove(@channels[i].button)
-		end
-		for i in 0...(@channels.length)
-			@box.pack_start(@channels[i].button)
-		end
-	end
 	
     #method to get the channel object when passing the channel name
 	def [](key)
@@ -1041,8 +761,9 @@ class ServerBuffer < Buffer
         end
         @connected = nil
         @number = nil
-        set_tab_label(@name)
-        @server.removefrombox(@button)
+        $main.tabmodel.remove(self)
+        #set_tab_label(@name)
+        #@server.removefrombox(@button)
     end
 	
 end
@@ -1065,8 +786,7 @@ class ChannelBuffer < Buffer
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
-		set_tab_label(@name)
-		@button.active = false
+		#set_tab_label(@name)
 		#@button.show
 		@users = ChannelUserList.new
 		@connected = nil
@@ -1077,12 +797,12 @@ class ChannelBuffer < Buffer
     
     def connect
         @connected = true
-        @button.show
+        $main.tabmodel.add(self)
         #@server.channels.sort
         #@server.channels.each {|channel| puts channel.name unless channel.connected.nil?}
-        @server.insertintobox(self)
-        set_tab_label(@name)
-        @server.parent.renumber
+        #@server.insertintobox(self)
+        #set_tab_label(@name)
+        #@server.parent.renumber
         #@server.parent.redraw
         #server.redraw
     end
@@ -1094,9 +814,9 @@ class ChannelBuffer < Buffer
         end
         @connected = nil
         @number = nil
+        $main.tabmodel.remove(self)
         #@button.label = @name.gsub('_', '__')
-        set_tab_label(@name)
-        @server.removefrombox(@button)
+        #set_tab_label(@name)
     end
     
     def genmenu
@@ -1116,13 +836,13 @@ class ChannelBuffer < Buffer
     end
 	
     def set_number(num)
-        @number = num
-        if $config['number_tabs']
-            md = /^(\d+:).+$/.match(@button.label)
-            set_tab_label(@button.label.gsub(md[1], '')) if md
-            set_tab_label(@number.to_s+':'+@button.label)
-        end
-        recolor
+        #~ @number = num
+        #~ if $config['number_tabs']
+            #~ md = /^(\d+:).+$/.match(@button.label)
+            #~ set_tab_label(@button.label.gsub(md[1], '')) if md
+            #~ set_tab_label(@number.to_s+':'+@button.label)
+        #~ end
+        #~ recolor
     end
     
     #add this channel to the server
@@ -1239,8 +959,8 @@ class ChatBuffer < Buffer
 		@userlist.clear
 		@status = INACTIVE
 		@topic = ''
-		set_tab_label(@name)
-		@button.active = false
+		#set_tab_label(@name)
+		#@button.active = false
 		#@button.show
 		@users = ChannelUserList.new
         @users.add(@server.users[name])
@@ -1253,29 +973,31 @@ class ChatBuffer < Buffer
     
     def set_number(num)
         #return
-        @number = num
-        if $config['number_tabs']
-            md = /^(\d+:).+$/.match(@button.label)
-            set_tab_label(@button.label.gsub(md[1], '')) if md
-            set_tab_label(@number.to_s+':'+@button.label)
-        end
-        recolor
+        #~ @number = num
+        #~ if $config['number_tabs']
+            #~ md = /^(\d+:).+$/.match(@button.label)
+            #~ set_tab_label(@button.label.gsub(md[1], '')) if md
+            #~ set_tab_label(@number.to_s+':'+@button.label)
+        #~ end
+        #~ recolor
     end
     
     def connect
         @connected = true
-        @button.show
-        @server.chats.sort
-        @server.insertintobox(self)
-        set_tab_label(@name)
-        @server.parent.renumber
+        $main.tabmodel.add(self)
+        #@button.show
+        #@server.chats.sort
+        #@server.insertintobox(self)
+        #set_tab_label(@name)
+        #@server.parent.renumber
         #@server.parent.redraw
     end
     
     def close
         @connected = nil
-        $main.serverlist.unnumber(@number)
-        @server.removefrombox(@button)
+        $main.tabmodel.remove(self)
+        #$main.serverlist.unnumber(@number)
+        #@server.removefrombox(@button)
         @number = nil
     end
     
@@ -1297,7 +1019,7 @@ class ChatBuffer < Buffer
     def rename(name)
         @name = name
         #@button.label = name.gsub('_', '__')
-        set_tab_label(name)
+        #set_tab_label(name)
     end
     
 	def getnetworkpresencepair
