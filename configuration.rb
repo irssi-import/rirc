@@ -60,7 +60,10 @@ class Configuration
 		
 		@serverbuttons = true
 		
-		@values['channellistposition'] = 'bottom'
+		@values['tablistposition'] = 'bottom'
+        @values['tablisttype'] = 'button'
+        @values['tabstructure'] = 'hierarchical'
+        @values['tabsort'] = 'Case Insensitive'
 		
 		@values['commandbuffersize'] = 10
 		
@@ -96,9 +99,33 @@ class Configuration
 		
 		@oldvalues = {}
 	end
+    
+    def gettabmodelconfig
+            
+        if @values['tabsort'] == 'case sensitive'
+            sort = SENSITIVE
+        elsif @values['tabsort'] == 'case sensitive no hash'
+            sort = INSENSITIVE_NOHASH
+        elsif @values['tabsort'] == 'case sensitive no hash'
+            sort = SENSITIVE_NOHASH
+        else
+            sort = INSENSITIVE
+        end
+            
+        if @values['tabstructure'] == 'flat'
+            structure = FLAT
+        else
+            structure = HIERARCHICAL
+        end
+        
+        return [structure, sort]
+    end
 	
 	#converts status into a color
 	def getstatuscolor(status)
+        if status.nil?
+            return @statuscolors[0]
+        end
 		return @statuscolors[status]
 	end
 	

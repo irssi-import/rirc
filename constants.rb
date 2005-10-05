@@ -71,3 +71,11 @@ EVENT_USERNICKCHANGE = 'usernickchange'
 #EVENT_CTCP = 'ctcp'
 
 TAGMAP = {'color'=>'foreground', 'font-weight' => 'weight', 'font-style' => 'style', 'background-color' => 'background'}
+
+SENSITIVE = Proc.new {|x, y| x[0].name <=> y[0].name}
+SENSITIVE_NOHASH = Proc.new {|x, y| x[0].name.sub('#', '') <=> y[0].name.sub('#', '')}
+INSENSITIVE = Proc.new {|x, y| x[0].name.downcase <=> y[0].name.downcase}
+INSENSITIVE_NOHASH = Proc.new {|x, y| x[0].name.downcase.sub('#', '') <=> y[0].name.downcase.sub('#', '')}
+
+HIERARCHICAL = 0
+FLAT = 1

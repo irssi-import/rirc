@@ -2143,14 +2143,14 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
   <child>
     <widget class="GtkTable" id="miscconfig">
       <property name="visible">True</property>
-      <property name="n_rows">10</property>
+      <property name="n_rows">13</property>
       <property name="n_columns">3</property>
       <property name="homogeneous">False</property>
       <property name="row_spacing">0</property>
       <property name="column_spacing">0</property>
 
       <child>
-	<widget class="GtkComboBox" id="channellistposition">
+	<widget class="GtkComboBox" id="tablistposition">
 	  <property name="visible">True</property>
 	  <property name="items" translatable="yes"></property>
 	  <signal name="changed" handler="combobox_changed" last_modification_time="Wed, 15 Jun 2005 21:47:40 GMT"/>
@@ -2174,8 +2174,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">2</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
+	  <property name="top_attach">5</property>
+	  <property name="bottom_attach">6</property>
 	  <property name="x_options">fill</property>
 	  <property name="y_options">fill</property>
 	</packing>
@@ -2198,8 +2198,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">0</property>
 	  <property name="right_attach">1</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
+	  <property name="top_attach">5</property>
+	  <property name="bottom_attach">6</property>
 	  <property name="x_options"></property>
 	  <property name="y_options"></property>
 	</packing>
@@ -2214,8 +2214,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">2</property>
-	  <property name="top_attach">3</property>
-	  <property name="bottom_attach">4</property>
+	  <property name="top_attach">6</property>
+	  <property name="bottom_attach">7</property>
 	  <property name="x_options">fill</property>
 	  <property name="y_options">fill</property>
 	</packing>
@@ -2238,8 +2238,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">0</property>
 	  <property name="right_attach">1</property>
-	  <property name="top_attach">3</property>
-	  <property name="bottom_attach">4</property>
+	  <property name="top_attach">6</property>
+	  <property name="bottom_attach">7</property>
 	  <property name="x_options"></property>
 	  <property name="y_options"></property>
 	</packing>
@@ -2261,8 +2261,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">3</property>
-	  <property name="top_attach">4</property>
-	  <property name="bottom_attach">5</property>
+	  <property name="top_attach">7</property>
+	  <property name="bottom_attach">8</property>
 	  <property name="y_options"></property>
 	</packing>
       </child>
@@ -2284,8 +2284,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">0</property>
 	  <property name="right_attach">1</property>
-	  <property name="top_attach">4</property>
-	  <property name="bottom_attach">5</property>
+	  <property name="top_attach">7</property>
+	  <property name="bottom_attach">8</property>
 	  <property name="x_options"></property>
 	  <property name="y_options"></property>
 	</packing>
@@ -2305,8 +2305,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">3</property>
-	  <property name="top_attach">5</property>
-	  <property name="bottom_attach">6</property>
+	  <property name="top_attach">8</property>
+	  <property name="bottom_attach">9</property>
 	  <property name="y_options"></property>
 	</packing>
       </child>
@@ -2328,8 +2328,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">0</property>
 	  <property name="right_attach">1</property>
-	  <property name="top_attach">6</property>
-	  <property name="bottom_attach">7</property>
+	  <property name="top_attach">9</property>
+	  <property name="bottom_attach">10</property>
 	  <property name="x_options"></property>
 	  <property name="y_options"></property>
 	</packing>
@@ -2351,8 +2351,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">2</property>
-	  <property name="top_attach">6</property>
-	  <property name="bottom_attach">7</property>
+	  <property name="top_attach">9</property>
+	  <property name="bottom_attach">10</property>
 	  <property name="y_options"></property>
 	</packing>
       </child>
@@ -2374,8 +2374,8 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">0</property>
 	  <property name="right_attach">1</property>
-	  <property name="top_attach">5</property>
-	  <property name="bottom_attach">6</property>
+	  <property name="top_attach">8</property>
+	  <property name="bottom_attach">9</property>
 	  <property name="x_options"></property>
 	  <property name="y_options"></property>
 	</packing>
@@ -2408,7 +2408,7 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
       <child>
 	<widget class="GtkLabel" id="label25">
 	  <property name="visible">True</property>
-	  <property name="label" translatable="yes">Channel list position:</property>
+	  <property name="label" translatable="yes">Tab list position:</property>
 	  <property name="use_underline">False</property>
 	  <property name="use_markup">False</property>
 	  <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -2445,10 +2445,130 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">2</property>
-	  <property name="top_attach">7</property>
-	  <property name="bottom_attach">8</property>
+	  <property name="top_attach">10</property>
+	  <property name="bottom_attach">11</property>
 	  <property name="x_options">fill</property>
 	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkLabel" id="label41">
+	  <property name="visible">True</property>
+	  <property name="label" translatable="yes">Tab list type:</property>
+	  <property name="use_underline">False</property>
+	  <property name="use_markup">False</property>
+	  <property name="justify">GTK_JUSTIFY_LEFT</property>
+	  <property name="wrap">False</property>
+	  <property name="selectable">False</property>
+	  <property name="xalign">0</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+	<packing>
+	  <property name="left_attach">0</property>
+	  <property name="right_attach">1</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options"></property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkComboBox" id="tablisttype">
+	  <property name="visible">True</property>
+	  <property name="items" translatable="yes"></property>
+	  <signal name="changed" handler="combobox_changed" last_modification_time="Wed, 15 Jun 2005 21:47:40 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options">fill</property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkLabel" id="label42">
+	  <property name="visible">True</property>
+	  <property name="label" translatable="yes">Tab list structure:</property>
+	  <property name="use_underline">False</property>
+	  <property name="use_markup">False</property>
+	  <property name="justify">GTK_JUSTIFY_LEFT</property>
+	  <property name="wrap">False</property>
+	  <property name="selectable">False</property>
+	  <property name="xalign">0</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+	<packing>
+	  <property name="left_attach">0</property>
+	  <property name="right_attach">1</property>
+	  <property name="top_attach">3</property>
+	  <property name="bottom_attach">4</property>
+	  <property name="x_options"></property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkLabel" id="label43">
+	  <property name="visible">True</property>
+	  <property name="label" translatable="yes">Tab sort order:</property>
+	  <property name="use_underline">False</property>
+	  <property name="use_markup">False</property>
+	  <property name="justify">GTK_JUSTIFY_LEFT</property>
+	  <property name="wrap">False</property>
+	  <property name="selectable">False</property>
+	  <property name="xalign">0</property>
+	  <property name="yalign">0.5</property>
+	  <property name="xpad">0</property>
+	  <property name="ypad">0</property>
+	</widget>
+	<packing>
+	  <property name="left_attach">0</property>
+	  <property name="right_attach">1</property>
+	  <property name="top_attach">4</property>
+	  <property name="bottom_attach">5</property>
+	  <property name="x_options"></property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkComboBox" id="tabsort">
+	  <property name="visible">True</property>
+	  <property name="items" translatable="yes"></property>
+	  <signal name="changed" handler="combobox_changed" last_modification_time="Wed, 15 Jun 2005 21:47:40 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">4</property>
+	  <property name="bottom_attach">5</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options">fill</property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkComboBox" id="tabstructure">
+	  <property name="visible">True</property>
+	  <property name="items" translatable="yes"></property>
+	  <signal name="changed" handler="combobox_changed" last_modification_time="Wed, 15 Jun 2005 21:47:40 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">3</property>
+	  <property name="bottom_attach">4</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options">fill</property>
 	</packing>
       </child>
     </widget>

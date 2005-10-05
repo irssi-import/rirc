@@ -87,7 +87,7 @@ class Buffer
     
     #update the status of a channel
 	def setstatus(status)
-        puts 'requesting setting of status of '+@name+' to '+status.to_s
+        #puts 'requesting setting of status of '+@name+' to '+status.to_s
         $main.tabmodel.setstatus(self, status)
 		#~ if(status > @status)
 			#~ @status = status

@@ -1,4 +1,14 @@
-2005-10-05 17:22- Andrew Thompson <vagabond@cataclysm-software.net>
+2005-10-06 01:01 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Made Sort method and structure for tablist configurable on the fly
+    
+2005-10-05 21:47 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Finished implementing tabmodel views and made them configurable
+    Added the ability to nest under the userlist
+    misc fixes to the tabmodel/view system
+
+2005-10-05 17:22 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     More scwview porting
     new tabmodel partially integrated

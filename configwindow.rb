@@ -12,11 +12,14 @@ class ConfigWindow
 			switch_category(widget.selected)
 		end
 		
-		@channellistposition = @glade['channellistposition']
+		@channellistposition = @glade['tablistposition']
 		@options = {}
-		@options['channellistposition'] = ['Top', 'Bottom', 'Left', 'Right']
+		@options['tablistposition'] = ['Top', 'Bottom', 'Left', 'Right', 'UnderUserList']
 		@options['canonicaltime'] = ['Server', 'Client']
 		@options['tabcompletesort'] = ['Alphabetical', 'Activity']
+        @options['tablisttype'] = ['Button', 'TreeView']
+        @options['tabstructure'] = ['Hierarchical', 'Flat']
+        @options['tabsort'] = ['Case Insensitive', 'Case Sensitive', 'Case Insensitive No Hash', 'Case Sensitive No Hash']
 		
 		parent = @treestore.append(nil)
 		parent[0] = "Interface"
@@ -66,6 +69,7 @@ class ConfigWindow
 					#fill the combobox
 					@configarray[@glade[key]] = {'name' => key, 'value' => value}
                     @configbackup[key] = value
+                    puts key, @options[key]
 					next unless @options[key]
 					@options[key].each do |v|
 						@glade[key].append_text(v)

@@ -152,6 +152,13 @@ def escape_xml(string)
     return s
 end
 
+def to_uri(uri)
+    if uri =~ /^[a-zA-Z]+\:\/\/.+/
+        return uri
+    else
+        return 'http://'+uri
+    end
+end
 
 #load all my home rolled ruby files here
 require 'constants'
@@ -185,7 +192,7 @@ class Main
     include CommandParser
 	def initialize
 		@serverlist = RootBuffer.new(self)
-        @tabmodel = TabListModel.new(@serverlist)
+        #@tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
 		@connection = nil
 		@replies = {}
 		@buffer = []
@@ -234,7 +241,7 @@ class Main
                         end
                     end
                 end
-                sleep 15
+                sleep 5
             end
         end
     end
@@ -260,7 +267,7 @@ class Main
                     if !channel.usersync and channel.connected
                         send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
                         while !channel.usersync
-                            puts 'user sleeping', channel.name
+                            #puts 'user sleeping', channel.name
                             sleep 2
                         end
                     end
@@ -270,7 +277,7 @@ class Main
                     if !channel.eventsync and channel.connected
                         send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))')
                         while !channel.eventsync
-                            puts 'event sleeping', channel.name
+                            #puts 'event sleeping', channel.name
                             sleep 2
                         end
                     end
@@ -314,7 +321,8 @@ class Main
 			$config.get_config
             
             $config['plugins'].each {|plugin| plugin_load(plugin)}
-            
+            @tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)
+            @tabmodel.draw_tree
 			@window.draw_from_config
             @serverlist.storedefault
 			@connectionwindow.destroy

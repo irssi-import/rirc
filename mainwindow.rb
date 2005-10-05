@@ -70,7 +70,7 @@ class MainWindow
                        }\n
                        widget \"*.ScwView\" style \"scwview\"")
         
-        @tablist = TreeTabList.new($main.tabmodel)
+        #@tablist = TreeTabList.new($main.tabmodel)
         
         #@tablist.set_active(@serverlist)
         
@@ -102,7 +102,6 @@ class MainWindow
         @bindable_functions.push({'name' => 'open_networks', 'arguments' => 0})
         @bindable_functions.push({'name' => 'open_keybindings', 'arguments' => 0})
         #@keyintmap = {'q' => 11, 'w' => 12, 'e' => 13, 'r' => 14, 't'=> 15, 'y' => 16, 'u' => 17, 'i' => 18, 'o' => 19, 'p' => 20}
-        draw_from_config
 	end
 	
 	def draw_from_config(unhide=true)
@@ -175,25 +174,52 @@ class MainWindow
     end
 	
 	def redraw_channellist
-        @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
-        @glade['h_top'].reorder_child(@tablist.widget, 0)
-        return
-        if @glade['h_top'].children.include?(@tablist.widget)
-            @glade['h_top'].remove(@tablist.widget)
-        elsif @glade['v_top'].children.include?(@tablist.widget)
-            @glade['v_top'].remove(@tablist.widget)
+        if @tablist
+            if @glade['h_top'].children.include?(@tablist.widget)
+                @glade['h_top'].remove(@tablist.widget)
+            elsif @glade['v_top'].children.include?(@tablist.widget)
+                @glade['v_top'].remove(@tablist.widget)
+            elsif @glade['u_pane'].children.include?(@tablist.widget)
+                @glade['u_pane'].remove(@tablist.widget)
+            end
         end
         
-		if $config['channellistposition'] == 'right'
+        if $config['tablisttype'] == 'treeview'
+            if $config['tablistposition'] != 'right' and $config['tablistposition'] != 'left' and $config['tablistposition'] != 'underuserlist'
+                $config.set_value('tablistposition', 'left')
+            end
+            unless @tablist.class == TreeTabList
+                $main.tabmodel.delete_observer(@tablist)
+                @tablist = TreeTabList.new($main.tabmodel)
+            end
+        else
+            if $config['tablistposition'] == 'right' or $config['tablistposition'] == 'left' or $config['tablistposition'] == 'underuserlist'
+                unless @tablist.class == VBoxTabList
+                    $main.tabmodel.delete_observer(@tablist)
+                    @tablist = VBoxTabList.new($main.tabmodel)
+                end
+            else
+                unless @tablist.class == HBoxTabList
+                    $main.tabmodel.delete_observer(@tablist)
+                    @tablist = HBoxTabList.new($main.tabmodel)
+                end
+            end
+        end
+        
+        $main.tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
+            
+		if $config['tablistposition'] == 'right'
 			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
-		elsif $config['channellistposition'] == 'left'
+		elsif $config['tablistposition'] == 'left'
 			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
 			@glade['h_top'].reorder_child(@tablist.widget, 0)
-		elsif $config['channellistposition'] == 'top'
-			@glade['v_top'].pack_start(@tablist, false, false, 5)
-			@glade['v_top'].reorder_child(@tablist.widget, 0)
-		elsif $config['channellistposition'] == 'bottom'
+		elsif $config['tablistposition'] == 'top'
 			@glade['v_top'].pack_start(@tablist.widget, false, false, 5)
+			@glade['v_top'].reorder_child(@tablist.widget, 0)
+		elsif $config['tablistposition'] == 'bottom'
+			@glade['v_top'].pack_start(@tablist.widget, false, false, 5)
+        elsif $config['tablistposition'] == 'underuserlist'
+            @glade['u_pane'].pack2(@tablist.widget, false, true)
 		end
 		@tablist.widget.show
 	end
@@ -310,6 +336,7 @@ class MainWindow
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
+        @currentbuffer.view.scroll_to_end
         @messageinput.grab_focus
 	end
     

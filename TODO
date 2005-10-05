@@ -3,7 +3,6 @@ TODO
 Big things:
     Dynamic scrollback fetching
     On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
-    Investigate dumping textview for some kind of line based, custom widget (use SCW when its got a ruby binding)
     Clean up code, seperate functions into public/protected/private, standardize function/variable naming and lots more commenting (Ugh)
     
 Little things:
@@ -15,7 +14,6 @@ Little things:
     Possible bindable actions: Close tab, next tab, previous tab, move tab left, move tab right (problem is that you sort alphabetically, though). Close all tabs but current Close all tabs, disconnect. some kind of alias that lets you set a command to be sent on the current buffer...
     Make Tab sorting configurable (Case sensitive, case insensitive, date of opening, date of most recent activity, date of your last activity)
     Add predefined sorting that trumps the sorting algorithm
-    Add Local and Global tab numbering systems
     Make irssi0's tab setup as an option
 
 Bugs:

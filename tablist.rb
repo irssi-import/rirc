@@ -11,16 +11,8 @@
 
 #~ $main = Main.new
 
-HIERARCHICAL = 0
-FLAT = 1
-
 GLOBAL = 0
 LOCAL = 1
-
-ALPHA_SENSITIVE = Proc.new {|x, y| x[0].name <=> y[0].name}
-ALPHA_SENSITIVE_NOHASH = Proc.new {|x, y| x[0].name.sub('#', '') <=> y[0].name.sub('#', '')}
-ALPHA_INSENSITIVE = Proc.new {|x, y| x[0].name.downcase <=> y[0].name.downcase}
-ALPHA_INSENSITIVE_NOHASH = Proc.new {|x, y| x[0].name.downcase.sub('#', '') <=> y[0].name.downcase.sub('#', '')}
 
 LAST_ACTIVITY = 2
 LAST_USER_ACTIVITY = 3
@@ -29,8 +21,8 @@ LAST_USER_ACTIVITY = 3
 
 class TabListModel
     include Observable
-    attr_reader :root, :tree, :networks
-    def initialize(root, networks=true, numbering=GLOBAL, sort=ALPHA_INSENSITIVE)
+    attr_reader :root, :tree, :structure, :active, :status
+    def initialize(root, structure=HIERARCHICAL, sort=INSENSITIVE)
         @predefined = ['#cataclysm-software', 'Vagabond']
         @tree = OrderedHash.new
         #set things up, I guess build the way the buffers are stored, load the search stuff, set up the numbering
@@ -39,53 +31,94 @@ class TabListModel
         #we then do adds/removes/resorts and update the widgets
         #the classes doing the actual widgets will be children of this class, like *Box and TreeView
         #do >1 levels of hierarchy make sense? (probably only for treeview)
-        @networks = networks
+        @structure = structure
         @sort = sort
-        @numbering = numbering
         @root = root
         @numbers = []
+        @status = {}
+        @active = root
         @tree = construct_tree
         
         draw_tree
     end
     
+    def set_sort_and_structure(structure, model)
+        puts structure, model, (@structure == structure and @sort == model)
+        return if @structure == structure and @sort == model
+        @structure = structure
+        @sort = model
+        tree = construct_tree
+        draw_tree
+        if tree
+            @tree = tree
+            changed
+            notify_observers(:redraw, nil)
+        end
+    end
+    
+    def structure=(structure)
+        return if @structure == structure
+        @structure = structure
+        tree = construct_tree
+        if tree
+            @tree = tree
+            changed
+            notify_observers(:redraw, nil)
+        end
+    end
+    
+    def sort=(model)
+        return if @sort == model
+        @sort = model
+        tree = construct_tree
+        if tree
+            @tree = tree
+            changed
+            notify_observers(:redraw, nil)
+        end
+    end
+    
     def construct_tree
         #move these into blocks and store them as constants? would allow pluggable structure & sort methods...
-        if !@networks
+        if @structure == FLAT
+            puts 'flat'
             @numbers = []
             tree = OrderedHash.new
             tree[@root] = []
             v= []
             bleh = []
-            @root.servers.each do |x|
+            @root.servers.select{|e| e.connected}.each do |x|
                 bleh.push([x])
             end
             bleh.sort(&@sort).each do |x|
                 x = x[0]
-                v += (x.channels+x.chats)
+                v += (x.channels+x.chats).select{|e| e.connected}
             end
 
             tree[@root] = sort_with_predefined(v)
             
             tree[@root].each {|c, o| @numbers.push(c) if o == 0}
             return tree
-        elsif @networks
+        elsif @structure == HIERARCHICAL
+            puts 'hierarchical'
             @numbers = []
             tree = OrderedHash.new
             tree[@root] = OrderedHash.new
             bleh = []
-            @root.servers.each do |x|
+            @root.servers.select{|e| e.connected}.each do |x|
                 bleh.push([x])
             end
             bleh.sort(&@sort).each do |x|
                 x = x[0]
-                tree[@root][x] = sort_with_predefined(x.channels+x.chats)
+                tree[@root][x] = sort_with_predefined((x.channels+x.chats).select{|e| e.connected})
                 
                 tree[@root][x].each {|c, b| @numbers.push(c)}
             end
             return tree
         else
             puts 'invalid structure algorithim'
+            puts structure
+            return nil
         end
     end
     
@@ -117,7 +150,7 @@ class TabListModel
     end
     
     def add(item, group=false)
-        if !@networks
+        if @structure == FLAT
             if @root.servers.include?(item)
                 (item.channels+item.chats).each {|e| add(e, true)}
                 changed
@@ -137,7 +170,7 @@ class TabListModel
                     notify_observers(:add, item)
                 end
             end
-        elsif @networks
+        elsif @structure == HIERARCHICAL
             if @root.servers.include?(item)
                 temp = OrderedHash.new
                 
@@ -203,14 +236,25 @@ class TabListModel
     end
     
     def setstatus(item, level)
-        changed
-        puts 'forwarding status change for '+item.name+' to '+level.to_s
-        notify_observers(:setstatus, item, level)
+        return unless item
+		if !@status[item] or level > @status[item] or level == 0
+            #puts 'setting status of '+item.name+' to '+level.to_s
+			@status[item] = level
+            changed
+            notify_observers(:setstatus, item, level)
+        else
+            #puts 'not setting status of '+item.name+' to '+level.to_s
+            #puts level, @status[item]
+        end
     end
     
     def set_active(item)
+        setstatus(item, ACTIVE)
+        oldactive = @active
         changed
         notify_observers(:set_active, item)
+        @active = item
+        setstatus(oldactive, INACTIVE)
     end
     
     def prev_server(current)
@@ -225,7 +269,7 @@ class TabListModel
     end
     
     def remove(item)
-        if !@networks
+        if !@structure == FLAT
             if @root.servers.include?(item)
                 item
                 (item.channels+item.chats).each do |e|
@@ -242,7 +286,7 @@ class TabListModel
                 notify_observers(:remove, item)
                 @numbers.compact!
             end
-        elsif @networks
+        elsif @structure == HIERARCHICAL
             if @root.servers.include?(item)
                 @tree[@root].delete(item)
                 changed
@@ -281,14 +325,14 @@ class TabListModel
     def draw_tree
         puts @root.name
         @tree[@root].each do |a, b|
-            puts "\t"+a.name if @networks
+            puts "\t"+a.name if @structure == FLAT
             if b.methods.include?('each')
                 b.each do |c, d|
                     next if c == 0
                     puts "\t\t"+tab2number(c).to_s+':'+c.name
                 end
             else
-                puts "\t"+tab2number(a).to_s+':'+a.name unless @networks
+                puts "\t"+tab2number(a).to_s+':'+a.name if @structure == FLAT
             end
         end
     end
@@ -298,8 +342,6 @@ class TabList
     attr_reader :model
     def initialize(model)
         @model = model
-        @status = {}
-        @active = nil
         model.add_observer(self)
     end
     
@@ -312,19 +354,30 @@ class TabList
             setstatus(tab, option)
         elsif action == :set_active
             set_active(tab)
+        elsif action == :redraw
+            redraw
         end
     end
     
+    def redraw
+        puts 'redraw triggered'
+        clear
+        fill
+        set_active(@model.active)
+        widget.show_all
+    end
+    
     def setstatus(buffer, status)
-        return unless buffer
-		if !@status[buffer] or status > @status[buffer] or status == 0
-            puts 'setting status of '+buffer.name+' to '+status.to_s
-			@status[buffer] = status
-			recolor(buffer)
-        else
-            puts 'not setting status of '+buffer.name+' to '+status.to_s
-            puts status, @status[buffer]
-        end
+        #~ return unless buffer
+		#~ if !@model.status[buffer] or status > @model.status[buffer] or status == 0
+            #~ puts 'setting status of '+buffer.name+' to '+status.to_s
+			#~ @model.status[buffer] = status
+			#~ recolor(buffer)
+        #~ else
+            #~ puts 'not setting status of '+buffer.name+' to '+status.to_s
+            #~ puts status, @model.status[buffer]
+        #~ end
+        recolor(buffer)
 	end
 end
     
@@ -334,25 +387,27 @@ class BoxTabList < TabList
         super
         @buttons = {}
         @togglehandlers = {}
-        fill_box
+        fill
         @box.show_all
         
-        set_active(model.root)
+        set_active(model.active)
     end
     
     def widget
         return @box
     end
     
-    def fill_box
+    def fill
         @box.pack_start(add_button(@model.root), false, false)
         add_seperator
         b = nil
         @model.tree[@model.root].each do |k, v|
             @box.pack_start(add_button(k), false, false)
+            recolor(k)
             if v.methods.include?('each')
                 v.each do |z, c|
                     @box.pack_start(add_button(z), false, false)
+                    recolor(z)
                 end
                 add_seperator
             else
@@ -360,6 +415,12 @@ class BoxTabList < TabList
             end
         end
         cleanup
+    end
+    
+    def clear
+        @buttons = {}
+        @togglehandlers = {}
+        @box.children.each {|child| @box.remove(child)}
     end
     
     def add(tab)
@@ -377,8 +438,8 @@ class BoxTabList < TabList
             else
             end
         end
-        puts x.length
-        puts @box.children.length
+        #puts x.length
+        #puts @box.children.length
         i = 0
         prev = nil
         
@@ -404,7 +465,7 @@ class BoxTabList < TabList
         end
         while i < x.length
             if prev.class.ancestors.include?(Gtk::Separator) and x[i].class.ancestors.include?(Gtk::Separator)
-                puts prev, x[i]
+                #puts prev, x[i]
                 prev = x[i]
                 i += 1
                 next
@@ -451,35 +512,40 @@ class BoxTabList < TabList
     end
     
     def set_active(buffer)
-        if @active
-            @buttons[@active].signal_handler_block(@togglehandlers[@active])
-            @buttons[@active].active = false
-            @buttons[@active].signal_handler_unblock(@togglehandlers[@active])
-            oldactive = @active
+        return unless @buttons[buffer]
+        if @model.active and @buttons[@model.active]
+            @buttons[@model.active].signal_handler_block(@togglehandlers[@model.active])
+            @buttons[@model.active].active = false
+            @buttons[@model.active].signal_handler_unblock(@togglehandlers[@model.active])
+            #oldactive = @model.active
         end
-        setstatus(@active, ACTIVE)
-        @active = buffer
-        setstatus(oldactive, INACTIVE) if oldactive
+        #setstatus(@active, ACTIVE)
+        #@model.active = buffer
+        #setstatus(oldactive, INACTIVE) if oldactive
         
-        @buttons[@active].signal_handler_block(@togglehandlers[@active])
-        @buttons[@active].active = true
-        @buttons[@active].signal_handler_unblock(@togglehandlers[@active])
+        @buttons[buffer].signal_handler_block(@togglehandlers[buffer])
+        @buttons[buffer].active = true
+        @buttons[buffer].signal_handler_unblock(@togglehandlers[buffer])
         $main.window.switchchannel(buffer) if $main.window
     end
     
 	def recolor(buffer)
-        return if buffer == @active
-		label = @buttons[buffer].child
-		label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@status[buffer]))
-        label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@status[buffer]))
-        
+        return unless @buttons[buffer]
+        label = @buttons[buffer].child
+        if buffer == @model.active
+            label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(0))
+            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(0))
+        else
+            label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@model.status[buffer]))
+            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@model.status[buffer]))
+        end
 	end
     
     def add_button(buffer)
         if !@buttons.include?(buffer)
             button = Gtk::ToggleButton.new(buffer.name)
             @togglehandlers[buffer] = button.signal_connect('toggled')do |w|
-                set_active(buffer)
+                @model.set_active(buffer)
             end
             @buttons[buffer] = button
         end
@@ -532,24 +598,30 @@ class TreeTabList < TabList
         @store = Gtk::TreeStore.new(String, String)
         @view = Gtk::TreeView.new(@store)
         @selecthandler = @view.selection.signal_connect('changed') do |w|
-            set_active(iter2buffer(w.selected))
+            @model.set_active(iter2buffer(w.selected))
         end
         @iters = {}
-        fill_list
+        fill
         renderer = Gtk::CellRendererText.new
 		
 		col = Gtk::TreeViewColumn.new("", renderer, :markup => 0)
 		@view.append_column(col)
+        @view.headers_visible=false
+        @view.enable_search = false
 		@view.expand_all
-        @view.show_all
-        set_active(model.root)
+        @sw = Gtk::ScrolledWindow.new
+        @sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC)
+        @sw.add(@view)
+        @sw.show_all
+        #set_active(model.root)
+        set_active(model.active)
     end
     
     def widget
-        return @view
+        return @sw
     end
     
-    def fill_list
+    def fill
         parent = @store.append(nil)
         parent[0] = @model.root.name
         @iters[@model.root] = Gtk::TreeRowReference.new(@store, parent.path)
@@ -558,18 +630,25 @@ class TreeTabList < TabList
             child[0] = k.name
             @iters[k] = Gtk::TreeRowReference.new(@store, child.path)
             @view.expand_row(parent.path, false)
+            recolor(k)
             if v.methods.include?('each')
                 v.each do |z, c|
                     child2 = @store.append(child)
                     child2[0] = z.name
                     @iters[z] = Gtk::TreeRowReference.new(@store, child2.path)
                     @view.expand_row(child.path, false)
+                    recolor(z)
                 end
             else
             
             end
         end
         cleanup
+    end
+    
+    def clear
+        @iters = {}
+        @store.clear
     end
     
     def add(item)
@@ -594,7 +673,7 @@ class TreeTabList < TabList
                     path2 = '0:'+i.to_s+':'+j.to_s
                     this2 = @store.get_iter(path2)
                     if this2 and this2[0] != z.name
-                        puts path2, z.name
+                        #puts path2, z.name
                         new = @store.insert_before(@store.get_iter(@iters[k].path), this2)
                         new[0] = z.name
                         @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
@@ -618,7 +697,7 @@ class TreeTabList < TabList
     def cleanup
         @store.each do |model, path, iter|
             if !iter2buffer(iter)
-                puts iter
+                #puts iter
                 @store.remove(iter)
             end
         end
@@ -668,16 +747,16 @@ class TreeTabList < TabList
     end
     
     def recolor(buffer)
-        return if buffer == @active
+        return if buffer == @model.active
         if @iters[buffer]
             iter = @store.get_iter(@iters[buffer].path)
-            if @status[buffer] > 0
-                color = $config.getstatuscolor(@status[buffer]).to_hex
+            if @model.status[buffer] > 0
+                color = $config.getstatuscolor(@model.status[buffer]).to_hex
                 iter[0] = '<span color="'+color+'">'+clean_tag(iter[0])+'</span>'
-                puts 'recoloring '+buffer.name
+                #puts 'recoloring '+buffer.name
             else
                 iter[0] = clean_tag(iter[0])
-                puts 'not recoloring active buffer '+buffer.name
+                #puts 'not recoloring active buffer '+buffer.name
             end
         end
     end
