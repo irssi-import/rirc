@@ -74,7 +74,7 @@ class Configuration
         
         @values['main_font'] = 'monospace 9'
         
-        @values['number_tabs'] = true
+        @values['numbertabs'] = true
         
         @values['plugins'] = []
         
@@ -243,9 +243,9 @@ class Configuration
 			if line['key'] and line['value']
 				value = decode_value(line['value'])
 				@values[line['key'].sub('rirc_', '')] = value
+                puts line['key'].sub('rirc_', '')+'=>'+value.to_s
 			end
 		end
-		
 		create_config_snapshot
 	end
 	

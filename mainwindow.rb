@@ -135,26 +135,15 @@ class MainWindow
         
         @font = Pango::FontDescription.new($config['main_font'])
         
-        #TODO modify_text?
         update_view(@serverlist.view)
         @serverlist.servers.each do |server|
             update_view(server.view)
             server.channels.each {|channel| update_view(channel.view)}
             server.chats.each {|chat| update_view(chat.view)}
         end
-		
-		#@messages.modify_base(Gtk::STATE_NORMAL, $config['backgroundcolor'])
-		#@messages.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-		
-		#@messages.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-		#@messages.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-        
-		#@messages.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
-		#@messages.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         
         #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
-        
-        #@messages.modify_font(font)
+        #maybe use parse_string like for scwview
         
         if unhide
             @glade['window1'].show_all
@@ -207,6 +196,7 @@ class MainWindow
         end
         
         $main.tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
+        @tablist.renumber
             
 		if $config['tablistposition'] == 'right'
 			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
@@ -221,7 +211,7 @@ class MainWindow
         elsif $config['tablistposition'] == 'underuserlist'
             @glade['u_pane'].pack2(@tablist.widget, false, true)
 		end
-		@tablist.widget.show
+		#@tablist.widget.show_all
 	end
 	
 	def set_username
@@ -318,7 +308,7 @@ class MainWindow
 	def switchchannel(channel)
 		#make the new channel the current one, and toggle the buttons accordingly
         return unless channel
-        update_dimensions
+        #update_dimensions
 
 		@currentbuffer.currentcommand = @messageinput.text
         if @currentbuffer.class == ChannelBuffer
@@ -446,6 +436,7 @@ class MainWindow
 	end
     
     def update_dimensions
+        puts 'updating dimensions'
         width, height = @glade['window1'].size
         $config.set_value('panelposition', @panel.position)
         $config.set_value('windowwidth', width) if width

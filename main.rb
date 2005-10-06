@@ -26,8 +26,6 @@ rescue LoadError
     $netssh = false
 end
 
-puts $netssh
-
 $args = {}
 
 Thread.current.priority = 1
@@ -191,7 +189,9 @@ class Main
     include ReplyParser
     include CommandParser
 	def initialize
+        @tabmodel = TabListModel.new
 		@serverlist = RootBuffer.new(self)
+        @tabmodel.root=@serverlist
         #@tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
 		@connection = nil
 		@replies = {}
@@ -321,7 +321,7 @@ class Main
 			$config.get_config
             
             $config['plugins'].each {|plugin| plugin_load(plugin)}
-            @tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)
+            #@tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)
             @tabmodel.draw_tree
 			@window.draw_from_config
             @serverlist.storedefault

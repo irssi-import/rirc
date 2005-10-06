@@ -22,7 +22,7 @@ LAST_USER_ACTIVITY = 3
 class TabListModel
     include Observable
     attr_reader :root, :tree, :structure, :active, :status
-    def initialize(root, structure=HIERARCHICAL, sort=INSENSITIVE)
+    def initialize(root=nil, structure=HIERARCHICAL, sort=INSENSITIVE)
         @predefined = ['#cataclysm-software', 'Vagabond']
         @tree = OrderedHash.new
         #set things up, I guess build the way the buffers are stored, load the search stuff, set up the numbering
@@ -37,18 +37,21 @@ class TabListModel
         @numbers = []
         @status = {}
         @active = root
-        @tree = construct_tree
+        @tree = construct_tree if root
         
-        draw_tree
+        #draw_tree if root
+    end
+    
+    def root=(root)
+        @root = root
+        @tree = construct_tree if root
     end
     
     def set_sort_and_structure(structure, model)
-        puts structure, model, (@structure == structure and @sort == model)
         return if @structure == structure and @sort == model
         @structure = structure
         @sort = model
         tree = construct_tree
-        draw_tree
         if tree
             @tree = tree
             changed
@@ -81,7 +84,6 @@ class TabListModel
     def construct_tree
         #move these into blocks and store them as constants? would allow pluggable structure & sort methods...
         if @structure == FLAT
-            puts 'flat'
             @numbers = []
             tree = OrderedHash.new
             tree[@root] = []
@@ -100,7 +102,6 @@ class TabListModel
             tree[@root].each {|c, o| @numbers.push(c) if o == 0}
             return tree
         elsif @structure == HIERARCHICAL
-            puts 'hierarchical'
             @numbers = []
             tree = OrderedHash.new
             tree[@root] = OrderedHash.new
@@ -215,10 +216,18 @@ class TabListModel
                                         else
                                             num = 0
                                         end
-                                        @numbers.insert(num, item)
+                                        #@numbers.insert(num, item) if num
                                     else
-                                        @numbers.insert(tab2number(l[0])-1, item)
+                                        num = tab2number(l[0])
+                                        if num
+                                            num -= 1
+                                        end
+                                        #@numbers.insert(tab2number(l[0])-1, item) if tab2number(l[0])
                                     end
+                                    unless num
+                                        num=@numbers.length
+                                    end
+                                    @numbers.insert(num, item)
                                 end
                                 if @tree[@root].class == Array
                                 end
@@ -319,7 +328,7 @@ class TabListModel
         if @numbers.include?(tab)
             result = @numbers.index(tab)+1
         end
-        return result ||= -1
+        return result ||= nil
     end
     
     def draw_tree
@@ -364,7 +373,7 @@ class TabList
         clear
         fill
         set_active(@model.active)
-        widget.show_all
+        #widget.show_all
     end
     
     def setstatus(buffer, status)
@@ -390,7 +399,7 @@ class BoxTabList < TabList
         fill
         @box.show_all
         
-        set_active(model.active)
+        #set_active(model.active)
     end
     
     def widget
@@ -411,7 +420,6 @@ class BoxTabList < TabList
                 end
                 add_seperator
             else
-            
             end
         end
         cleanup
@@ -480,7 +488,8 @@ class BoxTabList < TabList
             i+=1
         end
         cleanup
-        @box.show_all
+        renumber
+        #@box.show_all
     end
         
     def remove(tab)
@@ -489,7 +498,7 @@ class BoxTabList < TabList
             @box.remove(@buttons[tab])
             @buttons.delete(tab)
         end
-        
+        renumber
         cleanup
     end
     
@@ -508,8 +517,20 @@ class BoxTabList < TabList
         if @box.children[-1].class.ancestors.include?(Gtk::Separator)
             @box.remove(box.children[-1])
         end
-        @box.show_all
     end
+    
+    def renumber
+        @buttons.each do |buffer, button|
+            number = ''
+            if $config['numbertabs'] and x = @model.tab2number(buffer)
+                number = x.to_s+':'
+            end
+            
+            button.label = number+buffer.name
+            recolor(buffer)
+        end
+    end
+                
     
     def set_active(buffer)
         return unless @buttons[buffer]
@@ -543,11 +564,23 @@ class BoxTabList < TabList
     
     def add_button(buffer)
         if !@buttons.include?(buffer)
-            button = Gtk::ToggleButton.new(buffer.name)
+            number = ''
+            if $config['numbertabs'] and x = @model.tab2number(buffer)
+                number = x.to_s+':'
+            end
+            button = Gtk::ToggleButton.new(number+buffer.name)
+                
             @togglehandlers[buffer] = button.signal_connect('toggled')do |w|
+                puts 'activated  '+buffer.name
                 @model.set_active(buffer)
             end
+            button.signal_connect('button_press_event')do |w, event|
+                if event.button == 3
+                    buffer.rightclickmenu(event)
+                end
+            end
             @buttons[buffer] = button
+            button.show
         end
         return @buttons[buffer]
     end
@@ -562,12 +595,14 @@ class VBoxTabList < BoxTabList
     
     def create_seperator
         b = Gtk::HSeparator.new
+        b.show
         return b
     end
     
     def add_seperator
         b = Gtk::HSeparator.new
         @box.pack_start(b, false, false, 5)
+        b.show
         return b
     end
 end
@@ -581,12 +616,14 @@ class HBoxTabList < BoxTabList
     
     def create_seperator
         b = Gtk::VSeparator.new
+        b.show
         return b
     end
     
     def add_seperator
         b = Gtk::VSeparator.new
         @box.pack_start(b, false, false, 5)
+        b.show
         return b
     end
 end
@@ -603,18 +640,30 @@ class TreeTabList < TabList
         @iters = {}
         fill
         renderer = Gtk::CellRendererText.new
-		
-		col = Gtk::TreeViewColumn.new("", renderer, :markup => 0)
+		col = Gtk::TreeViewColumn.new("", renderer, :text => 0)
+		@view.append_column(col)
+		col = Gtk::TreeViewColumn.new("", renderer, :markup => 1)
 		@view.append_column(col)
         @view.headers_visible=false
         @view.enable_search = false
 		@view.expand_all
+        @frame = Gtk::Frame.new
+        @frame.shadow_type = Gtk::SHADOW_ETCHED_IN
+        @frame.add(@view)
         @sw = Gtk::ScrolledWindow.new
         @sw.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC)
-        @sw.add(@view)
+        @sw.add_with_viewport(@frame)
         @sw.show_all
         #set_active(model.root)
-        set_active(model.active)
+        #set_active(model.active)
+        @view.signal_connect('focus_in_event') do |w, event|
+            set_active(@model.active)
+        end
+        @view.signal_connect('button_press_event') do |w, event|
+            if event.button == 3
+                @model.active.rightclickmenu(event) if @model.active
+            end
+        end
     end
     
     def widget
@@ -622,20 +671,14 @@ class TreeTabList < TabList
     end
     
     def fill
-        parent = @store.append(nil)
-        parent[0] = @model.root.name
-        @iters[@model.root] = Gtk::TreeRowReference.new(@store, parent.path)
+        parent = add_iter(@model.root)
         @model.tree[@model.root].each do |k, v|
-            child = @store.append(parent)
-            child[0] = k.name
-            @iters[k] = Gtk::TreeRowReference.new(@store, child.path)
+            child = add_iter(k, parent)
             @view.expand_row(parent.path, false)
             recolor(k)
             if v.methods.include?('each')
                 v.each do |z, c|
-                    child2 = @store.append(child)
-                    child2[0] = z.name
-                    @iters[z] = Gtk::TreeRowReference.new(@store, child2.path)
+                    child2 = add_iter(z, child)
                     @view.expand_row(child.path, false)
                     recolor(z)
                 end
@@ -656,14 +699,14 @@ class TreeTabList < TabList
         @model.tree[@model.root].each do |k, v|
             path = '0:'+i.to_s
             this = @store.get_iter(path)
-            if this and this[0] != k.name
+            if this and clean_tag(this[1]) != k.name
                 new = @store.insert_before(@store.get_iter(@iters[@model.root].path), this)
-                new[0] = k.name
+                new[1] = k.name
                 @iters[k] = Gtk::TreeRowReference.new(@store, new.path)
                 @view.expand_row(@iters[@model.root].path, false)
             elsif !this
                 new = @store.insert_before(@store.get_iter(@iters[@model.root].path), nil)
-                new[0] = k.name
+                new[1] = k.name
                 @iters[k] = Gtk::TreeRowReference.new(@store, new.path)
                 @view.expand_row(@iters[@model.root].path, false)
             end
@@ -672,16 +715,16 @@ class TreeTabList < TabList
                 v.each do |z, c|
                     path2 = '0:'+i.to_s+':'+j.to_s
                     this2 = @store.get_iter(path2)
-                    if this2 and this2[0] != z.name
+                    if this2 and clean_tag(this2[1]) != z.name
                         #puts path2, z.name
                         new = @store.insert_before(@store.get_iter(@iters[k].path), this2)
-                        new[0] = z.name
+                        new[1] = z.name
                         @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
                         @view.expand_row(this.path, false)
                     elsif !this2
                         path2 = '0:'+i.to_s+':'+(j-1).to_s
                         new = @store.insert_before(@store.get_iter(@iters[k].path), nil)
-                        new[0] = z.name
+                        new[1] = z.name
                         @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
                         @view.expand_row(this.path, false)
                     end
@@ -691,13 +734,13 @@ class TreeTabList < TabList
             i += 1
         end
         cleanup
+        renumber
     end
     
     #ack, I wish I didn't need this
     def cleanup
         @store.each do |model, path, iter|
             if !iter2buffer(iter)
-                #puts iter
                 @store.remove(iter)
             end
         end
@@ -710,6 +753,18 @@ class TreeTabList < TabList
         end
     end
     
+    def renumber
+        @iters.each do |buffer, iter|
+            y = @store.get_iter(iter.path)
+            number = ''
+            if $config['numbertabs'] and x = @model.tab2number(buffer)
+                number = x.to_s
+            end
+            y[0] = number
+        end
+    end
+           
+    
     def clean_tag(tag)
         re = /^\<span .+\>(.+?)\<\/span\>$/i
         md = re.match(tag)
@@ -718,6 +773,18 @@ class TreeTabList < TabList
         else
             return tag
         end
+    end
+    
+    def add_iter(buffer, parent= nil)
+        iter = @store.append(parent)
+        number = ''
+        if $config['numbertabs'] and x = @model.tab2number(buffer)
+            number = x.to_s
+        end
+        iter[0] = number
+        iter[1] = buffer.name
+        @iters[buffer] = Gtk::TreeRowReference.new(@store, iter.path)
+        return iter
     end
     
     def iter2buffer(iter)
@@ -752,10 +819,10 @@ class TreeTabList < TabList
             iter = @store.get_iter(@iters[buffer].path)
             if @model.status[buffer] > 0
                 color = $config.getstatuscolor(@model.status[buffer]).to_hex
-                iter[0] = '<span color="'+color+'">'+clean_tag(iter[0])+'</span>'
+                iter[1] = '<span color="'+color+'">'+clean_tag(iter[1])+'</span>'
                 #puts 'recoloring '+buffer.name
             else
-                iter[0] = clean_tag(iter[0])
+                iter[1] = clean_tag(iter[1])
                 #puts 'not recoloring active buffer '+buffer.name
             end
         end

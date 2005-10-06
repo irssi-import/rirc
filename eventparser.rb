@@ -202,7 +202,7 @@ module EventParser
         channel.send_event(event, EVENT_USERPART)
         channel.disconnect
         channel.clearusers
-        @serverlist.renumber
+        #@serverlist.renumber
     end
     
     #another user joined the channel

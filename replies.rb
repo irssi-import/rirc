@@ -86,5 +86,11 @@ class Reply
 		end
 		
 		@lines.push(temp)
+        finish if @complete
 	end
+    
+    def finish
+        @lines = @lines.sort{|x, y| x[TIME].to_i <=> y[TIME].to_i}.sort{|x, y| x[ID] <=> y[ID]}
+        #@complete = true
+    end
 end

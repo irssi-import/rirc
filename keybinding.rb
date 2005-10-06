@@ -75,6 +75,7 @@ class KeyBindingWindow < SingleWindow
     
     def load_bindings(bindings)
         bindings.each do |k, v|
+            next unless v and k
             command, args = v.split('(', 2)
             args.chomp!(')') if args
             x = KeyBindingRow.new(self, @meths)

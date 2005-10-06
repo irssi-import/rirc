@@ -17,6 +17,7 @@ class Buffer
         @view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         @view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
         
+        @ids = []
         
 		@commandbuffer = []
 		@currentcommand = ''
@@ -35,13 +36,14 @@ class Buffer
         @modes = ['message', 'usermessage', 'join', 'userjoin', 'part', 'userpart', 'error', 'notice', 'topic', 'modechange', 'ctcp']
 	end
     
-    #~ def rightclickmenu(event)
-        #~ menu = genmenu
-        #~ return unless menu
-        #~ menu.show_all
-        #~ menu.popup(nil, nil, event.button, event.time)
-        #~ return true
-    #~ end
+    def rightclickmenu(event)
+        puts 'popping up menu'
+        menu = genmenu
+        return unless menu
+        menu.show_all
+        menu.popup(nil, nil, event.button, event.time)
+        return true
+    end
     
     def genmenu
         return nil
@@ -108,13 +110,25 @@ class Buffer
         time = Time.new
         time = time - $main.drift if $config['canonicaltime'] == 'server'
         line[TIME] = time
-        line[ID] = 'client'+rand(100).to_s
+        line[ID] = 'client'+rand(1000).to_s
+        while @ids.include?(line[ID])
+            line[ID] = 'client'+rand(1000).to_s
+        end
         send_event(line, type)
     end
     
     #send a line to the buffer
 	def send_event(line, type, insert_location=BUFFER_END)
 		return if !@connected
+        
+        if @ids.include?(line[ID])
+            puts line[ID]
+            puts @ids.include?(line[ID])
+            puts 'event already in buffer'
+            return
+        end
+        
+        @ids.push(line[ID])
         
         raise ArgumentError unless line.class == Line
 		
@@ -808,7 +822,7 @@ class ChannelBuffer < Buffer
     end
     
     def close
-        $main.serverlist.unnumber(@number)
+#        $main.serverlist.unnumber(@number)
         if @connected
             $main.send_command('part', "channel part;network="+@server.name+";mypresence="+@server.presence+";channel="+@name)
         end

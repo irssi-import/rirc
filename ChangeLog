@@ -1,3 +1,10 @@
+2005-10-06 21:17 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    More work on the Tabs
+    Fixed window resize bug
+    readded right click menus for tabs
+    Added tab numbering and made it configurable
+
 2005-10-06 01:01 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Made Sort method and structure for tablist configurable on the fly
