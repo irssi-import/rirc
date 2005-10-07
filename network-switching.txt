@@ -27,7 +27,8 @@ identical to the channel popup described above, without having to invoke the net
 Optionally you will also be able to use a meta with the traditional 1-0 q-p keys to select on the
 current network.
 
-When not in a popup, there should also be a keycommand to switch to previous/next active item, and to descend into the network and to ascend back out of it for quick navigation.
+When not in a popup, there should also be a keycommand to switch to previous/next active item, and
+to descend into the network and to ascend back out of it for quick navigation.
 
 RANDOM THOUGHTS
 
