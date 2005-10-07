@@ -1,0 +1,45 @@
+"Network/Channel switching system" or "I just wasted a week doing this the wrong way :)"
+
+NUMBERING
+
+ALL networks and channels are numbered persistantly, if they are removed the numbering not
+recalculated, the next new item will be assigned to the first empty number it finds (optionally it
+could renumber, or there could be a 'compact' command). Queries will probably just go on the end,
+they're too ephemeral to be persistantly numbered. Networks and channels have seperate numbering
+schemes, each network has its own unique numbering scheme for its channels and all networks are 
+numbered on the same scheme. For example network 1 has channels numbered 1, 2, and 3, and network 2
+has channels numbered 1, 2, 3, 4, 5.
+
+SWITCHING
+
+To switch between networks, you will invoke a popup using meta-n key, you then select the network
+based on a mnemonic derived from its persistant number (QWERTY, DVORAK, alphabetic, whatever). This
+then opens a new popup with the channels for the selected network (enter selects the network tab
+itself perhaps), again a mnemonic derived from its persistant number. This will allow the user to
+press meta+n then simply type 3 1 to get to the first channel on the 3rd network. If you know your
+network/channel numbers this should be very fast, if you don't the popups will display all the info 
+you need. Also, we should color the network entries with the activities for ALL channels/queries on
+that network, so the user can see the activity on that network without having to expand the channel
+list, the entries in the channel popup should be colored as they are in a normal tab system.
+
+To switch between channels on the current network, you will be able to use meta-c to invoke a popup 
+identical to the channel popup described above, without having to invoke the network popup.
+Optionally you will also be able to use a meta with the traditional 1-0 q-p keys to select on the
+current network.
+
+When not in a popup, there should also be a keycommand to switch to previous/next active item, and to descend into the network and to ascend back out of it for quick navigation.
+
+RANDOM THOUGHTS
+
+With this setup, it is possible that a user could forgo showing all the tabs, instead opting for an
+irssi style activity line, with each entry colored to the level of the activity there (filterable
+in case the user only cares about messages/highlights and not joins/parts/ops/topic changes). eg.
+Activity [1-q], [1-5], [2-7], etc, the name of the network/channel/whatever could also optionally
+be visible. Hell, these could even be clickable themselves, to aid those still addicted to the
+tabletop rodent.
+
+Networks/channels should be allowed to be shuffled right/left (up/down?) in order to change their 
+numbering, for large networks you should also be able to assign a number directly. A GUI window 
+with ALL networks/channels (active and inactive) should be added for more fine grained management
+(deleting networks/channels (this would remove them from irssi2 itself of course), moving them to
+specific numbers without an intolerable amount of shuffling, etc).

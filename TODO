@@ -20,3 +20,4 @@ Bugs:
     restoring colors from default doesn't work, the colors don't know they've been updated
     fix forking for windows, highlight script and link clicking mess up
     Make sure of elegant fallbacks when irssi2 fails to connect
+    invert order of OK and Cancel buttons on dialogs to make zuh happy
