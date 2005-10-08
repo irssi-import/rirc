@@ -347,10 +347,6 @@
 					      <signal name="row_activated" handler="userlist_on_doubleclick" last_modification_time="Thu, 01 Sep 2005 17:13:31 GMT"/>
 					    </widget>
 					  </child>
-
-					  <child>
-					    <placeholder/>
-					  </child>
 					</widget>
 				      </child>
 				    </widget>

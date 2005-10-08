@@ -82,6 +82,7 @@
 	      <signal name="clicked" handler="destroy" last_modification_time="Fri, 30 Sep 2005 18:48:20 GMT"/>
 	    </widget>
 	  </child>
+
 	  <child>
 	    <widget class="GtkButton" id="ok_button">
 	      <property name="visible">True</property>

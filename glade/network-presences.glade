@@ -237,6 +237,7 @@
 	      </child>
 	    </widget>
 	  </child>
+
 	  <child>
 	    <widget class="GtkButton" id="apply">
 	      <property name="visible">True</property>
@@ -985,6 +986,7 @@ iso-8859-15</property>
 	      <signal name="clicked" handler="cancel_networkproperties" last_modification_time="Thu, 11 Aug 2005 08:04:22 GMT"/>
 	    </widget>
 	  </child>
+
 	  <child>
 	    <widget class="GtkButton" id="network_ok">
 	      <property name="visible">True</property>
@@ -1130,6 +1132,7 @@ iso-8859-15</property>
 	      <signal name="clicked" handler="cancel_presenceproperties" last_modification_time="Thu, 11 Aug 2005 08:04:09 GMT"/>
 	    </widget>
 	  </child>
+
 	  <child>
 	    <widget class="GtkButton" id="presence_ok">
 	      <property name="visible">True</property>
@@ -1343,6 +1346,7 @@ iso-8859-15</property>
 	      <signal name="clicked" handler="cancel_gatewayproperties" last_modification_time="Wed, 27 Jul 2005 12:15:08 GMT"/>
 	    </widget>
 	  </child>
+
 	  <child>
 	    <widget class="GtkButton" id="gateway_ok">
 	      <property name="visible">True</property>
