@@ -633,7 +633,7 @@ class TreeTabList < TabList
     attr_reader :model, :view
     def initialize(model)
         super
-        @store = Gtk::TreeStore.new(String)#, String)
+        @store = Gtk::TreeStore.new(String, String)
         @view = Gtk::TreeView.new(@store)
         @selecthandler = @view.selection.signal_connect('changed') do |w|
             @model.set_active(iter2buffer(w.selected))
@@ -641,10 +641,11 @@ class TreeTabList < TabList
         @iters = {}
         fill
         renderer = Gtk::CellRendererText.new
-		#col = Gtk::TreeViewColumn.new("", renderer, :text => 0)
-		#@view.append_column(col)
-		col = Gtk::TreeViewColumn.new("", renderer, :markup => 0)
+		col = Gtk::TreeViewColumn.new("", renderer, :text => 0)
 		@view.append_column(col)
+		col = Gtk::TreeViewColumn.new("", renderer, :markup => 1)
+		@view.append_column(col)
+        @view.set_expander_column(col)
         @view.headers_visible=false
         @view.enable_search = false
 		@view.expand_all
@@ -700,14 +701,14 @@ class TreeTabList < TabList
         @model.tree[@model.root].each do |k, v|
             path = '0:'+i.to_s
             this = @store.get_iter(path)
-            if this and clean_tag(this[0]) != k.name
+            if this and clean_tag(this[1]) != k.name
                 new = @store.insert_before(@store.get_iter(@iters[@model.root].path), this)
-                new[0] = k.name
+                new[1] = k.name
                 @iters[k] = Gtk::TreeRowReference.new(@store, new.path)
                 @view.expand_row(@iters[@model.root].path, false)
             elsif !this
                 new = @store.insert_before(@store.get_iter(@iters[@model.root].path), nil)
-                new[0] = k.name
+                new[1] = k.name
                 @iters[k] = Gtk::TreeRowReference.new(@store, new.path)
                 @view.expand_row(@iters[@model.root].path, false)
             end
@@ -716,16 +717,16 @@ class TreeTabList < TabList
                 v.each do |z, c|
                     path2 = '0:'+i.to_s+':'+j.to_s
                     this2 = @store.get_iter(path2)
-                    if this2 and clean_tag(this2[0]) != z.name
+                    if this2 and clean_tag(this2[1]) != z.name
                         #puts path2, z.name
                         new = @store.insert_before(@store.get_iter(@iters[k].path), this2)
-                        new[0] = z.name
+                        new[1] = z.name
                         @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
                         @view.expand_row(this.path, false)
                     elsif !this2
                         path2 = '0:'+i.to_s+':'+(j-1).to_s
                         new = @store.insert_before(@store.get_iter(@iters[k].path), nil)
-                        new[0] = z.name
+                        new[1] = z.name
                         @iters[z] = Gtk::TreeRowReference.new(@store, new.path)
                         @view.expand_row(this.path, false)
                     end
@@ -761,7 +762,7 @@ class TreeTabList < TabList
             if $config['numbertabs'] and x = @model.tab2number(buffer)
                 number = x.to_s
             end
-            #y[0] = number
+            y[0] = number
         end
     end
            
@@ -782,8 +783,8 @@ class TreeTabList < TabList
         if $config['numbertabs'] and x = @model.tab2number(buffer)
             number = x.to_s
         end
-        #iter[0] = number
-        iter[0] = buffer.name
+        iter[0] = number
+        iter[1] = buffer.name
         @iters[buffer] = Gtk::TreeRowReference.new(@store, iter.path)
         return iter
     end
@@ -820,10 +821,10 @@ class TreeTabList < TabList
             iter = @store.get_iter(@iters[buffer].path)
             if @model.status[buffer] > 0
                 color = $config.getstatuscolor(@model.status[buffer]).to_hex
-                iter[0] = '<span color="'+color+'">'+clean_tag(iter[0])+'</span>'
+                iter[1] = '<span color="'+color+'">'+clean_tag(iter[1])+'</span>'
                 #puts 'recoloring '+buffer.name
             else
-                iter[0] = clean_tag(iter[0])
+                iter[1] = clean_tag(iter[1])
                 #puts 'not recoloring active buffer '+buffer.name
             end
         end

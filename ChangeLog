@@ -1,3 +1,8 @@
+2005-10-08 17:40 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Reordered buttons in line with supposed HID guidelines
+    Readded treeview numbering but moved the expander column
+
 2005-10-08 17:16 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Fixed bug in xhtml_im2pango
