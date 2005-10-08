@@ -6,7 +6,7 @@ class Buffer
 	def initialize(name)
         @links = []
         @view = Scw::View.new
-        @liststore = Gtk::ListStore.new(Scw::Timestamp, Scw::Presence, String)
+        @liststore = Gtk::ListStore.new(Scw::Timestamp, Scw::Presence, String, Scw::RowColor)
         @view.model = @liststore
         @view.align_presences = $config['scw_align_presences']
         @view.scroll_on_append = true
@@ -17,7 +17,7 @@ class Buffer
         @view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         @view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
         
-        @ids = []
+        @ids = {}
         
 		@commandbuffer = []
 		@currentcommand = ''
@@ -111,7 +111,7 @@ class Buffer
         time = time - $main.drift if $config['canonicaltime'] == 'server'
         line[TIME] = time
         line[ID] = 'client'+rand(1000).to_s
-        while @ids.include?(line[ID])
+        while @ids[line[ID]]
             line[ID] = 'client'+rand(1000).to_s
         end
         send_event(line, type)
@@ -121,14 +121,12 @@ class Buffer
 	def send_event(line, type, insert_location=BUFFER_END)
 		return if !@connected
         
-        if @ids.include?(line[ID])
+        if @ids[line[ID]]
             puts line[ID]
-            puts @ids.include?(line[ID])
+            puts @ids[line[ID]]
             puts 'event already in buffer'
             return
         end
-        
-        @ids.push(line[ID])
         
         raise ArgumentError unless line.class == Line
 		
@@ -197,20 +195,39 @@ class Buffer
 			#recolor
 			if insert_location == BUFFER_START
                 iter = @liststore.prepend
-                iter[0] = line[TIME].to_i
-                iter[1] = parse_tags(uname)
-                iter[2] = parse_tags(pattern)
 			elsif insert_location == BUFFER_END
                 iter = @liststore.append
-                iter[0] = line[TIME].to_i
-                iter[1] = parse_tags(uname)
-                iter[2] = parse_tags(pattern)
 			end
+            iter[0] = line[TIME].to_i
+            iter[1] = parse_tags(uname)
+            iter[2] = parse_tags(pattern)
+            @ids[line[ID]] = Gtk::TreeRowReference.new(@liststore, iter.path)
+            if insert_location == BUFFER_END
+                @last = @ids[line[ID]]
+                marklastread unless @lastread
+            end
 		end
 			
 	end
     
+    def marklastread
+        return unless @last
+        #puts 'marking line '+@last.path
+        iter = @liststore.get_iter(@last.path)
+        
+        if @lastread
+            iter2 = @liststore.get_iter(@lastread.path)
+            iter2[3] = ''
+        end
+        
+        iter[3] = $config['scw_lastread'].to_hex
+        
+        @lastread = @last
+    end
+    
     def xhtml_im2pango(string)
+        return unless string
+        #puts string
         re = /\<span style=[\"\'](.+?)[\"\']\>([^\<]+)\<\/span\>/i
         md = re.match(string)
         
@@ -224,7 +241,7 @@ class Buffer
             md = re.match(string)
         end
         
-        return string.gsub!('<s ', '<span ').gsub!('</s>', '</span>')
+        return string.gsub('<s ', '<span ').gsub('</s>', '</span>')
     end
     
     def parse_style(style)

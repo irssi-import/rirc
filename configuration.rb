@@ -25,6 +25,7 @@ class Configuration
         
         @values['scw_even'] = Gdk::Color.new(65535, 65535, 65535)
         @values['scw_odd'] = Gdk::Color.new(50176, 50176, 50176)
+        @values['scw_lastread'] = Gdk::Color.new(65535, 59940, 59940)
 		
         @values['scw_align_presences'] = false
         
@@ -243,7 +244,7 @@ class Configuration
 			if line['key'] and line['value']
 				value = decode_value(line['value'])
 				@values[line['key'].sub('rirc_', '')] = value
-                puts line['key'].sub('rirc_', '')+'=>'+value.to_s
+                #puts line['key'].sub('rirc_', '')+'=>'+value.to_s
 			end
 		end
 		create_config_snapshot

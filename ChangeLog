@@ -1,3 +1,9 @@
+2005-10-08 17:16 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed bug in xhtml_im2pango
+    Added last read line marking
+    Removed tab numbers from treeview for the moment
+
 2005-10-06 21:17 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     More work on the Tabs

@@ -14,6 +14,7 @@ Little things:
     Possible bindable actions: Close tab, next tab, previous tab, move tab left, move tab right (problem is that you sort alphabetically, though). Close all tabs but current Close all tabs, disconnect. some kind of alias that lets you set a command to be sent on the current buffer...
     Make Tab sorting configurable (Case sensitive, case insensitive, date of opening, date of most recent activity, date of your last activity)
     Add predefined sorting that trumps the sorting algorithm
+    scroll wheel on tab bar?
 
 Bugs:
     Can't set colors for input from config as the cursor becomes hidden
@@ -21,3 +22,5 @@ Bugs:
     fix forking for windows, highlight script and link clicking mess up
     Make sure of elegant fallbacks when irssi2 fails to connect
     invert order of OK and Cancel buttons on dialogs to make zuh happy
+    If a message comes from a user not in the userlist, look for them and add them if possible
+    Non UTF characters result in blank lines
