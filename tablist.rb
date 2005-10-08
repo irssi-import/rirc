@@ -816,7 +816,7 @@ class TreeTabList < TabList
     
     def recolor(buffer)
         return if buffer == @model.active
-        if @iters[buffer]
+        if @iters[buffer] and @iters[buffer].valid?
             iter = @store.get_iter(@iters[buffer].path)
             if @model.status[buffer] > 0
                 color = $config.getstatuscolor(@model.status[buffer]).to_hex
