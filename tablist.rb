@@ -657,7 +657,7 @@ class TreeTabList < TabList
         @sw.add_with_viewport(@frame)
         @sw.show_all
         #set_active(model.root)
-        #set_active(model.active)
+        set_active(model.active)
         @view.signal_connect('focus_in_event') do |w, event|
             set_active(@model.active)
         end

@@ -112,7 +112,7 @@ class ConfigWindow
 	end
 	
 	def switch_category(selection)
-		draw_category(@categories[selection[0]]) if @categories[selection[0]] and selection
+		draw_category(@categories[selection[0]]) if selection and @categories[selection[0]]
 	end
 	
 	def draw_category(category)

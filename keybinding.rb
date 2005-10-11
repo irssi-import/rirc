@@ -75,6 +75,7 @@ class KeyBindingWindow < SingleWindow
     
     def load_bindings(bindings)
         bindings.each do |k, v|
+            puts k, v unless v and k
             next unless v and k
             command, args = v.split('(', 2)
             args.chomp!(')') if args

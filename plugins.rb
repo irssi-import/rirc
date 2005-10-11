@@ -260,6 +260,7 @@ module PluginAPI
     def plugin_load(name)
         #expand the name
         return unless file = Plugin.find_plugin(name)
+        $config.set_value('plugins', []) unless $config['plugins'].class == Array
         $config['plugins'].push(name) unless $config['plugins'].include?(name)
         
         #check if it exists, if so, load it

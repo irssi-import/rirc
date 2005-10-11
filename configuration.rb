@@ -85,15 +85,15 @@ class Configuration
         
         @values['keybindings']['Alt-l'] = 'open_linkwindow'
         
-        9.times do |i|
-            @values['keybindings']['Alt-'+i.to_s] = 'switchtab('+i.to_s+')'
-        end
+        #~ 9.times do |i|
+            #~ @values['keybindings']['Alt-'+i.to_s] = 'switchtab('+i.to_s+')'
+        #~ end
         
-        j = 10
-        %w{0 q w e r t y u i o p}.each do |c|
-            @values['keybindings']['Alt-'+c] = 'switchtab('+j.to_s+')'
-            j += 1
-        end
+        #~ j = 10
+        #~ %w{0 q w e r t y u i o p}.each do |c|
+            #~ @values['keybindings']['Alt-'+c] = 'switchtab('+j.to_s+')'
+            #~ j += 1
+        #~ end
         
         #store defaults
         @defaults = duplicate_config
@@ -198,7 +198,19 @@ class Configuration
 		if value.class == Gdk::Color
 			colors = value.to_a
 			return 'color:'+colors[0].to_s+':'+colors[1].to_s+':'+colors[2].to_s
-        elsif value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
+        elsif value.class == Array
+            x = []
+            value.each do |v|
+                x.push(v.gsub(':', '\,'))
+            end
+            return 'array:'+x.join(':')
+        elsif value.class == Hash
+            x = []
+            value.each do |k, v|
+                x.push(k.gsub(':', '\,')+':'+v.gsub(':', '\,'))
+            end
+            return 'hash:'+x.join('::')
+        elsif value =~ /^(color|array|hash)\:(\d+)\:(\d+)\:(\d+)$/
             return value
 		elsif value.class == TrueClass
 			return 'true'
@@ -209,7 +221,8 @@ class Configuration
         elsif value.class == Fixnum
             return value.to_s
 		else
-            return YAML::dump(value).gsub("\n", "\\\\\\n")
+            puts 'cannot dump unknown object'
+            #return YAML::dump(value).gsub("\n", "\\\\\\n")
 		end
 	end
 	
@@ -218,6 +231,22 @@ class Configuration
         value = unescape(value)
 		if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
 			return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
+        elsif value =~ /^array\:(.*?)$/
+            puts 'array'
+            x = []
+            $1.split(':').each do |v|
+                x.push(v.gsub('\,', ':'))
+            end
+            return x
+        elsif value =~ /^hash\:(.*?)$/
+            puts 'hash'
+            x = {}
+            $1.split('::').each do |y|
+                #x.push(v.gsub('\,', ':'))
+                k, v = y.split(':')
+                x[k.gsub('\,', ':')] =v.gsub('\,', ':')
+            end
+            return x
 		elsif value == 'true'
 			return true
 		elsif value == 'false'

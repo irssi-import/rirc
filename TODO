@@ -15,12 +15,12 @@ Little things:
     Make Tab sorting configurable (Case sensitive, case insensitive, date of opening, date of most recent activity, date of your last activity)
     Add predefined sorting that trumps the sorting algorithm
     scroll wheel on tab bar?
+    Add a fake ssh_askpass for when $SSH_ASKPASS is unset so we can only error out on that when needed
 
 Bugs:
     Can't set colors for input from config as the cursor becomes hidden
     restoring colors from default doesn't work, the colors don't know they've been updated
     fix forking for windows, highlight script and link clicking mess up
     Make sure of elegant fallbacks when irssi2 fails to connect
-    invert order of OK and Cancel buttons on dialogs to make zuh happy
     If a message comes from a user not in the userlist, look for them and add them if possible
     Non UTF characters result in blank lines
