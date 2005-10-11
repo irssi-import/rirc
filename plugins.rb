@@ -489,6 +489,11 @@ class PluginConfig
                     widget = Gtk::Entry.new
                     widget.text = option['value'] if option['value']
                     widget.signal_connect('changed') {|widget| text_changed(widget)}
+                elsif option['type'] == TrueClass
+                    widget = Gtk::CheckButton.new#(option['description'])
+                    widget.active = false
+                    widget.active = true if option['value'] == true
+                    widget.signal_connect('toggled') {|widget| bool_changed(widget)}
                 elsif option['type'] == Array
                     widget = Gtk::Entry.new
                     widget.text = option['value'].join(',') if option['value']
@@ -499,13 +504,17 @@ class PluginConfig
                 end
                 @tooltips.set_tip(widget, option['tooltip'], '') if option['tooltip']
                 @configarray[widget] = {'name' => option['name'], 'value' => option['value']}
-                @table.attach(Gtk::Label.new(option['description']), 0, 1, i, i+1, Gtk::SHRINK, Gtk::FILL)
+                @table.attach(Gtk::Label.new(option['description']), 0, 1, i, i+1, Gtk::SHRINK, Gtk::FILL)# unless option['type'] == TrueClass
                 @table.attach(widget, 1, 2, i, i+1, Gtk::SHRINK, Gtk::FILL)
                 i += 1
             else
                 puts 'missing required options'
             end
         end
+    end
+    
+    def bool_changed(widget)
+        change_setting(widget, widget.active?)
     end
     
     def color_changed(widget)

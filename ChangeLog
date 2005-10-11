@@ -1,3 +1,7 @@
+2005-10-12 2:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Added TrueClass to the pluginconf class to make a checkbox
+
 2005-10-12 1:20 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Changed storage of arrays and hashes in irssi2's config (no longer uses YAML)
