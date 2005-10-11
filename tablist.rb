@@ -572,7 +572,7 @@ class BoxTabList < TabList
             button = Gtk::ToggleButton.new(number+buffer.name)
                 
             @togglehandlers[buffer] = button.signal_connect('toggled')do |w|
-                puts 'activated  '+buffer.name
+                #puts 'activated  '+buffer.name
                 @model.set_active(buffer)
             end
             button.signal_connect('button_press_event')do |w, event|

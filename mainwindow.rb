@@ -159,6 +159,8 @@ class MainWindow
         view.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
         view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+        
+        view.modify_text(Gtk::STATE_PRELIGHT, $config['scw_prelight'])
         view.modify_font(@font)
     end
 	

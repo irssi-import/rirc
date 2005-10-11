@@ -16,6 +16,7 @@ class Buffer
         @view.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
         @view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
         @view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+        @view.modify_text(Gtk::STATE_PRELIGHT, $config['scw_prelight'])
         
         @ids = {}
         
@@ -179,6 +180,7 @@ class Buffer
                 res = callback(cmd, line, pattern, uname, users, insert_location)
                 return if res === true
                 res2 = self.send(cmd, *res)
+                return if res2 === true
                 uname, pattern, users, insert_location = callback_after(cmd, *res2)
             else
                 return
@@ -402,6 +404,7 @@ class Buffer
     end
     
     def buffer_join(line, pattern, uname, users, insert_location)
+        return true if $config['dropjoinpart']
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern = $config.get_pattern('join')
         pattern['%u'] = line[PRESENCE]
@@ -425,6 +428,7 @@ class Buffer
     end
     
     def buffer_part(line, pattern, uname, users, insert_location)
+        return true if $config['dropjoinpart']
         setstatus(NEWDATA) if insert_location == BUFFER_END
         pattern = $config.get_pattern('part')
         pattern['%u'] = line[PRESENCE]
@@ -745,7 +749,7 @@ class ServerBuffer < Buffer
 				return chat
 			end
 		end
-        puts 'no chat for '+name
+        #puts 'no chat for '+name
 		return false
 	end
 	

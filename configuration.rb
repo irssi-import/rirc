@@ -26,7 +26,7 @@ class Configuration
         @values['scw_even'] = Gdk::Color.new(65535, 65535, 65535)
         @values['scw_odd'] = Gdk::Color.new(50176, 50176, 50176)
         @values['scw_lastread'] = Gdk::Color.new(65535, 59940, 59940)
-		
+		@values['scw_prelight'] = Gdk::Color.new(62168, 16051, 16051)
         @values['scw_align_presences'] = false
         
 		@statuscolors = [@values['defaultcolor'], @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
