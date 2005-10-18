@@ -183,7 +183,7 @@ require 'pluginwindow'
 
 class Main
 	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols, :quitting, :tabmodel
-    extend Plugins
+    #extend Plugins
     include PluginAPI
     include EventParser
     include ReplyParser
@@ -324,6 +324,7 @@ class Main
             #@tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)
             @tabmodel.draw_tree
 			@window.draw_from_config
+            @window.drawuserlist(false)
             @serverlist.storedefault
 			@connectionwindow.destroy
             

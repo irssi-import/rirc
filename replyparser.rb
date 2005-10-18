@@ -40,6 +40,7 @@ module ReplyParser
                         channel = @serverlist[line[NETWORK], line[MYPRESENCE]][line[CHANNEL]]
                     end
                 end
+            #elsif reply.command[NETWORK] and reply.command[MYPRESENCE]
             end
             
             begin
@@ -186,16 +187,24 @@ module ReplyParser
     
     #list of users on the channel
     def reply_channel_names(line, network, channel, reply)
-        if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL] and line[PRESENCE]
+        #puts reply.class
+        network = @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]]
+        if network
+            channel = network[reply.command[CHANNEL]]
+        end
+        #puts network, channel
+        
+        #if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL] and line[PRESENCE]
+        if reply.command[NETWORK] and reply.command[MYPRESENCE] and reply.command[CHANNEL] and line[PRESENCE] and channel
             network.users.create(line[PRESENCE])
             chuser = channel.users.add(network.users[line[PRESENCE]])
             if line[MODE] and chuser
                 chuser.add_mode(line[MODE])
             end
         elsif line[REPLY_STATUS] == '+'
-            @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].drawusers
+            @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]][reply.command[CHANNEL]].drawusers
             @window.updateusercount
-            @serverlist[reply.command['network'], reply.command['mypresence']][reply.command['channel']].usersync = true
+            @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]][reply.command[CHANNEL]].usersync = true
         end
     end
 

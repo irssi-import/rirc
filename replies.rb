@@ -28,9 +28,9 @@ class Reply
 				vals[1].gsub!('\\\\.', ';')
 				vals[1].gsub!('\\.', ';')
 				vals[1].gsub!('\\\\\\\\', '\\')
-				@command[vals[0]] = vals[1]
+				@command[vals[0].to_sym] = vals[1]
 			elsif x.count('=') == 0
-				@command[x] = true
+				@command[x.to_sym] = true
 			end
 		end
 	end

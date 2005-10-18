@@ -1,7 +1,7 @@
 class Buffer
 	attr_reader :oldendmark, :currentcommand, :liststore, :links, :view
 	attr_writer :currentcommand
-    extend Plugins
+    #extend Plugins
     include PluginAPI
 	def initialize(name)
         @links = []

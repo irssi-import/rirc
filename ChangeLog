@@ -1,3 +1,9 @@
+2005-10-18 2:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+    
+    Fixed channel names to work with new irssi2
+    Hide unwanted widgets on startup (topic line/username button)
+    Fix to plugin system using hyperextend
+
 2005-10-12 2:00 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Added TrueClass to the pluginconf class to make a checkbox

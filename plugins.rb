@@ -1,159 +1,5 @@
 #TODO Drive a stake through this code's evil heart and replace it with something pure and elegant, preferably without breaking API
 
-#extend this on any classes you want plugins
-module Plugins
-
-    #define a callback
-    def add_callback(name, &block)
-    
-        #initialize the hash if it doesn't exist
-        @cb_hash ||= Hash.new(nil)
-        
-        #make sure there's a function to attach a callback to
-        if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
-        
-            #make a new array for the callback if need be, this allows multiple callbacks per function, executed in the order they were added
-            @cb_hash[name.to_sym] ||= Array.new
-            if block_given?
-            
-                #add the block to the array
-                @cb_hash[name.to_sym].push(block)
-                #puts 'added callback for '+name
-                
-                #return the name of the callback..?
-                return name
-            end
-        else
-            #no function to attach to...
-            puts 'no event function called '+name+', not adding callback'
-            return nil
-        end
-    end
-    
-    #add a callback to be executed after a function
-    def add_callback_after(name, &block)
-        #again, make the hash if it doesn't exist
-        @cb_hash_after ||= Hash.new(nil)
-        
-        #check to see if there's a function to attach to
-        if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
-            #make an array for the callbacks if there isn't one
-            @cb_hash_after[name.to_sym] ||= Array.new
-            if block_given?
-                @cb_hash_after[name.to_sym].push(block)
-                #puts 'added callback_after for '+name
-                
-                #return the name, not sure why...
-                return name
-            end
-        else
-            #no function!
-            puts 'no event function called '+name+', not adding callback'
-            return nil
-        end
-    end
-    
-    #remove a callback
-    def del_callback(name)
-        #puts self.class
-        puts @cb_hash.delete(name.to_sym)
-    end
-
-    #remove a callback_after
-    def del_callback_after(name)
-        @cb_hash_after.delete(name.to_sym)
-    end
-
-    #remove a method
-    def del_method(name)
-        self.send(:remove_method, name.to_sym)
-    end
-    
-    #add a new method
-    def add_method(name, &block)
-        #make sure its not already defined....
-        if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
-            puts 'method '+name+' already defined, not redefining'
-            return nil
-        end
-        
-        #call define method and add it.
-        self.send(:define_method, name, &block)
-        #puts 'added '+name
-        return name
-    end
-    
-    #reader for cb_hash...?
-    def cb_hash
-        return @cb_hash
-    end
-    
-    #lookup parent classes for callbacks
-    #TODO is there a way to do this less then once per callback call without messing up plugin unloading?
-    def resolve_cb_hash
-        #a new hash to store the resulting callbacks
-        temphash = Hash.new
-        
-        #loop through the parent classes, and build an array of them....
-        c = self
-        classes = Array.new
-        
-        #TODO c.class.ancestors instead of this mess maybe?
-        
-        while c != Object || nil
-            classes.push(c)
-            c = c.superclass
-        end
-        
-        #reverse the array of classes, so callbacks are overridden in child classes
-        classes.reverse!
-        
-        #loop through, and add callbacks
-        classes.each do |klass|
-            if klass.methods.include?('cb_hash')
-                temphash.merge!(klass.cb_hash) if klass.cb_hash
-            end
-        end
-
-        #return
-        return temphash
-    end
-    
-    #reader for cb_hash_after
-    def cb_hash_after
-        return @cb_hash_after
-    end
-    
-    #lookup parent classes for callback_after
-    def resolve_cb_hash_after
-    
-        #new hash to store results
-        temphash = Hash.new
-        
-        #loop through parents and build an array
-        c = self
-        classes = Array.new
-        
-        while c != Object || nil
-            classes.push(c)
-            c = c.superclass
-        end
-        
-        #invert the array, so child callbacks override parents
-        classes.reverse!
-        
-        #build hash of callback_after
-        classes.each do |klass|
-            if klass.methods.include?('cb_hash_after')
-                temphash.merge!(klass.cb_hash_after) if klass.cb_hash_after
-            end
-        end
-        
-        #return
-        return temphash
-    end
-end
-
 #include this in any classes where you want plugins
 module PluginAPI
 
@@ -293,11 +139,171 @@ module PluginAPI
         return self.class.resolve_cb_hash_after
     end
     
+    #hyperextend!
+    module Plugins
+    
+        #define a callback
+        def add_callback(name, &block)
+        
+            #initialize the hash if it doesn't exist
+            @cb_hash ||= Hash.new(nil)
+            
+            #make sure there's a function to attach a callback to
+            if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
+            
+                #make a new array for the callback if need be, this allows multiple callbacks per function, executed in the order they were added
+                @cb_hash[name.to_sym] ||= Array.new
+                if block_given?
+                
+                    #add the block to the array
+                    @cb_hash[name.to_sym].push(block)
+                    #puts 'added callback for '+name
+                    
+                    #return the name of the callback..?
+                    return name
+                end
+            else
+                #no function to attach to...
+                puts 'no event function called '+name+', not adding callback'
+                return nil
+            end
+        end
+        
+        #add a callback to be executed after a function
+        def add_callback_after(name, &block)
+            #again, make the hash if it doesn't exist
+            @cb_hash_after ||= Hash.new(nil)
+            
+            #check to see if there's a function to attach to
+            if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
+                #make an array for the callbacks if there isn't one
+                @cb_hash_after[name.to_sym] ||= Array.new
+                if block_given?
+                    @cb_hash_after[name.to_sym].push(block)
+                    #puts 'added callback_after for '+name
+                    
+                    #return the name, not sure why...
+                    return name
+                end
+            else
+                #no function!
+                puts 'no event function called '+name+', not adding callback'
+                return nil
+            end
+        end
+        
+        #remove a callback
+        def del_callback(name)
+            #puts self.class
+            puts @cb_hash.delete(name.to_sym)
+        end
+    
+        #remove a callback_after
+        def del_callback_after(name)
+            @cb_hash_after.delete(name.to_sym)
+        end
+    
+        #remove a method
+        def del_method(name)
+            self.send(:remove_method, name.to_sym)
+        end
+        
+        #add a new method
+        def add_method(name, &block)
+            #make sure its not already defined....
+            if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
+                puts 'method '+name+' already defined, not redefining'
+                return nil
+            end
+            
+            #call define method and add it.
+            self.send(:define_method, name, &block)
+            #puts 'added '+name
+            return name
+        end
+        
+        #reader for cb_hash...?
+        def cb_hash
+            return @cb_hash
+        end
+        
+        #lookup parent classes for callbacks
+        #TODO is there a way to do this less then once per callback call without messing up plugin unloading?
+        def resolve_cb_hash
+            #a new hash to store the resulting callbacks
+            temphash = Hash.new
+            
+            #loop through the parent classes, and build an array of them....
+            c = self
+            classes = Array.new
+            
+            #TODO c.class.ancestors instead of this mess maybe?
+            
+            while c != Object || nil
+                classes.push(c)
+                c = c.superclass
+            end
+            
+            #reverse the array of classes, so callbacks are overridden in child classes
+            classes.reverse!
+            
+            #loop through, and add callbacks
+            classes.each do |klass|
+                if klass.methods.include?('cb_hash')
+                    temphash.merge!(klass.cb_hash) if klass.cb_hash
+                end
+            end
+    
+            #return
+            return temphash
+        end
+        
+        #reader for cb_hash_after
+        def cb_hash_after
+            return @cb_hash_after
+        end
+        
+        #lookup parent classes for callback_after
+        def resolve_cb_hash_after
+        
+            #new hash to store results
+            temphash = Hash.new
+            
+            #loop through parents and build an array
+            c = self
+            classes = Array.new
+            
+            while c != Object || nil
+                classes.push(c)
+                c = c.superclass
+            end
+            
+            #invert the array, so child callbacks override parents
+            classes.reverse!
+            
+            #build hash of callback_after
+            classes.each do |klass|
+                if klass.methods.include?('cb_hash_after')
+                    temphash.merge!(klass.cb_hash_after) if klass.cb_hash_after
+                end
+            end
+            
+            #return
+            return temphash
+        end
+    end
+    
+    extend Plugins
+    
+    def self.append_features(klass)
+        super
+        klass.extend(Plugins)
+   end
 end
 
 #the plugin class, all plugins are derivatives of this class
 class Plugin
-    include Plugins
+    include PluginAPI
     
     #register a plugin
     def self.register(plugin)
