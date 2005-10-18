@@ -1,4 +1,10 @@
-2005-10-18 2:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+2005-10-18 22:21 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Removed some Redundant UI elements from the network/presence manager and added some tooltips
+    Added /query command and almost made if /msg opens a new buffer optional
+    Fix to commandparser
+
+2005-10-18 16:00 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Fixed channel names to work with new irssi2
     Hide unwanted widgets on startup (topic line/username button)

@@ -138,7 +138,7 @@ module CommandParser
         if arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
             network_add($1, $2, $3, $4)
         else
-            errror_throw('Usage: /server <name>:<protocol>:<address>[:<port>]')
+            error_throw('Usage: /server <name>:<protocol>:<address>[:<port>]')
         end
     end
     
@@ -347,9 +347,31 @@ module CommandParser
             messages.each { |message|
                 send_command('msg'+rand(100).to_s, 'msg;network='+network.name+';presence='+nick+';msg='+message+";mypresence="+presence)
             }
+            if $config['tabonmsg']
+                chat = network.addchat(nick)
+                chat.connect
+                #@winddow.switch
+            end
         else
             throw_error('/msg requires a username and a message')
             
+        end
+    end
+    
+    def cmd_query(*args)
+        cmd_msg(*args)
+        if args[0]
+                nick,msgs = args[0].split(' ', 2)
+        end
+        
+        puts nick
+        
+        if nick
+            #unless $config['tabonmsg']
+                chat = args[2].addchat(nick)
+                chat.connect
+                #@winddow.switch
+            #end
         end
     end
     

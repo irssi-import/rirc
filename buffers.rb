@@ -705,6 +705,9 @@ class ServerBuffer < Buffer
 	
     #add a chat to the network
 	def addchat(name)
+        if newchat = has_chat?(name)
+            return newchat
+        end
 		newchat = ChatBuffer.new(name, self)
 		@chats.push(newchat)
 		@chats.sort! {|x, y| x.name <=> y.name}

@@ -16,7 +16,7 @@ Little things:
     Add predefined sorting that trumps the sorting algorithm
     scroll wheel on tab bar?
     Add a fake ssh_askpass for when $SSH_ASKPASS is unset so we can only error out on that when needed
-    /msg opens a new tab insteadof waiting for a response
+    /msg opens a new tab insteadof waiting for a response(done, just add GUI hooks to make it configurable)
     Fix charsets_in and chatset_out setting
 
 Bugs:

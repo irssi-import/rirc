@@ -27,65 +27,7 @@
       <property name="spacing">0</property>
 
       <child>
-	<widget class="GtkTable" id="table1">
-	  <property name="border_width">5</property>
-	  <property name="visible">True</property>
-	  <property name="n_rows">1</property>
-	  <property name="n_columns">3</property>
-	  <property name="homogeneous">False</property>
-	  <property name="row_spacing">0</property>
-	  <property name="column_spacing">0</property>
-
-	  <child>
-	    <widget class="GtkLabel" id="label15">
-	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">Default Presence</property>
-	      <property name="use_underline">False</property>
-	      <property name="use_markup">False</property>
-	      <property name="justify">GTK_JUSTIFY_LEFT</property>
-	      <property name="wrap">False</property>
-	      <property name="selectable">False</property>
-	      <property name="xalign">0</property>
-	      <property name="yalign">0.5</property>
-	      <property name="xpad">5</property>
-	      <property name="ypad">0</property>
-	    </widget>
-	    <packing>
-	      <property name="left_attach">0</property>
-	      <property name="right_attach">1</property>
-	      <property name="top_attach">0</property>
-	      <property name="bottom_attach">1</property>
-	      <property name="x_options"></property>
-	      <property name="y_options"></property>
-	    </packing>
-	  </child>
-
-	  <child>
-	    <widget class="GtkEntry" id="entry1">
-	      <property name="visible">True</property>
-	      <property name="can_focus">True</property>
-	      <property name="editable">True</property>
-	      <property name="visibility">True</property>
-	      <property name="max_length">0</property>
-	      <property name="text" translatable="yes"></property>
-	      <property name="has_frame">True</property>
-	      <property name="invisible_char">*</property>
-	      <property name="activates_default">False</property>
-	    </widget>
-	    <packing>
-	      <property name="left_attach">1</property>
-	      <property name="right_attach">3</property>
-	      <property name="top_attach">0</property>
-	      <property name="bottom_attach">1</property>
-	      <property name="y_options"></property>
-	    </packing>
-	  </child>
-	</widget>
-	<packing>
-	  <property name="padding">0</property>
-	  <property name="expand">False</property>
-	  <property name="fill">False</property>
-	</packing>
+	<placeholder/>
       </child>
 
       <child>
@@ -99,6 +41,7 @@
 	    <widget class="GtkButton" id="connect">
 	      <property name="visible">True</property>
 	      <property name="sensitive">False</property>
+	      <property name="tooltip" translatable="yes">Connect to selected presence</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
@@ -241,6 +184,7 @@
 	  <child>
 	    <widget class="GtkButton" id="apply">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Apply the changes</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
@@ -366,20 +310,69 @@
 		  <child>
 		    <widget class="GtkButton" id="addnetwork">
 		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">Add a network</property>
 		      <property name="can_focus">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
 		      <property name="focus_on_click">True</property>
 		      <signal name="clicked" handler="add_network" last_modification_time="Mon, 25 Jul 2005 22:46:20 GMT"/>
 
 		      <child>
-			<widget class="GtkImage" id="image13">
+			<widget class="GtkAlignment" id="alignment7">
 			  <property name="visible">True</property>
-			  <property name="stock">gtk-add</property>
-			  <property name="icon_size">4</property>
 			  <property name="xalign">0.5</property>
 			  <property name="yalign">0.5</property>
-			  <property name="xpad">0</property>
-			  <property name="ypad">0</property>
+			  <property name="xscale">0</property>
+			  <property name="yscale">0</property>
+			  <property name="top_padding">0</property>
+			  <property name="bottom_padding">0</property>
+			  <property name="left_padding">0</property>
+			  <property name="right_padding">0</property>
+
+			  <child>
+			    <widget class="GtkHBox" id="hbox17">
+			      <property name="visible">True</property>
+			      <property name="homogeneous">False</property>
+			      <property name="spacing">2</property>
+
+			      <child>
+				<widget class="GtkImage" id="image22">
+				  <property name="visible">True</property>
+				  <property name="stock">gtk-add</property>
+				  <property name="icon_size">4</property>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xpad">0</property>
+				  <property name="ypad">0</property>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkLabel" id="label27">
+				  <property name="visible">True</property>
+				  <property name="label" translatable="yes"></property>
+				  <property name="use_underline">True</property>
+				  <property name="use_markup">False</property>
+				  <property name="justify">GTK_JUSTIFY_LEFT</property>
+				  <property name="wrap">False</property>
+				  <property name="selectable">False</property>
+				  <property name="xalign">0.5</property>
+				  <property name="yalign">0.5</property>
+				  <property name="xpad">0</property>
+				  <property name="ypad">0</property>
+				</widget>
+				<packing>
+				  <property name="padding">0</property>
+				  <property name="expand">False</property>
+				  <property name="fill">False</property>
+				</packing>
+			      </child>
+			    </widget>
+			  </child>
 			</widget>
 		      </child>
 		    </widget>
@@ -393,13 +386,14 @@
 		  <child>
 		    <widget class="GtkButton" id="removenetwork">
 		      <property name="visible">True</property>
+		      <property name="tooltip" translatable="yes">Remove a network</property>
 		      <property name="can_focus">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
 		      <property name="focus_on_click">True</property>
 		      <signal name="clicked" handler="remove_network" last_modification_time="Mon, 25 Jul 2005 23:07:36 GMT"/>
 
 		      <child>
-			<widget class="GtkImage" id="image14">
+			<widget class="GtkImage" id="image23">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-remove</property>
 			  <property name="icon_size">4</property>
@@ -421,6 +415,7 @@
 		    <widget class="GtkButton" id="editnetwork">
 		      <property name="visible">True</property>
 		      <property name="sensitive">False</property>
+		      <property name="tooltip" translatable="yes">Edit a network</property>
 		      <property name="can_focus">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
 		      <property name="focus_on_click">True</property>
@@ -503,6 +498,7 @@
 		    <widget class="GtkButton" id="addpresence">
 		      <property name="visible">True</property>
 		      <property name="sensitive">False</property>
+		      <property name="tooltip" translatable="yes">Add a Presence</property>
 		      <property name="can_focus">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
 		      <property name="focus_on_click">True</property>
@@ -531,6 +527,7 @@
 		    <widget class="GtkButton" id="deletepresence">
 		      <property name="visible">True</property>
 		      <property name="sensitive">False</property>
+		      <property name="tooltip" translatable="yes">Remove a Presence</property>
 		      <property name="can_focus">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
 		      <property name="focus_on_click">True</property>
@@ -559,6 +556,7 @@
 		    <widget class="GtkButton" id="editpresence">
 		      <property name="visible">True</property>
 		      <property name="sensitive">False</property>
+		      <property name="tooltip" translatable="yes">Edit a Presence</property>
 		      <property name="can_focus">True</property>
 		      <property name="relief">GTK_RELIEF_NORMAL</property>
 		      <property name="focus_on_click">True</property>
@@ -834,6 +832,7 @@ iso-8859-15</property>
 	  <child>
 	    <widget class="GtkButton" id="addgateway">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Add a Gateway</property>
 	      <property name="can_focus">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
@@ -861,6 +860,7 @@ iso-8859-15</property>
 	  <child>
 	    <widget class="GtkButton" id="removegateway">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Remove a Gateway</property>
 	      <property name="can_focus">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>
@@ -888,6 +888,7 @@ iso-8859-15</property>
 	  <child>
 	    <widget class="GtkButton" id="editgateway">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Edit a Gateway</property>
 	      <property name="can_focus">True</property>
 	      <property name="relief">GTK_RELIEF_NORMAL</property>
 	      <property name="focus_on_click">True</property>

@@ -58,6 +58,7 @@ class Configuration
 		@values['linkclickaction'] = 'firefox "%s"'
         
         @values['tabcompletesuffix'] = ';'
+        @values['tabonmsg'] = true
 		
 		@serverbuttons = true
 		
