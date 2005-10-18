@@ -307,7 +307,7 @@ module ReplyParser
     
 	#output the result of a whois
 	def reply_presence_status(reply)
-		network = @serverlist[reply.command['network'], reply.command['mypresence']]
+		network = @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]]
 		
 		reply.lines.each do |line|
 		
