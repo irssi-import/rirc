@@ -227,7 +227,7 @@ module CommandParser
     def cmd_quit(arguments, channel, network, presence)
         send_command('quit', 'quit')
         Gtk.main_quit
-        quit(false)
+        quit
     end
     
     #/shutdown command

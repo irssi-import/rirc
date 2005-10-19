@@ -1,3 +1,7 @@
+2005-10-19 17:00 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    A userlist sync will be called if a message from a user in that channel is not on the userlist (should probably find the root cause of this bug tho)
+
 2005-10-18 22:21 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Removed some Redundant UI elements from the network/presence manager and added some tooltips

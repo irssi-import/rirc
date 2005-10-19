@@ -347,6 +347,10 @@ module EventParser
         if event[OWN]
             channel.send_event(event, EVENT_USERMESSAGE)
         else
+            unless channel.users.include?(event[PRESENCE])
+                send_command('listchan-'+network.name+channel.name, "channel names;network="+network.name+";channel="+channel.name+";mypresence="+network.presence)
+                puts 'Forcing a userlist sync'
+            end
             channel.send_event(event, EVENT_MESSAGE)
         end
     end

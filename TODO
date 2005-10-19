@@ -24,6 +24,5 @@ Bugs:
     restoring colors from default doesn't work, the colors don't know they've been updated
     fix forking for windows, highlight script and link clicking mess up
     Make sure of elegant fallbacks when irssi2 fails to connect
-    If a message comes from a user not in the userlist, look for them and add them if possible
     Non UTF characters result in blank lines
     tabcomplete should put user's nick last, regardless
