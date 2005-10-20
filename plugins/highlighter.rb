@@ -47,18 +47,32 @@ class Highlighter < Plugin
             replacements = []
             
             $config['highlightstrings'].each do |term|
-                
-                if pattern.include?(term)
-                    exists = false
+                exists = false
+                replacement = nil
+                #check for a regexp
+                if term[0].chr == '/' and term[-1].chr == '/'
+                    #create a regexp object
+                    re = Regexp.new(term[1...-1], Regexp::IGNORECASE)
+                    
+                    md = re.match(pattern)
+                    
+                    replacement = md[0] if md
+                else
+                    if pattern.include?(term)
+                        replacement = term
+                    end
+                end
+                if replacement
                     replacements.each do |s|
-                        exists = true if s.include?(term)
+                        exists = true if s.include?(replacement)
                     end
-                    unless exists
-                        replace = true
-                        replacements.push(term)
-                        color = $config['highlightplugincolor'].to_hex
-                        pattern.gsub!(term, '<span color="'+color+'">'+term+'</span>')#you can change the highlight color here...
-                    end
+                end
+                
+                if !exists and replacement
+                    replace = true
+                    replacements.push(term)
+                    color = $config['highlightplugincolor'].to_hex
+                    pattern.gsub!(replacement, '<span color="'+color+'">'+replacement+'</span>')#you can change the highlight color here...
                 end
             end
             
@@ -79,8 +93,8 @@ class Highlighter < Plugin
         return [{'type' => Gdk::Color, 'name' => 'highlightplugincolor',
         'value' => value, 'description' => 'Highlight Color'},
         {'type' => Array, 'name' => 'highlightstrings', 
-        'value' => $config['highlightstrings'], 'description' => 'Strings to highlight',
-        'tooltip' => 'CSV list of strings to highlight'}]
+        'value' => $config['highlightstrings'], 'description' => 'Strings or Regexp to highlight',
+        'tooltip' => 'Comma seperated list of strings/regexps to highlight. Regexps are surrounded with /s'}]
     end
 end
 

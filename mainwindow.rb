@@ -481,102 +481,102 @@ class MainWindow
         switchchannel(chat)
     end
 	
-	def textview_on_click(widget, event)
-		x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
-		if event.button == 1
-			textview_go_link(widget, x, y)
-			return false
-		elsif event.button == 3
-			textview_popup_menu(widget, event, x, y)
-			return true
-		end
-	end
+	#~ def textview_on_click(widget, event)
+		#~ x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
+		#~ if event.button == 1
+			#~ textview_go_link(widget, x, y)
+			#~ return false
+		#~ elsif event.button == 3
+			#~ textview_popup_menu(widget, event, x, y)
+			#~ return true
+		#~ end
+	#~ end
 	
-	def textview_motion_notify(widget, event)
-		x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
-		textview_set_cursor(widget, x, y)
-		@x = event.x
-		@y = event.y
-		focus_input
-		return false
-	end
+	#~ def textview_motion_notify(widget, event)
+		#~ x, y = widget.window_to_buffer_coords(Gtk::TextView::WINDOW_WIDGET, event.x, event.y)
+		#~ textview_set_cursor(widget, x, y)
+		#~ @x = event.x
+		#~ @y = event.y
+		#~ focus_input
+		#~ return false
+	#~ end
 	
-	def textview_go_link(widget, x, y)
-		iter = widget.get_iter_at_location(x, y)
+	#~ def textview_go_link(widget, x, y)
+		#~ iter = widget.get_iter_at_location(x, y)
 		
-		iter.tags.each do |tag|
-			next unless tag.name
-			name = tag.name.split('_', 3)
-			if name[0]  == 'link'
-                link = to_uri(name[2])
-				fork{exec($config['linkclickaction'].sub('%s', link))}
-				break
-			end
-		end
+		#~ iter.tags.each do |tag|
+			#~ next unless tag.name
+			#~ name = tag.name.split('_', 3)
+			#~ if name[0]  == 'link'
+                #~ link = to_uri(name[2])
+				#~ fork{exec($config['linkclickaction'].sub('%s', link))}
+				#~ break
+			#~ end
+		#~ end
 		
-	end
+	#~ end
 	
-	def textview_popup_menu(widget, event, x, y)
-		iter = widget.get_iter_at_location(x, y)
-		menu = @defaultmenu
+	#~ def textview_popup_menu(widget, event, x, y)
+		#~ iter = widget.get_iter_at_location(x, y)
+		#~ menu = @defaultmenu
 		
-		iter.tags.each do |tag| 
-			next unless tag.name
-			name = tag.name.split('_', 3)
-			if name[0]  == 'link'
-				menu = create_link_popup(name[2])
-				break
-			elsif name[0] == 'user'
-				menu = create_user_popup(name[2])
-				break
-			end
-		end
+		#~ iter.tags.each do |tag| 
+			#~ next unless tag.name
+			#~ name = tag.name.split('_', 3)
+			#~ if name[0]  == 'link'
+				#~ menu = create_link_popup(name[2])
+				#~ break
+			#~ elsif name[0] == 'user'
+				#~ menu = create_user_popup(name[2])
+				#~ break
+			#~ end
+		#~ end
 		
-		menu.show_all
-		menu.popup(nil, nil, event.button, event.time)
-	end
+		#~ menu.show_all
+		#~ menu.popup(nil, nil, event.button, event.time)
+	#~ end
 	
-	def textview_set_cursor(textview, x, y)
-		hovering = false
+	#~ def textview_set_cursor(textview, x, y)
+		#~ hovering = false
 		
-		iter = textview.get_iter_at_location(x, y)
+		#~ iter = textview.get_iter_at_location(x, y)
 		
-		@highlighted.each do |tag|
-			tag.underline = Pango::AttrUnderline::NONE
-		end
+		#~ @highlighted.each do |tag|
+			#~ tag.underline = Pango::AttrUnderline::NONE
+		#~ end
 		
-		@highlighted = []
+		#~ @highlighted = []
 		
-		iter.tags.each do |tag|
-			next unless tag.name
-			name = tag.name.split('_', 3)
-			if name[0]  == 'link'
-				@highlighted.push(tag)
-				tag.underline = Pango::AttrUnderline::SINGLE
-				hovering = true
-				break
-			elsif name[0]  == 'user'
-				@highlighted.push(tag)
-				tag.underline = Pango::AttrUnderline::SINGLE
-				hovering = true
-				break
-			end
-			textview.signal_emit('populate_popup', @defaultmenu)
-		end
+		#~ iter.tags.each do |tag|
+			#~ next unless tag.name
+			#~ name = tag.name.split('_', 3)
+			#~ if name[0]  == 'link'
+				#~ @highlighted.push(tag)
+				#~ tag.underline = Pango::AttrUnderline::SINGLE
+				#~ hovering = true
+				#~ break
+			#~ elsif name[0]  == 'user'
+				#~ @highlighted.push(tag)
+				#~ tag.underline = Pango::AttrUnderline::SINGLE
+				#~ hovering = true
+				#~ break
+			#~ end
+			#~ textview.signal_emit('populate_popup', @defaultmenu)
+		#~ end
 
-        window = textview.get_window(Gtk::TextView::WINDOW_TEXT)
-		if hovering != @hoveringoverlink
-			@hoveringoverlink = hovering.deep_clone
-			if @hoveringoverlink
-				window.cursor = @linkcursor
-			else
-				window.cursor = @normalcursor
-			end
-		end
-		@glade['window1'].pointer
-		#I should probably change the GdkEventMask instead of this.... (or not...)
-        return false
-	end
+        #~ window = textview.get_window(Gtk::TextView::WINDOW_TEXT)
+		#~ if hovering != @hoveringoverlink
+			#~ @hoveringoverlink = hovering.deep_clone
+			#~ if @hoveringoverlink
+				#~ window.cursor = @linkcursor
+			#~ else
+				#~ window.cursor = @normalcursor
+			#~ end
+		#~ end
+		#~ @glade['window1'].pointer
+		#~ #I should probably change the GdkEventMask instead of this.... (or not...)
+        #~ return false
+	#~ end
 	
 	def create_link_popup(link)
 		menu = Gtk::Menu.new
@@ -613,6 +613,14 @@ class MainWindow
     
     def window_buttons(widget, event)
         x = event_to_string(event)
+        unless x
+            key = Gdk::Keyval.to_name(event.keyval)
+            if key == "Page_Up"
+                scroll_up
+            elsif key == "Page_Down"
+                scroll_down
+            end
+        end
         return unless x and $config['keybindings'][x]
         command, args = $config['keybindings'][x].split('(', 2)
         args ||= ''
@@ -641,6 +649,18 @@ class MainWindow
                 #~ LinkWindow.new(@currentbuffer.links)
             #~ end
         #~ end
+    end
+    
+    def scroll_up
+        adjustment = @messagescroll.vadjustment
+        adjustment.value =  adjustment.value - adjustment.page_increment
+    end
+    
+    def scroll_down
+        adjustment = @messagescroll.vadjustment
+        x = adjustment.value + adjustment.page_increment
+        x= adjustment.upper-adjustment.page_size if x > adjustment.upper-adjustment.page_size
+        adjustment.value = x
     end
     
     def switchtab(number)

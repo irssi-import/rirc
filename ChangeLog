@@ -1,3 +1,9 @@
+2005-10-20 21:55 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Tab complete always uses your current nick last
+    finish off /msg configurability
+    Highlighter plugin can now use regexps
+
 2005-10-19 17:00 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     A userlist sync will be called if a message from a user in that channel is not on the userlist (should probably find the root cause of this bug tho)

@@ -30,7 +30,7 @@ end
 module TabCompleteModule
 	def tabcomplete(substr)
 		if !@tabcomplete
-		
+            
 			if $config['tabcompletesort'] == 'activity'
 				#sort by activity
 				list = @users.sort{|x, y| y.lastspoke <=> x.lastspoke}
@@ -38,6 +38,13 @@ module TabCompleteModule
 				#otherwise, sort by name
 				list = @users.sort
 			end
+            
+            currentuser = @users[@server.username]
+            
+            if list.include?(currentuser)
+                list.delete(currentuser)
+                list.push(currentuser)
+            end 
 			
 			@tabcomplete = TabComplete.new(substr, list)
 			if @tabcomplete.firstmatch

@@ -267,8 +267,8 @@ class Buffer
                     value['#'] = '#0'
                 end
             end
-            
-            result.push(attribute+'="'+value+'"')
+            #puts attribute, value, style
+            result.push(attribute+'="'+value+'"') if attribute and value
         end
         
         return result.join(' ')
