@@ -151,6 +151,7 @@ class TabListModel
     end
     
     def add(item, group=false)
+        puts item.name
         if @structure == FLAT
             if @root.servers.include?(item)
                 (item.channels+item.chats).each {|e| add(e, true)}
@@ -204,15 +205,29 @@ class TabListModel
                         end
                         x.push(item, 0)
                         y = sort_with_predefined(x)
+                        #puts 
+                        #y.each {|k, v| puts k.name}
+                        #puts 
+                        #puts tab2number(y.keys[0])
                         y.each_with_index do |z, i|
+                            #puts z[0].name
                             if z[0] == item
                                 if i > 0
+                                    #puts i
+                                    #puts tab2number(y.keys[i-1])
                                     @numbers.insert(tab2number(y.keys[i-1]), item)
+                                #elsif i == 0
+                                #   #puts 'foo'
+                                #   num =  tab2number(y.keys[0])
+                                #   num ||= 0
+                                #   @numbers.insert(num, item)
                                 else
+                                    puts z[0].name+'foo'
                                     if y.length == 1
                                         if prev_server(s)
                                             v = @tree[@root][prev_server(s)]
                                             num = tab2number(v[-1])
+                                            #puts num
                                         else
                                             num = 0
                                         end
@@ -221,12 +236,17 @@ class TabListModel
                                         num = tab2number(l[0])
                                         if num
                                             num -= 1
+                                            #puts num
                                         end
                                         #@numbers.insert(tab2number(l[0])-1, item) if tab2number(l[0])
                                     end
                                     unless num
-                                        num=@numbers.length
+                                        #num =  tab2number(y.keys[0])
+                                        #num ||= 0
+                                        num = @numbers.length+1 - x.length
+                                        puts num
                                     end
+                                    puts num
                                     @numbers.insert(num, item)
                                 end
                                 if @tree[@root].class == Array
@@ -335,7 +355,7 @@ class TabListModel
     def draw_tree
         puts @root.name
         @tree[@root].each do |a, b|
-            puts "\t"+a.name if @structure == FLAT
+            puts "\t"+a.name if @structure != FLAT
             if b.methods.include?('each')
                 b.each do |c, d|
                     next if c == 0
