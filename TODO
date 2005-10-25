@@ -4,6 +4,9 @@ Big things:
     Dynamic scrollback fetching
     On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
     Clean up code, seperate functions into public/protected/private, standardize function/variable naming and lots more commenting (Ugh)
+    Add 'heavyweight' tab system and finish the 'lightweight' system
+    Abstract the GUI off the core
+    Add a proper interface for the scwview widget
     
 Little things:
     Make the right click menus more useful
@@ -11,9 +14,6 @@ Little things:
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
     "Diff" topics so you can see what changed...? (probably a plugin)
     Possible bindable actions: Close tab, next tab, previous tab, move tab left, move tab right (problem is that you sort alphabetically, though). Close all tabs but current Close all tabs, disconnect. some kind of alias that lets you set a command to be sent on the current buffer...
-    Add 'heavyweight' tab system and finish the 'lightweight' system
-    Abstract the GUI off the core
-    Add a proper interface for the scwview widget
     scroll wheel on tab bar?
     Add a fake ssh_askpass for when $SSH_ASKPASS is unset so we can only error out on that when needed
     Fix charsets_in and chatset_out setting
