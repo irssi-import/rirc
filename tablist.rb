@@ -151,7 +151,8 @@ class TabListModel
     end
     
     def add(item, group=false)
-        puts item.name
+        #puts caller
+        #puts item.name
         if @structure == FLAT
             if @root.servers.include?(item)
                 (item.channels+item.chats).each {|e| add(e, true)}
@@ -192,7 +193,7 @@ class TabListModel
                 end
 
                 @tree[@root] = temp
-                (item.channels+item.chats).each {|e| add(e, true)}
+                (item.channels+item.chats).each {|e| add(e, true) if e.connected}
                 changed
                 notify_observers(:add, item)
             else
@@ -222,7 +223,7 @@ class TabListModel
                                 #   num ||= 0
                                 #   @numbers.insert(num, item)
                                 else
-                                    puts z[0].name+'foo'
+                                    #puts z[0].name+'foo'
                                     if y.length == 1
                                         if prev_server(s)
                                             v = @tree[@root][prev_server(s)]
@@ -244,9 +245,9 @@ class TabListModel
                                         #num =  tab2number(y.keys[0])
                                         #num ||= 0
                                         num = @numbers.length+1 - x.length
-                                        puts num
+                                        #puts num
                                     end
-                                    puts num
+                                    #puts num
                                     @numbers.insert(num, item)
                                 end
                                 if @tree[@root].class == Array

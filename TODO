@@ -11,11 +11,11 @@ Little things:
     Hide/Disconnect/Disconnect & Close All right click options for network tabs.
     "Diff" topics so you can see what changed...? (probably a plugin)
     Possible bindable actions: Close tab, next tab, previous tab, move tab left, move tab right (problem is that you sort alphabetically, though). Close all tabs but current Close all tabs, disconnect. some kind of alias that lets you set a command to be sent on the current buffer...
-    Make Tab sorting configurable (Case sensitive, case insensitive, date of opening, date of most recent activity, date of your last activity)
-    Add predefined sorting that trumps the sorting algorithm
+    Add 'heavyweight' tab system and finish the 'lightweight' system
+    Abstract the GUI off the core
+    Add a proper interface for the scwview widget
     scroll wheel on tab bar?
     Add a fake ssh_askpass for when $SSH_ASKPASS is unset so we can only error out on that when needed
-    /msg opens a new tab insteadof waiting for a response(done, just add GUI hooks to make it configurable)
     Fix charsets_in and chatset_out setting
 
 Bugs:
