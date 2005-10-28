@@ -1,6 +1,7 @@
 Okay, even tho I'm technically on hiatus, I'm gonna detail the stuff I *wanted* to do on rirc to
 get the damned thing into beta. If nobody picks up the project before I come back, at least I'll
-remember what I was planning to do when development got hijacked. Anyone hacking on rirc should at least LOOK at this...
+remember what I was planning to do when development got hijacked. Anyone hacking on rirc should at
+least LOOK at this...
 
 buffers.rb does FAR too much, it needs to be broken up. At the very least, move the code dealing
 with inserting/appending/removing lines to the scwview(or any other view widget) out of there into
