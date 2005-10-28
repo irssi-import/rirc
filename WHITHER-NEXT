@@ -1,0 +1,38 @@
+Okay, even tho I'm technically on hiatus, I'm gonna detail the stuff I *wanted* to do on rirc to
+get the damned thing into beta. If nobody picks up the project before I come back, at least I'll
+remember what I was planning to do when development got hijacked. Anyone hacking on rirc should at least LOOK at this...
+
+buffers.rb does FAR too much, it needs to be broken up. At the very least, move the code dealing
+with inserting/appending/removing lines to the scwview(or any other view widget) out of there into
+its own file (this also helps with the plan of moving all the toolkit specific stuff out of the
+"core"). Also the channel userlist UI stuff should be farmed out somewhere and possibly the buffer_
+functions, like the event/command/reply functions are moved out of main.rb. Also,remove some of the
+stupid redundant code that's contributing to the memory bloat and make the buffers trim themselves.
+
+Add a proper interface for inserting/appending/removing lines to the view widget (eg. scwview),
+this should be as modular as possible so possibly the old gtk::textview can be re-added (by some
+poor sap who is NOT me, the textview makes my soul hurt), other GUIs, etc.
+
+In line with the previous tasks, move the rest of the UI stuff out of the core, mainwindow.rb is
+probably TOO bound to the toolkit, maybe use a baseclass and derive UI specific classes from it?
+tablist.rb also has UI specific frontends, tho the backend is UI agnostic. The other *window files
+probably will suffer the same fate as mainwindow. Once this is done, possibly implement a simple
+console frontend and just let any of those "I want qt/win32/ncurses/tk/motif/whateverthehellosxuses"
+users add the frontends themselves, this will add DIY to the list of acronyms I can spout at users
+when they nag. ;)
+
+In addition to the current "lightweight" tab system, add the "heavyweight" tab system detailed in "network-switching.txt" to keep the irssi IRC addicts happy. Also, fix it so the treeview tab view
+actually works well, and the button view overflows slightly more gracefully (I smell a custom
+widget :( ) Preferably this new model should be compatible with the same views as the lightweight
+tab system, doing a view for each model would suck. Of course this should be nicely configurable,
+etc, etc.
+
+Basicially those are the 4 things blocking this hitting beta status, they aren't trivial, but
+they're a lot smaller then some of the other stuff I've already done. Once these are done, all of
+the main features that I consider important will be at least partially implemented, or have the
+ground laid for them to be implemented. Of course irssi2's evolution will prompt new features in rirc, but I don't consider second guessing irssi2's development or subsequent irssi2 driven features to be blocking beta status.
+
+Ideally, I need to get my act together and ensure I write all new code with reasonable commenting
+and some unit testing so I can look for regressions, I have been very lax on this in the past and
+am paying for it now, I also need to go back over all the old code and clean/comment it, and if
+possible, write test cases for it. However this is becoming an ever more herculean task.
