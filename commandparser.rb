@@ -1,4 +1,4 @@
-module CommandParser    
+class Main   
     def command_parse(message, network, presence, channel)
 
         if network and !network.loggedin
@@ -77,6 +77,7 @@ module CommandParser
     end
     
     #/exec support, -o makes it output to the channel
+    help :cmd_exec, "executes a command, the -o switch makes it output to the channel"
     def cmd_exec(message, channel, network, presence)
         return unless message
         
@@ -104,6 +105,7 @@ module CommandParser
             
     end
     
+    help :cmd_message, "Sends a message to the channel"
     def cmd_message(message, channel, network, presence)
         #its not a command, treat as a message
         if network
@@ -128,12 +130,14 @@ module CommandParser
     end
     
     #/join command
+    help :cmd_join, "Join a channel. usage: /join <channel>"
     def cmd_join(arguments, channel, network, presence)
         return unless network and arguments
         send_command('join', 'channel join;network='+network.name+';mypresence='+presence+';channel='+arguments)
     end
     
     #/server command
+    help :cmd_server, "Define a server. usage: /server <name>:<protocol>:<address>[:<port>]"
     def cmd_server(arguments, channel, network, presence)
         if arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
             network_add($1, $2, $3, $4)
@@ -143,6 +147,7 @@ module CommandParser
     end
     
     #/connect command
+    help :cmd_connect, "Connect to a network. Usage: /connect <Network> <Presence>"
     def cmd_connect(arguments, channel, network, presence)
         unless arguments
             throw_error('Specify a network to connect to.')
@@ -161,6 +166,7 @@ module CommandParser
     end
     
     #/disconnect command
+    help :cmd_disconnect, "Disconnect from a network. Usage: /disconnect [Network]"
     def cmd_disconnect(arguments, channel, network,  *args)
         unless network
             if !arguments
@@ -205,6 +211,7 @@ module CommandParser
     end
     
     #/part command
+    help :cmd_part, "Leave a channel. Usage: /part [channel]"
     def cmd_part(arguments, channel, network, presence)
         unless network
             throw_error('/part does not function in this tab.')
@@ -224,6 +231,7 @@ module CommandParser
     end
     
     #/quit command
+    help :cmd_quit, "Quit RIRC"
     def cmd_quit(arguments, channel, network, presence)
         send_command('quit', 'quit')
         Gtk.main_quit
@@ -231,13 +239,33 @@ module CommandParser
     end
     
     #/shutdown command
+    help :cmd_shutdown, "Kill Icecapd and quit rirc"
     def cmd_shutdown(arguments, channel, network, presence)
         send_command('shutdown', 'shutdown')
         Gtk.main_quit
         quit
     end
     
+    help :cmd_topic, "Get or print the topic. Usage: /topic [newtopic]"
+    def cmd_topic(arguments, channel, network, presence)
+        unless channel
+            error_throw('/topic only functions in a channel tab')
+            return
+        end
+        
+        if arguments
+            $main.send_command('topicchange', 'channel change;network='+network.name+';mypresence='+network.presence+';channel='+channel.name+';topic='+escape(arguments))
+        else
+            puts channel.topic
+            event = {'init' => true, 'line'=>1, CHANNEL=>channel.name, TOPIC=>channel.topic}
+            @window.currentbuffer.send_user_event(event, EVENT_TOPIC)
+            #event = {'msg' => channel.topic}
+            #@window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+        end
+    end
+    
     #/silckey command
+    help :cmd_silckey, "non-functional"
     def cmd_silckey(arguments, channel, network, presence)
         if arguments =~ /^([^\s]+) ([^\s]+)(?: (\w+)|)$/
         pub = $1
@@ -265,6 +293,7 @@ module CommandParser
     end
     
     #/send command
+    help :cmd_send, "non-functional"
     def cmd_send(arguments, channel, network, presence)
         if arguments[0] == '~'[0]
             arguments.sub!('~', ENV['HOME'])#expand ~
@@ -282,6 +311,7 @@ module CommandParser
     end
     
     #/ruby command
+    help :cmd_ruby, "Blindly execute ruby code"
     def cmd_ruby(arguments, channel, network, presence)
         unless arguments
                 throw_error('Give me some code to execute')
@@ -292,6 +322,7 @@ module CommandParser
     end
     
     #/raw command
+    help :cmd_raw, "Send raw icecap messages to icecapd"
     def cmd_raw(arguments, channel, network, presence)
         unless arguments
             throw_error('Specify a string to send to the server')
@@ -302,6 +333,7 @@ module CommandParser
     end
     
     #/nick command
+    help :cmd_nick, "Change your nickname"
     def cmd_nick(arguments, channel, network, presence)
         unless network and arguments
             if !network
@@ -318,6 +350,7 @@ module CommandParser
     end
     
     #/whois command
+    help :cmd_whois, "Get the whois info on somebody"
     def cmd_whois(arguments, channel, network, presence)
         unless network
             throw_error('/whois command does not function in this tab.')
@@ -332,6 +365,7 @@ module CommandParser
     end
     
     #/msg command
+    help :cmd_msg, "Message another user. Usage: /msg <username> <message>"
     def cmd_msg(arguments, channel, network, presence)
         unless network
             throw_error('/msg does not function in this tab')
@@ -358,6 +392,7 @@ module CommandParser
         end
     end
     
+    help :cmd_query, "like /msg but doesn't open a new tab..?"
     def cmd_query(*args)
         cmd_msg(*args)
         if args[0]
@@ -376,21 +411,23 @@ module CommandParser
     end
     
     
-    def cmd_last(arguments, channel, network, presence)
-        id = channel.get_last_line_id(presence)
-        channel.replace_line(id, 'replacement'+rand(100).to_s)
-    end
+    #~ def cmd_last(arguments, channel, network, presence)
+        #~ id = channel.get_last_line_id(presence)
+        #~ channel.replace_line(id, 'replacement'+rand(100).to_s)
+    #~ end
     
-    def cmd_del(arguments, channel, network, presence)
-        id = channel.get_last_line_id(presence)
-        channel.delete_line(id)
-    end
+    #~ def cmd_del(arguments, channel, network, presence)
+        #~ id = channel.get_last_line_id(presence)
+        #~ channel.delete_line(id)
+    #~ end
     
+    help :cmd_me, "Does an emote"
     def cmd_me(message, channel, network, presence)
        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
        @window.currentbuffer.send_user_event({'msg'=>message, 'type'=>'action'}, EVENT_USERMESSAGE)
     end
     
+    help :cmd_networks, "List all defined networks"
     def cmd_networks(*args)
         lines = ['Defined networks:']
         @networks.list.each {|network| lines.push(network.name+' - '+network.protocol)}
@@ -403,6 +440,7 @@ module CommandParser
         end
     end
     
+    help :cmd_protocols, "List all supported protocols"
     def cmd_protocols(*args)
         lines = ['Defined protocols']
         @protocols.list.each {|protocol| lines.push(protocol.name+' - '+protocol.charset) }
@@ -415,6 +453,7 @@ module CommandParser
         end
     end
     
+    help :cmd_gateways, "List all defined gateways"
     def cmd_gateways(*args)
         lines = ['Defined gateways:']
         
@@ -445,6 +484,7 @@ module CommandParser
         #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
     end
     
+    help :cmd_presences, "List all defined presences"
     def cmd_presences(*args)
         lines = ['Defined Presences:']
         
@@ -473,14 +513,16 @@ module CommandParser
         #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
     end
     
-    def cmd_dump(*args)
     
-        File.open('dump', 'w+') do |f|
-            Marshal.dump(@networks, f)
-            Marshal.dump(@protocols, f)
-        end
-    end
+    #~ def cmd_dump(*args)
     
+        #~ File.open('dump', 'w+') do |f|
+            #~ Marshal.dump(@networks, f)
+            #~ Marshal.dump(@protocols, f)
+        #~ end
+    #~ end
+    
+    help :cmd_channels, "List all defined channels"
     def cmd_channels(*args)
         lines = ['Defined Channels:']
         
@@ -502,6 +544,7 @@ module CommandParser
         end
     end
     
+    help :cmd_load, "Specify a plugin to load. Usage: /load <name>"
     def cmd_load(arguments, channel, network, presence)
         unless arguments
             throw_error('Specify a plugin to load.')
@@ -510,6 +553,7 @@ module CommandParser
         plugin_load(arguments)
     end
     
+    help :cmd_unload, "Specify a plugin to unload. Usage: /unload <name>"
     def cmd_unload(arguments, *args)
         unless arguments
             throw_error('Specify a plugin to unload.')
@@ -522,6 +566,7 @@ module CommandParser
         end
     end
     
+    help :cmd_pluginlist, "List all loaded plugins"
     def cmd_pluginlist(*args)
         lines = ['Loaded Plugins:']
         plugins = Plugin.list
@@ -544,6 +589,7 @@ module CommandParser
         end
     end
     
+    help :cmd_alias, "Define an alias. Usage: /alias <aliasname> <aliascommand>"
     def cmd_alias(arguments, channel, network, presence)
         splitter = ' '
         if arguments.include?(' /')
@@ -562,6 +608,7 @@ module CommandParser
         $config['aliases'][original] = cmdalias
     end
     
+    help :cmd_unalias, "Remove an alias. Usage: /unalias <aliasname>"
     def cmd_unalias(arguments, channel, network, presence)
     
         cmd, other = arguments.split(' ', 2)
@@ -573,6 +620,7 @@ module CommandParser
         puts 'unaliased '+cmd
     end
     
+    help :cmd_aliases, "List all defined aliases"
     def cmd_aliases(*args)
         lines = ['Aliases:']
         
@@ -601,32 +649,59 @@ module CommandParser
         end
     end
     
+    help :cmd_help, "Get help on commands. Usage: /help [command]"
     def cmd_help(arguments, channel, network, presence)
-        helptext = "This is a list of the supported commands and their parameters:
-
-/server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
-/connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
-/disconnect <network> [<presence>] - Disconnect from the network
-/networks - List all defined networks.
-/presences - List all defined presences.
-/channels - list all defined channels.
-/join <channel>
-/part <channel>
-/msg <user> <message>
-/quit - Quit rirc, but leave irssi2 running.
-/shutdown - Quit rirc and kill irssi2.
-/send <file> Sends a file to irssi2 - buggy.
-/whois <username>
-/help - Displays this message
-        
-/raw <command> - Sends a raw command to irssi2, do NOT specify a tag.
-/ruby <command> - Sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces."
-        
-        lines = helptext.split("\n")
-        lines.each do |line|
-            temp = {'msg' => line}
-            @serverlist.send_user_event(temp, EVENT_NOTICE)
+        #puts 'help', self
+        #puts self.class.methods - self.class.superclass.methods
+        command_methods = (self.methods).select{|method| method =~ /^cmd_/}
+        if arguments
+            command_methods = command_methods.select{|method| method[4..-1] == arguments}
         end
+        return if command_methods.empty?
+        unless arguments
+            event = {'msg' => "Interactive help system"}
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+            event = {'msg' => ""}
+            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+        end
+        
+        command_methods.each do |method|
+            puts method
+            if self.help(method)
+                #puts $main.help(method.to_sym)
+                event = {'msg' => '/'+method[4..-1]+' : '+self.help(method).to_s}
+                @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
+            end
+        end
+            
     end
+    
+    #~ def cmd_help(arguments, channel, network, presence)
+        #~ helptext = "This is a list of the supported commands and their parameters:
+
+#~ /server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
+#~ /connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
+#~ /disconnect <network> [<presence>] - Disconnect from the network
+#~ /networks - List all defined networks.
+#~ /presences - List all defined presences.
+#~ /channels - list all defined channels.
+#~ /join <channel>
+#~ /part <channel>
+#~ /msg <user> <message>
+#~ /quit - Quit rirc, but leave irssi2 running.
+#~ /shutdown - Quit rirc and kill irssi2.
+#~ /send <file> Sends a file to irssi2 - buggy.
+#~ /whois <username>
+#~ /help - Displays this message
+        
+#~ /raw <command> - Sends a raw command to irssi2, do NOT specify a tag.
+#~ /ruby <command> - Sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces."
+        
+        #~ lines = helptext.split("\n")
+        #~ lines.each do |line|
+            #~ temp = {'msg' => line}
+            #~ @serverlist.send_user_event(temp, EVENT_NOTICE)
+        #~ end
+    #~ end
         
 end

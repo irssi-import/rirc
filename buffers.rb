@@ -5,32 +5,13 @@ class Buffer
     include PluginAPI
 	def initialize(name)
         @links = []
-        @view = Scw::View.new
-        @liststore = Gtk::ListStore.new(Scw::Timestamp, Scw::Presence, String, Scw::RowColor)
-        @view.model = @liststore
-        @view.align_presences = $config['scw_align_presences']
-        @view.scroll_on_append = true
-        @view.modify_font(Pango::FontDescription.new($config['main_font']))
-        @view.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-        @view.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-        @view.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-        @view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
-        @view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
-        @view.modify_text(Gtk::STATE_PRELIGHT, $config['scw_prelight'])
-        
-        @ids = {}
+
+        @view = BufferView.new
+        #@ids = {}
         
 		@commandbuffer = []
 		@currentcommand = ''
 		@commandindex = 0
-        
-        @view.signal_connect("activated") do |view,id,data|
-          puts "Activated #{id} with #{data}"
-          if id == 'url'
-                link = to_uri(data)
-				fork{exec($config['linkclickaction'].sub('%s', link))}
-            end
-        end
         
         @linebuffer = []
 
@@ -112,7 +93,7 @@ class Buffer
         time = time - $main.drift if $config['canonicaltime'] == 'server'
         line[TIME] = time
         line[ID] = 'client'+rand(1000).to_s
-        while @ids[line[ID]]
+        while @view.has_id? line[ID]
             line[ID] = 'client'+rand(1000).to_s
         end
         send_event(line, type)
@@ -122,22 +103,22 @@ class Buffer
 	def send_event(line, type, insert_location=BUFFER_END)
 		return if !@connected
         
-        if @ids[line[ID]]
+        if @view.has_id? line[ID]
             puts line[ID]
-            puts @ids[line[ID]]
+            puts @view.has_id?(line[ID])
             puts 'event already in buffer'
             return
         end
         
         raise ArgumentError unless line.class == Line
 		
-		if insert_location == BUFFER_END
-			#insert = @buffer.end_iter
-            @linebuffer.push(line)
-		elsif insert_location == BUFFER_START
-			#insert = @buffer.start_iter
-            @linebuffer.unshift(line)
-		end
+		#~ if insert_location == BUFFER_END
+			#~ #insert = @buffer.end_iter
+            #~ @linebuffer.push(line)
+		#~ elsif insert_location == BUFFER_START
+			#~ #insert = @buffer.start_iter
+            #~ @linebuffer.unshift(line)
+		#~ end
         
         pattern = ''
         
@@ -193,38 +174,64 @@ class Buffer
         
         #puts parse_tags(uname), parse_tags(pattern)
 		
-		if pattern.length > 0
+		unless pattern.nil?
 			#recolor
 			if insert_location == BUFFER_START
-                iter = @liststore.prepend
+                #iter = @liststore.prepend
+                @view.prepend([line[TIME].to_i, parse_tags(uname), parse_tags(pattern)], line[ID])
 			elsif insert_location == BUFFER_END
-                iter = @liststore.append
+                #iter = @liststore.append
+                @view.append([line[TIME].to_i, parse_tags(uname), parse_tags(pattern)], line[ID])
 			end
-            iter[0] = line[TIME].to_i
-            iter[1] = parse_tags(uname)
-            iter[2] = parse_tags(pattern)
-            @ids[line[ID]] = Gtk::TreeRowReference.new(@liststore, iter.path)
-            if insert_location == BUFFER_END
-                @last = @ids[line[ID]]
-                marklastread unless @lastread
-            end
+            #iter[0] = line[TIME].to_i
+            #iter[1] = parse_tags(uname)
+            #iter[2] = parse_tags(pattern)
+            #@ids[line[ID]] = Gtk::TreeRowReference.new(@liststore, iter.path)
+            #puts @ids[line[ID]]
+            #if insert_location == BUFFER_END
+            #    @last = @view.lines[line[ID]]
+            #    marklastread unless @lastread
+            #end
+            #trim
 		end
 			
 	end
     
+    #~ def trim
+        #~ return unless @ids.length > 200
+        #~ lines = @ids.sort{|x, y| x.path <=> y.path}
+        #~ while lines.length > 200
+            #~ puts lines[0]
+            #~ iter = lines.shift
+            #~ @liststore.remove(iter)
+            #~ puts "Trimming #{iter.path}"
+        #~ end
+        #~ (@ids.length-200).times do |x|
+            #~ @liststore.remove(@liststore.iter_first)
+            #~ #puts 'trimming'
+        #~ end
+        #~ @ids = Hash[*@ids.select{|x, y| y.nil? or y.valid?}.flatten]
+        
+    #~ end
+    
     def marklastread
-        return unless @last
-        #puts 'marking line '+@last.path
-        iter = @liststore.get_iter(@last.path)
+        @view.marklastread
+        #~ return unless @last
+        #~ #puts 'marking line '+@last.path
+        #~ iter = @liststore.get_iter(@last.path)
         
-        if @lastread
-            iter2 = @liststore.get_iter(@lastread.path)
-            iter2[3] = ''
-        end
+        #~ begin
+        #~ if @lastread and @lastread.valid?
+            #~ iter2 = @liststore.get_iter(@lastread.path)
+            #~ iter2[3] = ''
+        #~ end
+        #~ rescue ArgumentError
+            #~ puts @lastread, @lastread.valid?
+        #~ end
         
-        iter[3] = $config['scw_lastread'].to_hex
+        #~ iter[3] = $config['scw_lastread'].to_hex
         
-        @lastread = @last
+        #~ @lastread = @last
     end
     
     def xhtml_im2pango(string)
@@ -374,10 +381,8 @@ class Buffer
             if line[MSG_XHTML]
                 pattern = escape_xml(pattern)
                 pattern['%m'] = xhtml_im2pango(line[MSG_XHTML])
-            elsif line[MSG]
-                pattern['%m'] = line[MSG]
-                pattern = escape_xml(pattern)
             else
+                pattern['%m'] = line[MSG].to_s
                 pattern = escape_xml(pattern)
             end
         end

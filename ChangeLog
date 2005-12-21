@@ -1,3 +1,11 @@
+2005-12-21 22:35 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Lots and lots of changes
+    Added buffer size limiting (100 lines)
+    Added new help system - documented programatically, allows plugins to self document
+    Began restructuring to allow toolkit seperation
+    Fixed numerous small bugs
+
 2005-10-20 21:55 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Tab complete always uses your current nick last

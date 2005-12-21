@@ -164,7 +164,7 @@ module EventParser
             #@window.redraw_channellist
             #switchchannel(channel)
             @tabmodel.set_active(channel)
-            send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(mypresence='+network.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))')
+            send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(mypresence='+network.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))(time>1)')
         elsif channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]] and !channel.connected
             puts 'channel exists, but is not connected, reconnecting'
             channel.reconnect

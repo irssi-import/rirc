@@ -5,6 +5,7 @@ class Highlighter < Plugin
         $config.set_value('highlightplugincolor', Gdk::Color.new(65535, 65535, 0)) unless $config['highlightplugincolor']
         
         #/add_highlight adds a highlight
+        help :cmd_add_highlight, "Add a highlight string"
         add_method(self, Main, 'cmd_add_highlight') do |args, channel, network, presence|
         
             unless $config['highlightstrings'].include?(args)
@@ -17,6 +18,7 @@ class Highlighter < Plugin
         end
         
         #/del_highlight removes a highlight
+        help :cmd_del_highlight, "Delete a highlight string"
         add_method(self, Main, 'cmd_del_highlight') do |args, channel, network, presence|
         
             if $config['highlightstrings'].include?(args)
@@ -26,6 +28,7 @@ class Highlighter < Plugin
         end
         
         #/highlights lists defined highlights
+        help :cmd_highlights, "List all highlight strings"
         add_method(self, Main, 'cmd_highlights') do |args, channel, network, presence|
             
             lines = ['Defined Highlights:']
@@ -39,7 +42,7 @@ class Highlighter < Plugin
                 @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
             end
         end
-    
+        
         add_callback_after(self, Buffer, 'buffer_message') do |local, uname, pattern, users, insert_location|
             #puts uname, pattern, users, insert_location
         

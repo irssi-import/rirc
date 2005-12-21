@@ -90,8 +90,9 @@ class Reply
 	end
     
     def finish
-        @lines.sort!{|x, y| x[ID] <=> y[ID]}
-        @lines.sort!{|x, y| x[TIME].to_i <=> y[TIME].to_i}
+        #@lines.sort!{|x, y| x[ID] <=> y[ID]}
+        #@lines.sort!{|x, y| x[TIME].to_i <=> y[TIME].to_i}
+        @lines = @lines.sort_by {|l| [l[ID], l[TIME].to_i]}
         #@complete = true
     end
 end

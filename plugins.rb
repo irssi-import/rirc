@@ -339,6 +339,10 @@ class Plugin
         plugin.load
     end
     
+    def help(a, b)
+        self.class.help(a, b)
+    end
+    
     #unload a plugin and remove all methods/callbacks added by it...
     def self.unregister(plugin)
     
@@ -495,6 +499,10 @@ class PluginConfig
                     widget = Gtk::Entry.new
                     widget.text = option['value'] if option['value']
                     widget.signal_connect('changed') {|widget| text_changed(widget)}
+                elsif option['type'] == Integer
+                    widget = Gtk::Entry.new
+                    widget.text = option['value'].to_s if option['value']
+                    widget.signal_connect('changed') {|widget| integer_changed(widget)}
                 elsif option['type'] == TrueClass
                     widget = Gtk::CheckButton.new#(option['description'])
                     widget.active = false
@@ -529,6 +537,10 @@ class PluginConfig
     
     def text_changed(widget)
         change_setting(widget, widget.text)
+    end
+    
+    def integer_changed(widget)
+        change_setting(widget, widget.text.to_i)
     end
     
     def array_changed(widget)

@@ -229,7 +229,7 @@ class Configuration
 	
 	#decode values retrieved from irssi2
 	def decode_value(value)
-        value = unescape(value)
+        value = unescape(value) if value
 		if value =~ /^color\:(\d+)\:(\d+)\:(\d+)$/
 			return Gdk::Color.new($1.to_i, $2.to_i, $3.to_i)
         elsif value =~ /^array\:(.*?)$/

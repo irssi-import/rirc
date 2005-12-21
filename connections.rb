@@ -9,11 +9,12 @@ class SSHConnection
 		cmdstring += '-l '+settings['username']+' ' if settings['username']
         cmdstring += '-p '+settings['port']+' ' if settings['port']
 		cmdstring += settings['host']+' '+settings['binpath']
-        #puts cmdstring
+        puts cmdstring
 		@input, @output, @error = Open3.popen3(cmdstring)
+        #puts @output.gets
 
 		begin
-			@output.expect(/^\*;preauth;time=(\d+)\n/) do |x, y|
+			@output.expect(/^\*;preauth;time=(\d+);$/) do |x, y|
 				connectionwindow.send_text('logged in')
 				$main.calculate_clock_drift(y)
 			end

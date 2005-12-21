@@ -9,6 +9,7 @@ require 'yaml'
 require 'scw'
 require 'observer'
 require 'contrib/orderedhash'
+require 'iconv'
 
 if RUBY_PLATFORM.include?('win32')
 	$platform = 'win32'
@@ -158,8 +159,12 @@ def to_uri(uri)
     end
 end
 
+$:.unshift 'gtk'
+
 #load all my home rolled ruby files here
+require 'help'
 require 'constants'
+require 'queue'
 require 'lines'
 require 'configuration'
 require 'items'
@@ -169,6 +174,7 @@ require 'eventparser'
 require 'replyparser'
 require 'tabcomplete'
 require 'users'
+require 'bufferview'
 require 'buffers'
 require 'replies'
 require 'connections'
@@ -187,7 +193,7 @@ class Main
     include PluginAPI
     include EventParser
     include ReplyParser
-    include CommandParser
+    #include CommandParser
 	def initialize
         @tabmodel = TabListModel.new
 		@serverlist = RootBuffer.new(self)
@@ -204,6 +210,11 @@ class Main
         @networks = ItemList.new(Network)
         @protocols = ItemList.new(Protocol)
         @quitting = false
+        @inputqueue = MessageQueue.new
+        @outputqueue = MessageQueue.new
+        
+        @inputwatcher = Watcher.new(@inputqueue) {|x| command_parse(*x)}
+        @outputwatcher = Watcher.new(@outputqueue) {|x| handle_output(x)}
 	end
     
 	#start doing stuff
@@ -275,7 +286,7 @@ class Main
                 
                 server.channels.each do |channel|
                     if !channel.eventsync and channel.connected
-                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))')
+                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))(time>1)')
                         while !channel.eventsync
                             #puts 'event sleeping', channel.name
                             sleep 2
@@ -405,6 +416,14 @@ class Main
 	line = Line[MSG => 'Client Message: '+message]
 	buffer.send_user_event(line, EVENT_NOTICE)
 	end
+    
+    def queue_input(msg)
+        @inputqueue.enq(msg)
+    end
+    
+    def queue_output(msg)
+        @outputqueue.enq(msg)
+    end
 	
 	#split by line and parse each line
 	def parse_lines(string)
@@ -412,7 +431,7 @@ class Main
 		
 		lines.each do |line|
             $main.serverlist.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
-			handle_output(line)
+			queue_output(line)
 		end
 	end
 	
@@ -431,9 +450,7 @@ class Main
 			cmdstr = tag+';'+command+"\n"
 		end
 		
-        if $args['debug']
-            puts(cmdstr)
-        end
+        puts '[SENT]: '+cmdstr unless cmdstr =~ /^[^:]:msg/i
 
 		sent = @connection.send(cmdstr)
 		
@@ -446,6 +463,7 @@ class Main
 	
 	#handle output from irssi2
 	def handle_output(string)
+        string = Iconv.new("UTF-8", "UTF-8//IGNORE").iconv(string)
 		return if string.length == 0
 		line= Line.new
 		re = /(^[^\*]+);([+\->]+)(.*)$/
@@ -589,23 +607,5 @@ class Main
 		puts 'bye byeeeeee...'
 		exit
 	end
-end
-
-#start the ball rolling...
-if $args['debug']
-    puts 'no rescue'
-    $config = Configuration.new
-	$main = Main.new
-	$main.start
-else
-    begin
-        $config = Configuration.new
-        $main = Main.new
-        $main.start
-    rescue Interrupt => detail
-        puts 'got keyboard interrupt'
-        $main.window.quit
-        $main.quit
-    end
 end
 

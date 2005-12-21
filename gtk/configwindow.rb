@@ -122,7 +122,7 @@ class ConfigWindow
 	end
 
 	def change_setting(widget, setting)
-		puts 'changed setting of '+widget.name+' to '+setting.to_s
+		#puts 'changed setting of '+widget.name+' to '+setting.to_s
 		@configarray[widget] = {'name' => widget.name, 'value' => setting}
 	end
 	
@@ -165,7 +165,7 @@ class ConfigWindow
 	end
 	
     def font_changed(widget)
-        puts 'changed font'+widget.font_name
+        #puts 'changed font'+widget.font_name
         change_setting(widget, widget.font_name)
     end
     
