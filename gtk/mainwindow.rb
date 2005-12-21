@@ -55,7 +55,7 @@ class MainWindow
 		@currentbuffer = @serverlist
 		drawuserlist(false)
 		#@messages.buffer = @serverlist.buffer
-        @messagescroll.add(@serverlist.view)
+        @messagescroll.add(@serverlist.view.view)
         #@messages.show_all
 		@connection = nil
         
@@ -105,6 +105,7 @@ class MainWindow
 	end
 	
 	def draw_from_config(unhide=true)
+        puts 'drawing'
         return if $main.quitting
 		#@serverlist.redraw
 		redraw_channellist
@@ -135,11 +136,11 @@ class MainWindow
         
         @font = Pango::FontDescription.new($config['main_font'])
         
-        update_view(@serverlist.view)
+        update_view(@serverlist.view.view)
         @serverlist.servers.each do |server|
-            update_view(server.view)
-            server.channels.each {|channel| update_view(channel.view)}
-            server.chats.each {|chat| update_view(chat.view)}
+            update_view(server.view.view)
+            server.channels.each {|channel| update_view(channel.view.view)}
+            server.chats.each {|chat| update_view(chat.view.view)}
         end
         
         #TODO - figure out how to set the cursor-color style var (its undocumented, might not be in ruby-gtk2)
@@ -323,12 +324,12 @@ class MainWindow
 		@messageinput.select_region(0, 0)
 		@messageinput.position=-1
         @messagescroll.children.each {|child| @messagescroll.remove(child)}
-        @messagescroll.add(@currentbuffer.view)
+        @messagescroll.add(@currentbuffer.view.view)
         @messagescroll.show_all
         
         @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
 		@usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-        @currentbuffer.view.scroll_to_end
+        @currentbuffer.view.view.scroll_to_end
         @messageinput.grab_focus
 	end
     
@@ -407,7 +408,8 @@ class MainWindow
 		
 		message = widget.text
         #puts '"'+message+'"'
-		$main.command_parse(message, network, presence, @currentbuffer)
+		#$main.command_parse(message, network, presence, @currentbuffer)
+		$main.queue_input([message, network, presence, @currentbuffer])
 		widget.text = ''
         @currentbuffer.gotolastcommand
 	end
