@@ -57,6 +57,26 @@ module ReplyParser
             end
         end
     end
+    
+    def reply_msg(line, network, channel, reply)
+        if line['msg_reply'] and reply.lineref
+            puts reply.name, reply.command[NETWORK], reply.command[CHANNEL], reply.command[MYPRESENCE]
+            if reply.command[NETWORK] and reply.command[CHANNEL] and reply.command[MYPRESENCE]
+                channel = @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]][reply.command[CHANNEL]]
+                puts reply.command[:type]
+                #hack to handle actions
+                #TODO: try to do this a better way
+                if reply.command[:type] == 'action'
+                    iter = channel.view.get_line(reply.lineref)
+                    puts iter[2], channel.server.username
+                    start, rest = iter[2].split(channel.server.username)
+                    line['msg_reply'] = start+channel.server.username+' '+line['msg_reply']
+                end
+                channel.view.update_line(reply.lineref, line['msg_reply'])
+            end
+            #@window.view.
+        end
+    end
 
     #sending a file
     def reply_file_send(line, network, channel, reply)

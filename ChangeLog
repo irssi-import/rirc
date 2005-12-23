@@ -1,3 +1,8 @@
+2005-12-23 01:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    RIRC now obeys the msg_reply field for message replies triggered by charset conversions
+    various minor fixes
+
 2005-12-21 22:35 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Lots and lots of changes

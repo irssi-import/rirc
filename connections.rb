@@ -83,7 +83,7 @@ class LocalConnection
 		@error = nil
 		@input, @output, @error = Open3.popen3(settings['binpath'])
 		begin
-			@output.expect(/^\*;preauth;time=(\d+)\n/) do |x, y|
+			@output.expect(/^\*;preauth;time=(\d+);\n/) do |x, y|
 				connectionwindow.send_text('logged in')
 				$main.calculate_clock_drift(y)
 			end

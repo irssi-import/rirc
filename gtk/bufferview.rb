@@ -30,10 +30,32 @@ class BufferView
         line.each_with_index do |item, i|
             iter[i] = item
         end
-        @lines.push([id, Gtk::TreeRowReference.new(@liststore, iter.path)])
+        
+        lineref = Gtk::TreeRowReference.new(@liststore, iter.path)
+        @lines.push([id, lineref])
         trim
         #puts 'done'
         marklastread unless @lastread
+        return lineref
+    end
+    
+    def update_line(lineref, text)
+        item = @lines.detect{|x| x[1] == lineref}
+        puts item
+        if item and item[1]
+            iter = @liststore.get_iter(item[1].path)
+            @liststore.set_value(iter, 2, text)
+        else
+            puts 'invalid'
+        end
+    end
+    
+    def get_line(lineref)
+        item = @lines.detect{|x| x[1] == lineref}
+        if item and item[1]
+            iter = @liststore.get_iter(item[1].path)
+            return iter
+        end
     end
     
     def prepend(line, id)
@@ -41,17 +63,20 @@ class BufferView
         line.each_with_index do |item, i|
             iter[i] = item
         end
-        @lines.unshift([id, Gtk::TreeRowReference.new(@liststore, iter.path)])
+        
+        lineref = Gtk::TreeRowReference.new(@liststore, iter.path)
+        @lines.unshift([id, lineref])
         trim
+        return lineref
     end
     
     def remove_id(id)
-        item = @liststore.detect{|x| x[0] == id}
+        item = @lines.detect{|x| x[0] == id}
         @liststore.remove(@liststore.get_iter(item[1].path))
     end
     
     def remove_path(path)
-        item = @liststore.detect{|x| x[1].path == path}
+        item = @lines.detect{|x| x[1].path == path}
         @liststore.remove(@liststore.get_iter(item[1].path))
     end
     

@@ -253,7 +253,7 @@ class Configuration
 		elsif value == 'false'
 			return false
 		else
-            if(value[0,3] == '---')#check if its YAML
+            if value and (value[0,3] == '---')#check if its YAML
                 begin
                     value = YAML::load(value.gsub("\\n", "\n"))
                 rescue ArgumentError

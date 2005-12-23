@@ -441,7 +441,7 @@ class Main
             disconnect
 			return
 		end
-
+        
 		@replies[tag] = Reply.new(tag, command)
 		
 		if length
@@ -451,7 +451,7 @@ class Main
 		end
 		
         puts '[SENT]: '+cmdstr unless cmdstr =~ /^[^:]:msg/i
-
+        
 		sent = @connection.send(cmdstr)
 		
 		if !sent
@@ -459,11 +459,12 @@ class Main
 			disconnect
 			@connectionwindow = ConnectionWindow.new unless @xonnectionwindow and @connectionwindow.open
 		end
+        return @replies[tag]
 	end
 	
 	#handle output from irssi2
 	def handle_output(string)
-        string = Iconv.new("UTF-8", "UTF-8//IGNORE").iconv(string)
+        #string = Iconv.new("UTF-8", "UTF-8//IGNORE").iconv(string)
 		return if string.length == 0
 		line= Line.new
 		re = /(^[^\*]+);([+\->]+)(.*)$/

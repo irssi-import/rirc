@@ -94,12 +94,13 @@ class Main
             res.split("\n").each do |msg|
                 if output
                     if channel.class == ChannelBuffer
-                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                        reply = send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
                     elsif channel.class == ChatBuffer
-                        send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
+                        reply = send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(msg)+";mypresence="+presence)
                     end
                 end
-                @window.currentbuffer.send_user_event({'msg' => msg}, EVENT_USERMESSAGE)
+                lineref = @window.currentbuffer.send_user_event({'msg' => msg}, EVENT_USERMESSAGE)
+                reply.lineref = lineref
             end
         end
             
@@ -114,14 +115,15 @@ class Main
             messages.each do |message|
                 
                 if channel.class == ChannelBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";mypresence="+presence)
+                    rep = send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";mypresence="+presence)
                 elsif channel.class == ChatBuffer
-                    send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(message)+";mypresence="+presence)
+                    rep = send_command('message'+rand(100).to_s, 'msg;network='+network.name+';presence='+channel.name+';msg='+escape(message)+";mypresence="+presence)
                 end
                 line = {}
                 line[PRESENCE] = presence
                 line[MSG] = message
-                @window.currentbuffer.send_user_event(line, EVENT_USERMESSAGE)
+                lineref = @window.currentbuffer.send_user_event(line, EVENT_USERMESSAGE)
+                rep.lineref = lineref
             end
         elsif !network
             #line = {}
@@ -423,8 +425,9 @@ class Main
     
     help :cmd_me, "Does an emote"
     def cmd_me(message, channel, network, presence)
-       send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";presence="+presence+';type=action')
-       @window.currentbuffer.send_user_event({'msg'=>message, 'type'=>'action'}, EVENT_USERMESSAGE)
+       reply = send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";mypresence="+presence+';type=action')
+       lineref = @window.currentbuffer.send_user_event({'msg'=>message, 'type'=>'action'}, EVENT_USERMESSAGE)
+       reply.lineref = lineref
     end
     
     help :cmd_networks, "List all defined networks"

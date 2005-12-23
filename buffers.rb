@@ -178,10 +178,10 @@ class Buffer
 			#recolor
 			if insert_location == BUFFER_START
                 #iter = @liststore.prepend
-                @view.prepend([line[TIME].to_i, parse_tags(uname), parse_tags(pattern)], line[ID])
+                return @view.prepend([line[TIME].to_i, parse_tags(uname), parse_tags(pattern)], line[ID])
 			elsif insert_location == BUFFER_END
                 #iter = @liststore.append
-                @view.append([line[TIME].to_i, parse_tags(uname), parse_tags(pattern)], line[ID])
+                return @view.append([line[TIME].to_i, parse_tags(uname), parse_tags(pattern)], line[ID])
 			end
             #iter[0] = line[TIME].to_i
             #iter[1] = parse_tags(uname)
