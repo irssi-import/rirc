@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+
 require 'libglade2'
 require 'socket'
 require 'rbconfig'

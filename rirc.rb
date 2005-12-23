@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'main'
 
 $0 = "rirc"
