@@ -92,7 +92,6 @@ class LocalConnection
             end
         else
             exists = false
-            puts ENV['PATH'].split(':')
             ENV['PATH'].split(':').each do |d| #: is not windows compatible, but that's not really relevant
                 puts d
                 if File.exists? d+'/'+settings['binpath']

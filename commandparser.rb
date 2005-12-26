@@ -32,7 +32,6 @@ class Main
             puts 'Error parsing commmand : '+$!
             puts exception.backtrace
         end
-        
     end
     
     def check_aliases(command)

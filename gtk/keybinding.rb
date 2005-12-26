@@ -180,7 +180,7 @@ class KeyBindingWindow < SingleWindow
     end
     
     def ok_clicked
-        $config.set_value('keybindings', save_bindings)
+        $config['keybindings'] = save_bindings
         destroy
     end
     

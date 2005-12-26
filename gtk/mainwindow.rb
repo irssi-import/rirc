@@ -1,63 +1,63 @@
 
 class MainWindow
-	attr_reader :currentbuffer, :tabmodel
+    attr_reader :currentbuffer, :tabmodel
     include KeyBind
-	def initialize
-		@glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
-		
-		@channelbuttonlock = false
-		
-		@serverlist = $main.serverlist
-		@usernamebutton = @glade["username"]
-		@topic = @glade["topic"]
-		@messageinput = @glade["message_input"]
-		@messagescroll = @glade['message_scroll']
+    def initialize
+        @glade = GladeXML.new("glade/rirc.glade") {|handler| method(handler)}
+        
+        @channelbuttonlock = false
+        
+        @serverlist = $main.serverlist
+        @usernamebutton = @glade["username"]
+        @topic = @glade["topic"]
+        @messageinput = @glade["message_input"]
+        @messagescroll = @glade['message_scroll']
         @messagevadjustment = @messagescroll.vadjustment
         
         @tooltips = Gtk::Tooltips.new
 		
-		@messageinput.grab_focus
-		@messageinput.signal_connect("key_press_event") do |widget, event|
-			if event.keyval == Gdk::Keyval.from_name('Tab')
-				if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
-					substr = get_completion_substr
-					nick = @currentbuffer.tabcomplete(substr) if substr
-					replace_completion_substr(substr, nick) if nick
-				end
-			else
-				if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
-					@currentbuffer.clear_tabcomplete
-				end
-			end
-			
-			if event.keyval == Gdk::Keyval.from_name('Up')
+        @messageinput.grab_focus
+        @messageinput.signal_connect("key_press_event") do |widget, event|
+            if event.keyval == Gdk::Keyval.from_name('Tab')
+                if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
+                    substr = get_completion_substr
+                    nick = @currentbuffer.tabcomplete(substr) if substr
+                    replace_completion_substr(substr, nick) if nick
+                end
+            else
+                if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
+                    @currentbuffer.clear_tabcomplete
+                end
+            end
+                
+            if event.keyval == Gdk::Keyval.from_name('Up')
                 storecommand(false)
-				getlastcommand
-			elsif event.keyval == Gdk::Keyval.from_name('Down')
+                getlastcommand
+            elsif event.keyval == Gdk::Keyval.from_name('Down')
                 storecommand
-				getnextcommand
-			elsif event.keyval == Gdk::Keyval.from_name('Tab')
-				true
-			end
-		end
+                getnextcommand
+            elsif event.keyval == Gdk::Keyval.from_name('Tab')
+                true
+            end
+        end
         
         #TODO, make this work only if the end of the buffer is visible?
         #force a scroll to end on resize events
         #@messages.signal_connect('size_allocate') { || scroll_to_end(@currentbuffer, true); false}
 
-		#@userbar = @glade['userbar']
-		@userlist = @glade['userlist']
-		@panel = @glade['hpaned1']
-		@mainbox = @glade['mainbox']
-		@messagebox = @glade['vbox2']
-		@preferencesbar = @glade['preferencesbar']
-		@usercount = @glade['usercount']
-		@currentbuffer = @serverlist
-		drawuserlist(false)
-		#@messages.buffer = @serverlist.buffer
+        #@userbar = @glade['userbar']
+        @userlist = @glade['userlist']
+        @panel = @glade['hpaned1']
+        @mainbox = @glade['mainbox']
+        @messagebox = @glade['vbox2']
+        @preferencesbar = @glade['preferencesbar']
+        @usercount = @glade['usercount']
+        @currentbuffer = @serverlist
+        drawuserlist(false)
+        #@messages.buffer = @serverlist.buffer
         @messagescroll.add(@serverlist.view.view)
         #@messages.show_all
-		@connection = nil
+        @connection = nil
         
         even = $config['scw_even'].to_hex
         odd = $config['scw_odd'].to_hex
@@ -102,18 +102,17 @@ class MainWindow
         @bindable_functions.push({'name' => 'open_networks', 'arguments' => 0})
         @bindable_functions.push({'name' => 'open_keybindings', 'arguments' => 0})
         #@keyintmap = {'q' => 11, 'w' => 12, 'e' => 13, 'r' => 14, 't'=> 15, 'y' => 16, 'u' => 17, 'i' => 18, 'o' => 19, 'p' => 20}
-	end
+    end
 	
-	def draw_from_config(unhide=true)
+    def draw_from_config(unhide=true)
         puts 'drawing'
         return if $main.quitting
-		#@serverlist.redraw
-		redraw_channellist
+        #@serverlist.redraw
+        redraw_channellist
+        #resize the window if we have some saved sizes...
+        x = -1
+        y = -1
         
-		#resize the window if we have some saved sizes...
-		x = -1
-		y = -1
-		
         x = $config['windowwidth'].to_i if $config['windowwidth']
 		y = $config['windowheight'].to_i if $config['windowheight']
         
@@ -127,12 +126,12 @@ class MainWindow
         odd = $config['scw_odd'].to_hex
         
         Gtk::RC.parse_string("style \"scwview\" {
-                      ScwView::even-row-color = \"#{even}\"
-                       ScwView::odd-row-color = \"#{odd}\"
-                       ScwView::column-spacing = 5
-                       ScwView::row-padding = 2
-                       }\n
-                       widget \"*.ScwView\" style \"scwview\"")
+                        ScwView::even-row-color = \"#{even}\"
+                        ScwView::odd-row-color = \"#{odd}\"
+                        ScwView::column-spacing = 5
+                        ScwView::row-padding = 2
+                        }\n
+                        widget \"*.ScwView\" style \"scwview\"")
         
         @font = Pango::FontDescription.new($config['main_font'])
         
@@ -149,8 +148,8 @@ class MainWindow
         if unhide
             @glade['window1'].show_all
         end
-		@messageinput.grab_focus
-	end
+        @messageinput.grab_focus
+    end
     
     def update_view(view)
         view.reset_rc_styles
@@ -165,7 +164,7 @@ class MainWindow
         view.modify_font(@font)
     end
 	
-	def redraw_channellist
+    def redraw_channellist
         if @tablist
             if @glade['h_top'].children.include?(@tablist.widget)
                 @glade['h_top'].remove(@tablist.widget)
@@ -178,7 +177,7 @@ class MainWindow
         
         if $config['tablisttype'] == 'treeview'
             if $config['tablistposition'] != 'right' and $config['tablistposition'] != 'left' and $config['tablistposition'] != 'underuserlist'
-                $config.set_value('tablistposition', 'left')
+                $config['tablistposition'] = 'left'
             end
             unless @tablist.class == TreeTabList
                 $main.tabmodel.delete_observer(@tablist)
@@ -201,21 +200,21 @@ class MainWindow
         $main.tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
         @tablist.renumber
             
-		if $config['tablistposition'] == 'right'
-			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
-		elsif $config['tablistposition'] == 'left'
-			@glade['h_top'].pack_start(@tablist.widget, false, false, 5)
-			@glade['h_top'].reorder_child(@tablist.widget, 0)
-		elsif $config['tablistposition'] == 'top'
-			@glade['v_top'].pack_start(@tablist.widget, false, false, 5)
-			@glade['v_top'].reorder_child(@tablist.widget, 0)
-		elsif $config['tablistposition'] == 'bottom'
-			@glade['v_top'].pack_start(@tablist.widget, false, false, 5)
+        if $config['tablistposition'] == 'right'
+            @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
+        elsif $config['tablistposition'] == 'left'
+            @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
+            @glade['h_top'].reorder_child(@tablist.widget, 0)
+        elsif $config['tablistposition'] == 'top'
+            @glade['v_top'].pack_start(@tablist.widget, false, false, 5)
+            @glade['v_top'].reorder_child(@tablist.widget, 0)
+        elsif $config['tablistposition'] == 'bottom'
+            @glade['v_top'].pack_start(@tablist.widget, false, false, 5)
         elsif $config['tablistposition'] == 'underuserlist'
             @glade['u_pane'].pack2(@tablist.widget, false, true)
-		end
-		#@tablist.widget.show_all
-	end
+        end
+        #@tablist.widget.show_all
+    end
 	
 	def set_username
         x = nil
@@ -442,9 +441,9 @@ class MainWindow
     def update_dimensions
         puts 'updating dimensions'
         width, height = @glade['window1'].size
-        $config.set_value('panelposition', @panel.position)
-        $config.set_value('windowwidth', width) if width
-		$config.set_value('windowheight', height) if height
+        $config['panelposition'] = @panel.position
+        $config['windowwidth']=  width if width
+        $config['windowheight'] = height if height
     end
 	
 	def updatetopic

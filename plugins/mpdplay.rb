@@ -2,10 +2,10 @@ require 'socket'
 
 class MPDPlay < Plugin
     def load
-        $config.set_value('mpdformatstring', 'is listening to %A - %T [MPD]') unless $config['mpdformatstring']
-        $config.set_value('mpdhost', 'localhost') unless $config['mpdhost']
-        $config.set_value('mpdport', 6600) unless $config['mpdport']
-        $config.set_value('mpdpass', '') unless $config['mpdpass']
+        $config['mpdformatstring'] = 'is listening to %A - %T [MPD]' unless $config['mpdformatstring']
+        $config['mpdhost'] = 'localhost' unless $config['mpdhost']
+        $config['mpdport'] = 6600 unless $config['mpdport']
+        $config['mpdpass'] = '' unless $config['mpdpass']
         
         locale = self
         

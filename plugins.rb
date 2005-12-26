@@ -106,7 +106,7 @@ module PluginAPI
     def plugin_load(name)
         #expand the name
         return unless file = Plugin.find_plugin(name)
-        $config.set_value('plugins', []) unless $config['plugins'].class == Array
+        $config['plugins'] = [] unless $config['plugins'].class == Array
         $config['plugins'].push(name) unless $config['plugins'].include?(name)
         
         #check if it exists, if so, load it
@@ -555,8 +555,8 @@ class PluginConfig
     def update_config
         @configarray.each do |k, v|
             #puts v['name']+' = '+v['value'].to_s
-			$config.set_value(v['name'], v['value'])
-		end
+            $config[v['name']] = v['value']
+        end
         destroy
         $config.send_config
     end
