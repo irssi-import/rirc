@@ -15,7 +15,7 @@ class BufferView
         @view.modify_text(Gtk::STATE_PRELIGHT, $config['scw_prelight'])
         @lines = []
         
-        @view.signal_connect("activated") do |view,id,data|
+        @view.signal_connect("activate") do |view,id,data|
           puts "Activated #{id} with #{data}"
           if id == 'url'
                 link = to_uri(data)

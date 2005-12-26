@@ -23,7 +23,7 @@ Needle http://needle.rubyforge.org/
 
 Untar the tarball somewhere
 cd into the folder
-run './main.rb' or 'ruby main.rb'
+run './rirc.rb' or 'ruby rirc.rb'
 
 ***USAGE***
 

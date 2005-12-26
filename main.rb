@@ -10,6 +10,7 @@ require 'scw'
 require 'observer'
 require 'contrib/orderedhash'
 require 'iconv'
+require 'pathname'
 
 if RUBY_PLATFORM.include?('win32')
 	$platform = 'win32'

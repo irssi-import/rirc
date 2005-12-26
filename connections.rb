@@ -81,6 +81,29 @@ class LocalConnection
 		@input = nil
 		@output = nil
 		@error = nil
+        if settings['binpath'][0].chr == '/'
+            unless File.exists? settings['binpath']
+                raise IOError, "Cannot find binary at #{settings['binpath']}"
+            end
+        elsif settings['binpath'].include? '/'
+            path = Pathname.new(settings['binpath'])
+            unless path.file?
+                raise IOError, "Cannot find binary at #{path.realpath}"
+            end
+        else
+            exists = false
+            puts ENV['PATH'].split(':')
+            ENV['PATH'].split(':').each do |d| #: is not windows compatible, but that's not really relevant
+                puts d
+                if File.exists? d+'/'+settings['binpath']
+                    exists = true
+                    break
+                end
+            end
+            unless exists
+                raise IOError, "Cannot find binary #{settings['binpath']} in $PATH"
+            end
+        end
 		@input, @output, @error = Open3.popen3(settings['binpath'])
 		begin
 			@output.expect(/^\*;preauth;time=(\d+);\n/) do |x, y|

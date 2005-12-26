@@ -29,13 +29,13 @@ class ConnectionWindow < SingleWindow
 		if $platform == 'linux'
 			@config[@ssh_button]['username'] = `whoami`.chomp
 		else
-			@config[@ssh_button]['username'] = 'irssi2'
+			@config[@ssh_button]['username'] = 'icecapd'
 		end
-		@config[@ssh_button]['binpath'] = '/usr/bin/irssi2'
+		@config[@ssh_button]['binpath'] = '/usr/bin/icecapd'
         @config[@ssh_button]['port'] = '22'
 		
         @config[@local_button] = {}
-        @config[@local_button] ['binpath'] = '/usr/bin/irssi2'
+        @config[@local_button] ['binpath'] = '/usr/bin/icecapd'
         
 		@config[@socket_button] = {}
 		if $platform == 'linux'
@@ -51,11 +51,11 @@ class ConnectionWindow < SingleWindow
 		@config[@net_ssh_button] = {}
         @config[@net_ssh_button] ['host'] = 'localhost'
         @config[@net_ssh_button] ['port'] = '22'
-        @config[@net_ssh_button] ['binpath'] = '/usr/bin/irssi2'
+        @config[@net_ssh_button] ['binpath'] = '/usr/bin/icecapd'
 		if $platform == 'linux'
 			@config[@net_ssh_button]['username'] = `whoami`.chomp
 		else
-			@config[@net_ssh_button]['username'] = 'irssi2'
+			@config[@net_ssh_button]['username'] = 'icecapd'
 		end
 		
 		@option_frame = @glade['option_frame']
