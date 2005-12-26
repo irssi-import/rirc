@@ -3,6 +3,7 @@ class Highlighter < Plugin
     def load
         $config['highlightstrings'] = [] unless $config['highlightstrings']
         $config['highlightplugincolor'] = Gdk::Color.new(65535, 65535, 0) unless $config['highlightplugincolor']
+        $config['highlightcommand'] = 'none'
         
         #/add_highlight adds a highlight
         help :cmd_add_highlight, "Add a highlight string"
@@ -81,8 +82,10 @@ class Highlighter < Plugin
             
             if replace
                 if insert_location == BUFFER_END
-                    `beep`
-                    local.setstatus(HIGHLIGHT)
+                    command = $config['highlightcommand']
+                    if command != 'none'
+                        system command
+                    end
                 end
             end
             
@@ -97,7 +100,10 @@ class Highlighter < Plugin
         'value' => value, 'description' => 'Highlight Color'},
         {'type' => Array, 'name' => 'highlightstrings', 
         'value' => $config['highlightstrings'], 'description' => 'Strings or Regexp to highlight',
-        'tooltip' => 'Comma seperated list of strings/regexps to highlight. Regexps are surrounded with /s'}]
+        'tooltip' => 'Comma seperated list of strings/regexps to highlight. Regexps are surrounded with /s'},
+        {'type' => String, 'name' => 'highlightcommand',
+        'value' => $config['highlightcommand'], 'description' => 'Highlight command',
+        'tooltip' => 'System command to run when a highlight occured, none will do nothing'}]
     end
 end
 

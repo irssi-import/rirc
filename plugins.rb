@@ -547,10 +547,10 @@ class PluginConfig
         change_setting(widget, widget.text.split(',').uniq)
     end
     
-	def change_setting(widget, setting)
-		#puts 'changed setting of '+widget.name+' to '+setting.to_s
-		@configarray[widget]['value'] = setting
-	end
+    def change_setting(widget, setting)
+        #puts 'changed setting of '+widget.name+' to '+setting.to_s
+        @configarray[widget]['value'] = setting
+    end
     
     def update_config
         @configarray.each do |k, v|
