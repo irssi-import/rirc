@@ -1,19 +1,19 @@
 module EventParser
     #handle normal output from irssi2
 	def event_parse(event)
-		#trap for events that refer to a channel that does not exist
-		if event[NETWORK] and event[MYPRESENCE]
-			if !@serverlist[event[NETWORK], event[MYPRESENCE]]
-			else
-				network = @serverlist[event[NETWORK], event[MYPRESENCE]]
-			end
-			
-			if event[CHANNEL] and network
-				if !network[event[CHANNEL]]
-				else
-					channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]]
-				end
-			end
+            #trap for events that refer to a channel that does not exist
+            if event[NETWORK] and event[MYPRESENCE]
+                if !@serverlist[event[NETWORK], event[MYPRESENCE]]
+                else
+                    network = @serverlist[event[NETWORK], event[MYPRESENCE]]
+                end
+                
+                if event[CHANNEL] and network
+                    if !network[event[CHANNEL]]
+                    else
+                        channel = @serverlist[event[NETWORK], event[MYPRESENCE]][event[CHANNEL]]
+                    end
+                end
         end
         
         begin

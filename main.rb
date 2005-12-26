@@ -482,9 +482,11 @@ class Main
         
         #its an event
         if tag == '*'
+            type, event = event.split(';', 2)
+            #puts type, event
             line= Line.new
         
-            line[:event_type] = tag
+            line[:event_type] = type
             line['original'] = string
                 
             items = event.split(';')

@@ -1,7 +1,7 @@
 class Highlighter < Plugin
     attr_accessor :terms
     def load
-        $config['highlightstrings'] = []) unless $config['highlightstrings']
+        $config['highlightstrings'] = [] unless $config['highlightstrings']
         $config['highlightplugincolor'] = Gdk::Color.new(65535, 65535, 0) unless $config['highlightplugincolor']
         
         #/add_highlight adds a highlight

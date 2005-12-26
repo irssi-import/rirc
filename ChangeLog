@@ -1,3 +1,8 @@
+2005-12-26 21:41 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Fixed stupid bug in event parsing
+    Fixed typo in highlighter plugin
+
 2005-12-26 21:18 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Changed configure class in preperation with removal of $config
