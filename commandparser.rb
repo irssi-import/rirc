@@ -265,52 +265,7 @@ class Main
         end
     end
     
-    #/silckey command
-    help :cmd_silckey, "non-functional"
-    def cmd_silckey(arguments, channel, network, presence)
-        if arguments =~ /^([^\s]+) ([^\s]+)(?: (\w+)|)$/
-        pub = $1
-        priv = $2
-        pass = $3
-        #puts pub, priv, pass
-        if pub and priv
-            key_pub = pub.to_s.sub('~', ENV['HOME'])
-            key_priv = priv.to_s.sub('~', ENV['HOME'])
-            
-            if File.file?(key_pub) and File.file?(key_priv)
-                @keys[$config['presence']] = {'silc_pub' => IO.read(key_pub),
-                                            'silc_priv' => Base64.encode64(IO.read(key_priv))}
-                puts 'added public key '+key_pub
-                puts 'added private key '+key_priv
-                if pass and pass.length > 0
-                    @keys[$config['presence']]['silc_pass'] = pass
-                    puts 'using passphrase'
-                end
-            else
-                puts 'file not found'
-            end
-        end
-        end
-    end
-    
-    #/send command
-    help :cmd_send, "non-functional"
-    def cmd_send(arguments, channel, network, presence)
-        if arguments[0] == '~'[0]
-            arguments.sub!('~', ENV['HOME'])#expand ~
-        end
-        name, path = arguments.reverse.split('/', 2)
-        name.reverse!
-        path = '' if !path
-        path.reverse!
-        if File.exists?(arguments)
-            @filedescriptors[name] = File.open(arguments, 'r') # create a file descriptor with a key the same as the filename sent to server
-            send_command('file send '+name, 'file send;resume;name='+name+';size='+File.size(arguments).to_s)
-        else
-            throw_error('File '+arguments+' does not exist')
-        end
-    end
-    
+        
     #/ruby command
     help :cmd_ruby, "Blindly execute ruby code"
     def cmd_ruby(arguments, channel, network, presence)
@@ -399,8 +354,7 @@ class Main
         if args[0]
                 nick,msgs = args[0].split(' ', 2)
         end
-        
-        puts nick
+       
         
         if nick
             #unless $config['tabonmsg']
@@ -411,17 +365,7 @@ class Main
         end
     end
     
-    
-    #~ def cmd_last(arguments, channel, network, presence)
-        #~ id = channel.get_last_line_id(presence)
-        #~ channel.replace_line(id, 'replacement'+rand(100).to_s)
-    #~ end
-    
-    #~ def cmd_del(arguments, channel, network, presence)
-        #~ id = channel.get_last_line_id(presence)
-        #~ channel.delete_line(id)
-    #~ end
-    
+        
     help :cmd_me, "Does an emote"
     def cmd_me(message, channel, network, presence)
        reply = send_command('message'+rand(100).to_s, 'msg;network='+network.name+';channel='+channel.name+';msg='+escape(message)+";mypresence="+presence+';type=action')
@@ -512,18 +456,9 @@ class Main
             @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
         
-        #@presences.each {|presence| lines.push(presence[0]+' - '+presence[1])}
     end
     
-    
-    #~ def cmd_dump(*args)
-    
-        #~ File.open('dump', 'w+') do |f|
-            #~ Marshal.dump(@networks, f)
-            #~ Marshal.dump(@protocols, f)
-        #~ end
-    #~ end
-    
+        
     help :cmd_channels, "List all defined channels"
     def cmd_channels(*args)
         lines = ['Defined Channels:']
@@ -638,19 +573,7 @@ class Main
             @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
     end
-    
-    def cmd_spam(arguments, *args)
-        count = 500
-        if arguments =~ /[\d]+/
-            count = arguments.to_i
-        end
         
-        count.times do |i|
-            event = {'msg' => 'This is testing spam'}
-            @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
-        end
-    end
-    
     help :cmd_help, "Get help on commands. Usage: /help [command]"
     def cmd_help(arguments, channel, network, presence)
         #puts 'help', self
@@ -676,34 +599,5 @@ class Main
             end
         end
             
-    end
-    
-    #~ def cmd_help(arguments, channel, network, presence)
-        #~ helptext = "This is a list of the supported commands and their parameters:
-
-#~ /server <name>:<protocol>:<address>[:<port>] - Port is optional, irssi2 will use the defaults if its not specified. This command does NOT connect to the server, it merely defines the server so you can /connect to it.
-#~ /connect <networkname> [<presence>] - Connect to the network, if no presence is defined it will use the default.
-#~ /disconnect <network> [<presence>] - Disconnect from the network
-#~ /networks - List all defined networks.
-#~ /presences - List all defined presences.
-#~ /channels - list all defined channels.
-#~ /join <channel>
-#~ /part <channel>
-#~ /msg <user> <message>
-#~ /quit - Quit rirc, but leave irssi2 running.
-#~ /shutdown - Quit rirc and kill irssi2.
-#~ /send <file> Sends a file to irssi2 - buggy.
-#~ /whois <username>
-#~ /help - Displays this message
-        
-#~ /raw <command> - Sends a raw command to irssi2, do NOT specify a tag.
-#~ /ruby <command> - Sends a command to ruby's eval() function, if you break something using this, you get to keep all the pieces."
-        
-        #~ lines = helptext.split("\n")
-        #~ lines.each do |line|
-            #~ temp = {'msg' => line}
-            #~ @serverlist.send_user_event(temp, EVENT_NOTICE)
-        #~ end
-    #~ end
-        
+    end     
 end
