@@ -22,6 +22,13 @@ class BufferView
 				fork{exec($config['linkclickaction'].sub('%s', link))}
             end
         end
+        
+        @view.signal_connect('context_request') do |view, id, data, x, y|
+            #TODO - connect up the menus
+            if id
+                puts id, data
+            end
+        end
     end
     
     def append(line, id)

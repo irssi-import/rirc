@@ -12,7 +12,7 @@ require 'contrib/orderedhash'
 require 'iconv'
 require 'pathname'
 
-if RUBY_PLATFORM.include?('win32')
+if RUBY_PLATFORM.include?('win32') or RUBY_PLATFORM.include?('mingw32')
     $platform = 'win32'
     $rircfolder = ENV['APPDATA']+'/rirc'
 else

@@ -1,6 +1,6 @@
 class Buffer
-	attr_reader :oldendmark, :currentcommand, :liststore, :links, :view
-	attr_writer :currentcommand
+    attr_reader :oldendmark, :currentcommand, :liststore, :links, :view
+    attr_writer :currentcommand
     #extend Plugins
     include PluginAPI
 	def initialize(name)
@@ -660,7 +660,7 @@ class ServerBuffer < Buffer
 		super(name)
         @server = self
 		@presence = presence
-		@username = @presence.deep_clone
+		@username = @presence.dup
 		@parent = parent
 		@name = name
 		@channels = Array.new

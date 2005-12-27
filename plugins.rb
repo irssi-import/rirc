@@ -2,16 +2,19 @@
 
 #include this in any classes where you want plugins
 module PluginAPI
-
+    @@cb_hash = {}
+    @@cb_hash_after = {}
     #calls all the callback blocks associated with method, should exit if a block returns true
     def callback(method, *args)
     
         #lookup the hash
-        cb_hash = resolve_cb_hash
+        cb_hash = self.class.cb_hash
+        cb_hash ||= resolve_cb_hash
         
         #return if we get nothing
         unless cb_hash
-            puts 'empty hash for '+self.class.to_s
+            puts cb_hash
+            puts 'empty callback hash for '+self.class.to_s
             return *args 
         end
         
@@ -53,11 +56,12 @@ module PluginAPI
     #calls all the callback_after blocks associated with method, should exit if a block returns true
     def callback_after(method, *args)
         #lookup the hash
-        cb_hash_after = resolve_cb_hash_after
-        
+        cb_hash_after = self.class.cb_hash_after
+        cb_hash_after ||= resolve_cb_hash_after
+
         #return if nothing
         unless cb_hash_after
-            puts 'empty hash for '+self.class.to_s
+            puts 'empty callback_after hash for '+self.class.to_s
             return *args 
         end
         
@@ -131,20 +135,20 @@ module PluginAPI
     
     #wrapper function for class method
     def resolve_cb_hash
+        puts 'resolving cb_hash'
         return self.class.resolve_cb_hash
     end
     
     #wrapper function for class method
     def resolve_cb_hash_after
+        puts 'resolving cb_hash_after'
         return self.class.resolve_cb_hash_after
     end
     
     #hyperextend!
     module Plugins
-    
         #define a callback
         def add_callback(name, &block)
-        
             #initialize the hash if it doesn't exist
             @cb_hash ||= Hash.new(nil)
             
@@ -158,7 +162,10 @@ module PluginAPI
                     #add the block to the array
                     @cb_hash[name.to_sym].push(block)
                     #puts 'added callback for '+name
-                    
+                    ObjectSpace.each_object(self) do |klass|
+                        #puts klass
+                        klass.class.resolve_cb_hash
+                    end
                     #return the name of the callback..?
                     return name
                 end
@@ -182,6 +189,10 @@ module PluginAPI
                     @cb_hash_after[name.to_sym].push(block)
                     #puts 'added callback_after for '+name
                     
+                    ObjectSpace.each_object(self) do |klass|
+                        #puts klass.class
+                        klass.class.resolve_cb_hash_after
+                    end
                     #return the name, not sure why...
                     return name
                 end
@@ -253,7 +264,8 @@ module PluginAPI
             end
     
             #return
-            return temphash
+            #return temphash
+            @cb_hash = temphash
         end
         
         #reader for cb_hash_after
@@ -287,7 +299,8 @@ module PluginAPI
             end
             
             #return
-            return temphash
+            #return temphash
+            @cb_hash_after = temphash
         end
     end
     
@@ -305,6 +318,7 @@ class Plugin
     
     #register a plugin
     def self.register(plugin)
+        puts 'registeting'
         if /([\w\-]+)\.rb/.match(caller[0])
             unless find_plugin($1)
                 raise SystemCallError, 'No such file '+$1+' to load as plugin', caller
@@ -335,6 +349,7 @@ class Plugin
         #call the plugins load() method
         $main.serverlist.send_user_event({'msg' => 'Loading Plugin '+name}, EVENT_NOTICE)
         plugin.load
+        puts self, self.class
     end
     
     def help(a, b)

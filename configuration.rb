@@ -167,7 +167,7 @@ class Configuration
     #create a copy of the config so we can compare for changes
     def create_config_snapshot
         @values.each do |k, v|
-            @oldvalues[k.deep_clone] = encode_value(v)
+            @oldvalues[k.dup] = encode_value(v)
         end
     end
  
@@ -179,7 +179,7 @@ class Configuration
     def duplicate_config
         vals = {}
         @values.each do |k, v|
-            vals[k.deep_clone] = decode_value(encode_value(v))
+            vals[k.dup] = decode_value(encode_value(v))
         end
         vals
     end
@@ -193,7 +193,7 @@ class Configuration
  
     def get_pattern(name)
         if @values[name].class == String
-            return @values[name].deep_clone #don't escape_xml here
+            return @values[name].dup #don't escape_xml here
         else
             return ''
         end

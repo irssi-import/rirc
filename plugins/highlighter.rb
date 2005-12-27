@@ -43,7 +43,7 @@ class Highlighter < Plugin
                 @window.currentbuffer.send_user_event(event, EVENT_NOTICE)
             end
         end
-        
+    
         add_callback_after(self, Buffer, 'buffer_message') do |local, uname, pattern, users, insert_location|
             #puts uname, pattern, users, insert_location
         
@@ -86,6 +86,7 @@ class Highlighter < Plugin
                     if command != 'none'
                         system command
                     end
+                    local.setstatus(HIGHLIGHT)
                 end
             end
             

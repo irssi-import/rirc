@@ -54,7 +54,7 @@ class Main
                     args = args.strip.split(' ')
                     #puts args
                     
-                    cmd = cmdalias.deep_clone
+                    cmd = cmdalias.dup
                     
                     re = /(\$(\d+))/
                     md = re.match(cmd)
@@ -122,7 +122,7 @@ class Main
                 line[PRESENCE] = presence
                 line[MSG] = message
                 lineref = @window.currentbuffer.send_user_event(line, EVENT_USERMESSAGE)
-                rep.lineref = lineref
+                rep.lineref = lineref if rep
             end
         elsif !network
             #line = {}

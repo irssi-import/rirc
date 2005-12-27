@@ -2,31 +2,31 @@ module ReplyParser
     #handle replies from irssi2 (responses to commands sent from a client)
 	def reply_parse(reply)
     
-        if reply.error
-            reply.lines.each do |line|
-                if line[REPLY_STATUS] == '-'
-                    handle_error(line, reply)
+            if reply.error
+                reply.lines.each do |line|
+                    if line[REPLY_STATUS] == '-'
+                        handle_error(line, reply)
+                    end
                 end
             end
-        end
         
-		if reply.command['command'] == 'presence status'
-			reply_presence_status(reply)
-			return
-		elsif reply.command['command'] == 'config get'
-			$config.parse_config(reply)
-			return
-		end
-		
-		reply.lines.each do |line|
+            if reply.command['command'] == 'presence status'
+                reply_presence_status(reply)
+                return
+            elsif reply.command['command'] == 'config get'
+                $config.parse_config(reply)
+                return
+            end
+            
+            reply.lines.each do |line|
 			
             channel = nil
             network = nil
             
-			if reply.name == 'raw'
-				@serverlist.send_user_event({'msg' =>line['original']}, EVENT_NOTICE)
-				next
-			end
+            if reply.name == 'raw'
+                @serverlist.send_user_event({'msg' =>line['original']}, EVENT_NOTICE)
+                next
+            end
             
             if line[NETWORK] and line[MYPRESENCE]
                 if !@serverlist[line[NETWORK], line[MYPRESENCE]]
@@ -325,43 +325,47 @@ module ReplyParser
         end
     end
     
-	#output the result of a whois
-	def reply_presence_status(reply)
-		network = @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]]
-		
-		reply.lines.each do |line|
-		
-			if line[ADDRESS] and line['real_name']
-				msg = '('+line[ADDRESS]+') : '+line['real_name']
-			elsif line[ADDRESS]
-				address = line[ADDRESS]
-				next
-			elsif line['real_name'] and address
-				msg = address+' : '+line['real_name']
-			elsif line['server_address'] and line['server_name']
-				msg = line['server_address']+' : '+line['server_name']
-			elsif line['idle'] and line['login_time']
-				idletime = duration(line['idle'].to_i)
-				logintime = duration(Time.at(line[TIME].to_i) - Time.at(line['login_time'].to_i))
-				msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
-			elsif line['channels']
-				msg = line['channels']
-			elsif line['extra']
-				msg = line['extra']
-			elsif line[REPLY_STATUS] == '+'
-				msg = 'End of /whois'
-				line[PRESENCE] = reply.command['presence']
-			else
-				next
-			end
-			
-			pattern = $config['whois'].deep_clone
-			pattern['%m'] = msg if msg
-			pattern['%n'] = line[PRESENCE] if line[PRESENCE]
-			line[MSG] = pattern
-			network.send_event(line, EVENT_NOTICE)
-			time = line[TIME]
-		end
-	end
+    #output the result of a whois
+    def reply_presence_status(reply)
+        network = @serverlist[reply.command[NETWORK], reply.command[MYPRESENCE]]
+        
+        reply.lines.each do |line|
+    
+            if line[ADDRESS] and line['real_name']
+                msg = '('+line[ADDRESS]+') : '+line['real_name']
+            elsif line[ADDRESS]
+                address = line[ADDRESS]
+                next
+            elsif line['real_name'] and address
+                msg = address+' : '+line['real_name']
+            elsif line['server_address'] and line['server_name']
+                msg = line['server_address']+' : '+line['server_name']
+            elsif line['idle'] and line['login_time']
+                idletime = duration(line['idle'].to_i)
+                logintime = duration(Time.at(line[TIME].to_i) - Time.at(line['login_time'].to_i))
+                msg = 'Idle: '+idletime+' -- Logged on: '+Time.at(line['login_time'].to_i).strftime('%c')+' ('+logintime+')'
+            elsif line['channels']
+                msg = line['channels']
+            elsif line['extra']
+                msg = line['extra']
+            elsif line[REPLY_STATUS] == '+'
+                msg = 'End of /whois'
+                line[PRESENCE] = reply.command['presence']
+            else
+                next
+            end
+            
+            pattern = $config['whois'].dup
+            pattern['%m'] = msg if msg
+            if line[PRESENCE]
+                pattern['%n'] = line[PRESENCE]
+            else
+                pattern['%n'] = reply.command[PRESENCE]
+            end
+            line[MSG] = pattern
+            network.send_event(line, EVENT_NOTICE)
+            time = line[TIME]
+        end
+    end
 
 end

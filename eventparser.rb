@@ -245,7 +245,7 @@ module EventParser
                 @window.get_username
                 @window.show_username
             end
-            pattern = $config['notice'].deep_clone
+            pattern = $config['notice'].dup
             
             user = network.users[event[PRESENCE]]
             
