@@ -335,7 +335,7 @@ class Plugin
         end
         
         #make sure its not already defined
-        if lookup(name)
+        if self[name]
             puts 'a plugin with this name is already registered'
             return
         end
@@ -397,14 +397,12 @@ class Plugin
     end
     
     #lookup a string as a plugin name
-    def self.lookup(name)
+    def self.[](name)
+        puts "looking up #{name}"
         @@plugins ||= {}
-        @@plugins.each do |plugin, values|
-            if values['name'] == name
-                return plugin
-            end
-        end
-        return nil
+        x = @@plugins.detect{|p| puts p[1]['name']; p[1]['name'] == name}
+        x = x[0] if x
+        return x
     end
     
     #wrapper function for adding a callback to a class

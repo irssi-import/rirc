@@ -48,11 +48,11 @@ def duration(seconds, precision=2)
     
     stuff = []
     
-    stuff.push(seconds.to_s+' Second#{if seconds > 1 then 's'}')
-    stuff.push( minutes.to_s+' Minute#{if minutes > 1 then 's'}')
-    stuff.push(hours.to_s+' Hour#{if hours > 1 then 's'}')
-    stuff.push(days.to_s+' Day#{if days > 1 then 's'}') 
-    stuff.push(years.to_s+' Year#{if years > 1 then 's'}') 
+    stuff.push(seconds.to_s+" Second#{'s' if seconds > 1}")
+    stuff.push( minutes.to_s+" Minute#{'s' if minutes > 1}")
+    stuff.push(hours.to_s+" Hour#{'s' if hours > 1}")
+    stuff.push(days.to_s+" Day#{'s' if days > 1}") 
+    stuff.push(years.to_s+" Year#{'s' if years > 1}") 
     
     stuff.reverse!
     

@@ -1,3 +1,10 @@
+2005-12-27 08:16 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Removed redundant callback hash lookups
+    Replaced most uses of deep clone with String#dup (this was a big oops)
+    Readded tab color switching to highlighter plugin
+    some stuff I can't remember
+
 2005-12-27 02:53 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Implemented focus for the single instance windows (Plugins, Keybindings, Links)

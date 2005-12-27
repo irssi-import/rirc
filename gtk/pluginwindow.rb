@@ -95,7 +95,7 @@ class PluginWindow < SingleWindow
     
     def unload_plugin
         if selection = get_selection and selection[1] == 1
-            if plugin = Plugin.lookup(selection[0])
+            if plugin = Plugin[selection[0]]
                 if Plugin.unregister(plugin)
                     selection[1] = 0
                 end
@@ -106,7 +106,7 @@ class PluginWindow < SingleWindow
     
     def config_plugin
         if selection = get_selection and selection[1] == 1
-            if plugin = Plugin.lookup(selection[0])
+            if plugin = Plugin[selection[0]]
                 PluginConfig.new(plugin.configure)
             end
         end
