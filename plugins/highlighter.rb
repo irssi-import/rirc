@@ -2,8 +2,8 @@ class Highlighter < Plugin
     attr_accessor :terms
     def load
         $config['highlightstrings'] = [] unless $config['highlightstrings']
-        $config['highlightplugincolor'] = Gdk::Color.new(65535, 65535, 0) unless $config['highlightplugincolor']
-        $config['highlightcommand'] = 'none'
+        $config['highlightplugincolor'] = Color.new(65535, 65535, 0) unless $config['highlightplugincolor']
+        $config['highlightcommand'] = 'none' unless $config['highlightcommand']
         
         #/add_highlight adds a highlight
         help :cmd_add_highlight, "Add a highlight string"
@@ -95,8 +95,8 @@ class Highlighter < Plugin
     
     def configure
         value = $config['highlightplugincolor']
-        value ||= Gdk::Color.new(65535, 65535, 0)
-        return [{'type' => Gdk::Color, 'name' => 'highlightplugincolor',
+        value ||= Color.new(65535, 65535, 0)
+        return [{'type' => Color, 'name' => 'highlightplugincolor',
         'value' => value, 'description' => 'Highlight Color'},
         {'type' => Array, 'name' => 'highlightstrings', 
         'value' => $config['highlightstrings'], 'description' => 'Strings or Regexp to highlight',

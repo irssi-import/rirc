@@ -1,3 +1,10 @@
+2005-12-27 02:20 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Abstracted color objects off into instances of Color class(not Gdk::Color)
+    Fixed references to colors to work with new setup
+    Exported defaults to themes/default.yaml
+    Fixed bug in highlight plugin
+
 2005-12-26 23:44 - Andrew Thompson <vagabond@cataclysm-software.net>
     
     Added next/prev/pause to MPD plugin, improved error handling

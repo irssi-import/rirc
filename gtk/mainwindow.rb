@@ -154,13 +154,13 @@ class MainWindow
     def update_view(view)
         view.reset_rc_styles
         view.align_presences = $config['scw_align_presences']
-        view.modify_text(Gtk::STATE_NORMAL, $config['foregroundcolor'])
-        view.modify_text(Gtk::STATE_SELECTED, $config['selectedforegroundcolor'])
-        view.modify_base(Gtk::STATE_SELECTED, $config['selectedbackgroundcolor'])
-        view.modify_text(Gtk::STATE_ACTIVE, $config['selectedforegroundcolor'])
-        view.modify_base(Gtk::STATE_ACTIVE, $config['selectedbackgroundcolor'])
+        view.modify_text(Gtk::STATE_NORMAL, Gdk::Color.new(*$config['foregroundcolor']))
+        view.modify_text(Gtk::STATE_SELECTED, Gdk::Color.new(*$config['selectedforegroundcolor']))
+        view.modify_base(Gtk::STATE_SELECTED, Gdk::Color.new(*$config['selectedbackgroundcolor']))
+        view.modify_text(Gtk::STATE_ACTIVE, Gdk::Color.new(*$config['selectedforegroundcolor']))
+        view.modify_base(Gtk::STATE_ACTIVE, Gdk::Color.new(*$config['selectedbackgroundcolor']))
         
-        view.modify_text(Gtk::STATE_PRELIGHT, $config['scw_prelight'])
+        view.modify_text(Gtk::STATE_PRELIGHT, Gdk::Color.new(*$config['scw_prelight']))
         view.modify_font(@font)
     end
 	

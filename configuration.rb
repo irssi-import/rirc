@@ -1,95 +1,19 @@
 class Configuration
-    attr_reader :values
+    attr_reader :values, :defaults
     def initialize
         #set some defaults... probably too soon be overriden by the user's config, but you gotta start somewhere :P
-        @values = {}
-        16.times do |x|
-            @values['color'+x.to_s] = Gdk::Color.new(0, 0, 0)
-        end
-        @values['defaultcolor'] = Gdk::Color.new(0, 0, 0)
-        @values['color0'] = Gdk::Color.new(62168, 16051, 16051)
-        @values['color1'] = Gdk::Color.new(0, 47254, 11392)
-        @values['color2'] = Gdk::Color.new(0, 28332, 65535)
-        @values['color3'] = Gdk::Color.new(65535, 65535, 0)
-        @values['color4'] = Gdk::Color.new(65535, 0, 65535)
-        @values['color5'] = Gdk::Color.new(0, 65535, 65535)
- 
-        @values['backgroundcolor'] = Gdk::Color.new(65535, 65535, 65535)
-        @values['foregroundcolor'] = Gdk::Color.new(0, 0, 0)
-        @values['selectedbackgroundcolor'] = Gdk::Color.new(13208, 44565, 62638)
-        @values['selectedforegroundcolor'] = Gdk::Color.new(65535, 65535, 65535)
- 
-        @values['neweventcolor'] = Gdk::Color.new(45535, 1000, 1000)
-        @values['newmessagecolor'] = Gdk::Color.new(65535, 0, 0)
-        @values['highlightcolor'] = Gdk::Color.new(0, 0, 65535)
- 
-        @values['scw_even'] = Gdk::Color.new(65535, 65535, 65535)
-        @values['scw_odd'] = Gdk::Color.new(50176, 50176, 50176)
-        @values['scw_lastread'] = Gdk::Color.new(65535, 59940, 59940)
-        @values['scw_prelight'] = Gdk::Color.new(62168, 16051, 16051)
-        @values['scw_align_presences'] = false
- 
-        @statuscolors = [@values['defaultcolor'], @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
- 
-        @values['usetimestamp'] = true
-        @values['show_usermode'] = true
-        @values['pad_usermode'] = false
-        @values['timestamp'] = "[%H:%M]"
-        @values['usernameformat'] = "%C4<%C4%u%C4>%C4"
-        @values['message'] = "%m"
-        @values['otherusernameformat'] = "%C2<%C2%u%C2>%C2"
-        @values['usermessage'] = "%m"
-        @values['action'] = "%C1*%C1 %u %m"
-        @values['notice'] = "-%C1--%C1 %m"
-        @values['error'] = "%C0***%C0 %m"
-        @values['join'] = "-%C1->%C1 %u (%C1%h%C1) has joined %c"
-        @values['userjoin'] = "-%C1->%C1 You are now talking on %c"
-        @values['part'] = "<%C1--%C1 %u (%C1%h%C1) has left %c (%r)"
-        @values['userpart'] = "<%C1--%C1 You have left %c"
-        @values['whois'] = "%C2[%C2%n%C2]%C2 %m"
-        @values['topic_change'] = '-%C1--%C1 Topic set to %C6%t%C6 by %C6%u%C6'
-        @values['topic'] = '-%C1--%C1 Topic for %C6%c%C6 is %C6%t%C6'
-        @values['topic_setby'] = '-%C1--%C1 Topic for %C6%c%C6 set by %C6%u%C6 at %C6%a%C6'
-        @values['add_mode'] = '-%C1--%C1 %s gave %m to %u'
-        @values['remove_mode'] = '-%C1--%C1 %s removed %m from %u'
-        @values['nickchange'] = '-%C1--%C1 %u is now known as %n'
-        @values['usernickchange'] = '-%C1--%C1 You are now known as %n'
- 
-        @values['linkclickaction'] = 'firefox "%s"'
- 
-        @values['tabcompletesuffix'] = ';'
-        @values['tabonmsg'] = false
- 
-        @serverbuttons = true
- 
-        @values['tablistposition'] = 'bottom'
-        @values['tablisttype'] = 'button'
-        @values['tabstructure'] = 'hierarchical'
-        @values['tabsort'] = 'Case Insensitive'
- 
-        @values['commandbuffersize'] = 10
- 
-        @values['presence'] = 'irssi2'
- 
-        @values['canonicaltime'] = 'client'
-        @values['tabcompletesort'] = 'activity'
- 
-        @values['main_font'] = 'monospace 9'
- 
-        @values['numbertabs'] = true
- 
-        @values['plugins'] = []
- 
-        @values['aliases'] = {}
- 
-        @values['keybindings'] = {}
- 
-        @values['keybindings']['Alt-l'] = 'open_linkwindow'
+        @values = YAML.load_file('themes/default.yaml')
  
         #store defaults
         @defaults = duplicate_config
+        
+        @statuscolors = [@values['defaultcolor'], @values['neweventcolor'], @values['newmessagecolor'], @values['highlightcolor']]
  
         @oldvalues = {}
+    end
+    
+    def dump
+        File.open('themes/default.yaml', "w+") {|f| YAML.dump(@values, f)}
     end
  
     def gettabmodelconfig
@@ -174,7 +98,7 @@ class Configuration
  
     #encode the values so they can be stored by irssi2
     def encode_value(value)
-        if value.class == Gdk::Color
+        if value.class == Color
             colors = value.to_a[0..2]
             'color:' + colors.map {|color| "#{color}" }.join(":")
         elsif value.class == Array
@@ -215,7 +139,7 @@ class Configuration
                 x
             elsif values[0] == 'color'
                 r, g, b = values[1].split(':').map {|x| x.to_i }
-                Gdk::Color.new(r, g, b)
+                Color.new(r, g, b)
             elsif value.numeric?
                 if value.include? '.'
                     value.to_f

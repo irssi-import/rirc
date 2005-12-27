@@ -85,8 +85,8 @@ class ConfigWindow
                     end
                     #	@glade[key].active = 1
                     #end
-                elsif @glade[key].class == Gtk::Button and value.class == Gdk::Color
-                    color_button(@glade[key], value)
+                elsif @glade[key].class == Gtk::Button and value.class == Color
+                    color_button(@glade[key], Gdk::Color.new(*value))
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
                     @configbackup[key] = value
                 elsif @glade[key].class == Gtk::CheckButton
@@ -128,7 +128,7 @@ class ConfigWindow
     
     def change_color(widget, color)
         color_button(widget, color)
-        change_setting(widget, color)
+        change_setting(widget, Color.new(*color.to_a))
         #$config.set_value(widget.name, color)
     end
     
@@ -136,7 +136,7 @@ class ConfigWindow
         button = widget
         @configarray[widget] = {'name' => widget.name} unless @configarray[widget]
         color = nil
-        color = @configarray[widget]['value'] if @configarray[widget]['value']
+        color = Gdk::Color.new(*@configarray[widget]['value']) if @configarray[widget]['value']
         selectordialog = Gtk::ColorSelectionDialog.new
         selectordialog.modal = true
         selector = selectordialog.colorsel

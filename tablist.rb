@@ -576,11 +576,11 @@ class BoxTabList < TabList
         return unless @buttons[buffer]
         label = @buttons[buffer].child
         if buffer == @model.active
-            label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(0))
-            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(0))
+            label.modify_fg(Gtk::STATE_NORMAL, Gdk::Color.new(*$config.getstatuscolor(0)))
+            label.modify_fg(Gtk::STATE_PRELIGHT, Gdk::Color.new(*$config.getstatuscolor(0)))
         else
-            label.modify_fg(Gtk::STATE_NORMAL, $config.getstatuscolor(@model.status[buffer]))
-            label.modify_fg(Gtk::STATE_PRELIGHT, $config.getstatuscolor(@model.status[buffer]))
+            label.modify_fg(Gtk::STATE_NORMAL, Gdk::Color.new(*$config.getstatuscolor(@model.status[buffer])))
+            label.modify_fg(Gtk::STATE_PRELIGHT, Gdk::Color.new(*$config.getstatuscolor(@model.status[buffer])))
         end
 	end
     

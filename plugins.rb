@@ -237,8 +237,6 @@ module PluginAPI
             c = self
             classes = Array.new
             
-            #TODO c.class.ancestors instead of this mess maybe?
-            
             while c != Object || nil
                 classes.push(c)
                 c = c.superclass
@@ -490,9 +488,9 @@ class PluginConfig
                 option['xopt'] ||= Gtk::SHRINK
                 option['yopt'] ||= Gtk::FILL
                 
-                if option['type'] == Gdk::Color
+                if option['type'] == Color
                     widget = Gtk::ColorButton.new
-                    widget.color = option['value'] if option['value']
+                    widget.color = Gdk::Color.new(*option['value']) if option['value']
                     widget.signal_connect('color_set') {|widget| color_changed(widget)}
                 elsif option['type'] == String
                     #I guess we need some trick to allow combo boxes too...
@@ -532,7 +530,7 @@ class PluginConfig
     end
     
     def color_changed(widget)
-        change_setting(widget, widget.color)
+        change_setting(widget, Color.new(*widget.color.to_a))
     end
     
     def text_changed(widget)

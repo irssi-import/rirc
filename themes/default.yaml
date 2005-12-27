@@ -1,0 +1,161 @@
+selectedforegroundcolor: !ruby/object:Color 
+  b: 65535
+  g: 65535
+  r: 65535
+color13: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+tabcompletesort: activity
+color8: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+pad_usermode: false
+color14: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+color9: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+topic: -%C1--%C1 Topic for %C6%c%C6 is %C6%t%C6
+tabsort: case insensitive
+color15: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+scw_even: !ruby/object:Color 
+  b: 65535
+  g: 65535
+  r: 65535
+canonicaltime: client
+notice: -%C1--%C1 %m
+timestamp: "[%H:%M]"
+scw_prelight: !ruby/object:Color 
+  b: 16051
+  g: 16051
+  r: 62168
+usernameformat: "%C4<%C4%u%C4>%C4"
+defaultcolor: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+main_font: Verdana 9
+tabonmsg: false
+highlightplugincolor: !ruby/object:Color 
+  b: 50842
+  g: 0
+  r: 65535
+tablistposition: bottom
+linkclickaction: firefox "%s"
+tabstructure: hierarchical
+message: "%m"
+keybindings: 
+  Alt-l: open_linkwindow
+  Alt-n: open_networks
+scw_align_presences: false
+userjoin: -%C1->%C1 You are now talking on %c
+part: <%C1--%C1 %u (%C1%h%C1) has left %c (%r)
+remove_mode: -%C1--%C1 %s removed %m from %u
+usermessage: "%m"
+scw_lastread: !ruby/object:Color 
+  b: 59940
+  g: 59940
+  r: 65535
+nickchange: -%C1--%C1 %u is now known as %n
+show_usermode: true
+backgroundcolor: !ruby/object:Color 
+  b: 65535
+  g: 65535
+  r: 65535
+newmessagecolor: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 65535
+usetimestamp: true
+topic_setby: -%C1--%C1 Topic for %C6%c%C6 set by %C6%u%C6 at %C6%a%C6
+neweventcolor: !ruby/object:Color 
+  b: 1000
+  g: 1000
+  r: 45535
+color0: !ruby/object:Color 
+  b: 9221
+  g: 13300
+  r: 60601
+foregroundcolor: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+tablisttype: button
+panelposition: 1001
+color1: !ruby/object:Color 
+  b: 11392
+  g: 47254
+  r: 0
+highlightcolor: !ruby/object:Color 
+  b: 65535
+  g: 0
+  r: 0
+whois: "%C2[%C2%n%C2]%C2 %m"
+add_mode: -%C1--%C1 %s gave %m to %u
+color2: !ruby/object:Color 
+  b: 65535
+  g: 28332
+  r: 0
+numbertabs: false
+error: "%C0***%C0 %m"
+color3: !ruby/object:Color 
+  b: 0
+  g: 65535
+  r: 65535
+userpart: <%C1--%C1 You have left %c
+commandbuffersize: 10
+color4: !ruby/object:Color 
+  b: 65535
+  g: 0
+  r: 65535
+action: "%C1*%C1 %u %m"
+topic_change: -%C1--%C1 Topic set to %C6%t%C6 by %C6%u%C6
+join: -%C1->%C1 %u (%C1%h%C1) has joined %c
+usernickchange: -%C1--%C1 You are now known as %n
+scw_odd: !ruby/object:Color 
+  b: 65535
+  g: 64974
+  r: 63775
+color10: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+color5: !ruby/object:Color 
+  b: 65535
+  g: 65535
+  r: 0
+tabcompletesuffix: ":"
+selectedbackgroundcolor: !ruby/object:Color 
+  b: 62638
+  g: 44565
+  r: 13208
+color11: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+color6: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+otherusernameformat: "%C2<%C2%u%C2>%C2"
+color12: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+color7: !ruby/object:Color 
+  b: 0
+  g: 0
+  r: 0
+plugins: []
+aliases: []
+windowwidth: 800
+windowheight: 600
+panelposition: 650
