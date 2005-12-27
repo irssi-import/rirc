@@ -68,6 +68,7 @@ class SingleWindow
     end
     
     def focus
+        @window.present
     end
 end
 

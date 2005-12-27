@@ -673,30 +673,42 @@ class MainWindow
         LinkWindow.new(@currentbuffer.links)
     end
 
-	def open_preferences
+    def open_preferences
         update_dimensions
-		configwindow = ConfigWindow.new
-		configwindow.show_all
-	end
+        configwindow = ConfigWindow.new
+        configwindow.show_all
+    end
     
     def do_disconnect
         $main.disconnect
     end
     
     def open_networks
-        @networkpresence = NetworkPresenceConf.new($main.networks, $main.protocols) unless @networkpresence and @networkpresence.open?
+        if @networkpresence and @networkpresence.open?
+            @networkpresence.focus
+        else
+            @networkpresence = NetworkPresenceConf.new($main.networks, $main.protocols)
+        end
     end
     
     def open_plugins
-        @pluginwindow = PluginWindow.new unless @pluginwindow and @pluginwindow.open?
+        if @pluginwindow and @pluginwindow.open?
+            @pluginwindow.focus
+        else
+            @pluginwindow = PluginWindow.new
+        end
     end
     
     def open_keybindings
-        @keybindingwindow = KeyBindingWindow.new($config['keybindings'], @bindable_functions) unless @keybindingwindow and @keybindingwindow.open?
+        if  @keybindingwindow and @keybindingwindow.open?
+            @keybindingswindow.open
+        else
+            @keybindingwindow = KeyBindingWindow.new($config['keybindings'], @bindable_functions)
 	end
+    end
     
-	def quit
+    def quit
         update_dimensions
-		$main.quit
-	end
+        $main.quit
+    end
 end

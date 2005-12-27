@@ -30,6 +30,7 @@ class KeyBindingWindow < SingleWindow
     attr_accessor :sizegroups
     def initialize(bindings, methods)
         @glade = GladeXML.new("glade/keybindings.glade") {|handler| method(handler)}
+        @window = @glade['keywindow']
         @grabkeys = false
         @keybox = @glade['keybox']
         @tooltips = Gtk::Tooltips.new

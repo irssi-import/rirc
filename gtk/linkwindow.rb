@@ -5,15 +5,15 @@ class LinkWindow
         @linkstore = Gtk::ListStore.new(String, String, String)
         @linklist = @glade['linklist']
         @linklist.model = @linkstore
-		renderer = Gtk::CellRendererText.new
-		
-		col = Gtk::TreeViewColumn.new("Time", renderer, :text => 0)
-		@linklist.append_column(col)
-		col = Gtk::TreeViewColumn.new("User", renderer, :text => 1)
-		@linklist.append_column(col)
+        renderer = Gtk::CellRendererText.new
+        
+        col = Gtk::TreeViewColumn.new("Time", renderer, :text => 0)
+        @linklist.append_column(col)
+        col = Gtk::TreeViewColumn.new("User", renderer, :text => 1)
+        @linklist.append_column(col)
         @linklist.search_column=1
-		col = Gtk::TreeViewColumn.new("Link", renderer, :text => 2)
-		@linklist.append_column(col)
+        col = Gtk::TreeViewColumn.new("Link", renderer, :text => 2)
+        @linklist.append_column(col)
         
         @links = links
         

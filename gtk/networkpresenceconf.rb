@@ -9,9 +9,10 @@
 class NetworkPresenceConf < SingleWindow
     def initialize(networks, protocols)
         @glade = GladeXML.new("glade/network-presences.glade") {|handler| method(handler)}
+        @window = @glade['networkpresencewindow']
         @networklist = Gtk::ListStore.new(String)
-		@renderer = Gtk::CellRendererText.new
-		@networkcolumn = Gtk::TreeViewColumn.new("Networks", @renderer, :text=>0)
+        @renderer = Gtk::CellRendererText.new
+        @networkcolumn = Gtk::TreeViewColumn.new("Networks", @renderer, :text=>0)
         @presencelist = Gtk::ListStore.new(String)
         @presencecolumn = Gtk::TreeViewColumn.new("Presences", @renderer, :text=>0)
         

@@ -1,3 +1,8 @@
+2005-12-27 02:53 - Andrew Thompson <vagabond@cataclysm-software.net>
+
+    Implemented focus for the single instance windows (Plugins, Keybindings, Links)
+    Need to clean up the way windows are prevented from being duplicated
+
 2005-12-27 02:20 - Andrew Thompson <vagabond@cataclysm-software.net>
 
     Abstracted color objects off into instances of Color class(not Gdk::Color)

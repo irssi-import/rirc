@@ -1,6 +1,7 @@
 class PluginWindow < SingleWindow
     def initialize
         @glade = GladeXML.new("glade/plugins.glade") {|handler| method(handler)}
+        @window = @glade['pluginwindow']
         @pluginstore = Gtk::ListStore.new(String, Integer)
         @pluginlist = @glade['pluginlist']
         @pluginlist.model = @pluginstore
