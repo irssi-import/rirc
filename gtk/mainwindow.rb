@@ -18,12 +18,7 @@ class MainWindow
 		
         @messageinput.grab_focus
         @messageinput.signal_connect("key_press_event"){|widget, event| input_buttons(widget, event)}
-        
-        #TODO, make this work only if the end of the buffer is visible?
-        #force a scroll to end on resize events
-        #@messages.signal_connect('size_allocate') { || scroll_to_end(@currentbuffer, true); false}
 
-        #@userbar = @glade['userbar']
         @userlist = @glade['userlist']
         @panel = @glade['hpaned1']
         @mainbox = @glade['mainbox']
@@ -32,9 +27,7 @@ class MainWindow
         @usercount = @glade['usercount']
         @currentbuffer = @serverlist
         drawuserlist(false)
-        #@messages.buffer = @serverlist.buffer
         @messagescroll.add(@serverlist.view.view)
-        #@messages.show_all
         @connection = nil
         
         even = $config['scw_even'].to_hex
@@ -48,30 +41,20 @@ class MainWindow
                        }\n
                        widget \"*.ScwView\" style \"scwview\"")
         
-        #@tablist = TreeTabList.new($main.tabmodel)
-        
-        #@tablist.set_active(@serverlist)
-        
-        #@panel.signal_connect('size_allocate') { || @userlist.set_size_request(0, -1);puts 'rezize'; false}
-		
-		#@messages.signal_connect('motion_notify_event') { |widget, event| textview_motion_notify(widget, event)}
-		#@messages.signal_connect('button_press_event') { |widget, event| textview_on_click(widget, event)}
-        
-        
         @glade['window1'].signal_connect('key_press_event') { |widget, event| window_buttons(widget, event)}
 		
-		@me = self
+        @me = self
 		
-		@last = nil
+        @last = nil
 		
-		@highlighted = []
+        @highlighted = []
         
         @linkcursor = Gdk::Cursor.new(Gdk::Cursor::HAND2)
         @normalcursor = Gdk::Cursor.new(Gdk::Cursor::LEFT_PTR)
 		
-		@defaultmenu = Gtk::Menu.new
-		@defaultmenu.append(Gtk::MenuItem.new("thing1"))
-		@defaultmenu.append(Gtk::MenuItem.new("thing2"))
+        @defaultmenu = Gtk::Menu.new
+        @defaultmenu.append(Gtk::MenuItem.new("thing1"))
+        @defaultmenu.append(Gtk::MenuItem.new("thing2"))
         
         @bindable_functions = []
         @bindable_functions.push({'name' => 'switchtab', 'arguments' => 1})
@@ -424,12 +407,12 @@ class MainWindow
         $config['windowheight'] = height if height
     end
 	
-	def updatetopic
-		if @currentbuffer.class == ChannelBuffer
-			@topic.text =@currentbuffer.topic
-            @tooltips.set_tip(@topic, @currentbuffer.topic, '')
-		end
-	end
+    def updatetopic
+            if @currentbuffer.class == ChannelBuffer
+                    @topic.text =@currentbuffer.topic
+        @tooltips.set_tip(@topic, @currentbuffer.topic, '')
+            end
+    end
     
     def userlist_on_click(widget, event)
 		if event.button == 3
@@ -568,20 +551,20 @@ class MainWindow
 	end
 	
 	def create_user_popup(user)
-		user = @currentbuffer.users[user] if @currentbuffer.users
-		if user
-			menu = Gtk::Menu.new
-			menu.append(Gtk::MenuItem.new(user.name))
-			menu.append(Gtk::MenuItem.new('hostname: '+user.hostname)) if user.hostname
-			menu.append(Gtk::MenuItem.new('Last message: '+user.lastspoke.strftime('%H:%M')))
-			whois = Gtk::MenuItem.new("Whois "+ user.name)
-			whois.signal_connect('activate') do |w|
-				whois(user.name)
-			end
-			menu.append(whois)
-		else
-			menu = @defaultmenu
-		end
+            user = @currentbuffer.users[user] if @currentbuffer.users
+            if user
+                menu = Gtk::Menu.new
+                menu.append(Gtk::MenuItem.new(user.name))
+                menu.append(Gtk::MenuItem.new('hostname: '+user.hostname)) if user.hostname
+                menu.append(Gtk::MenuItem.new('Last message: '+user.lastspoke.strftime('%H:%M')))
+                whois = Gtk::MenuItem.new("Whois "+ user.name)
+                whois.signal_connect('activate') do |w|
+                        whois(user.name)
+                end
+                menu.append(whois)
+            else
+                menu = @defaultmenu
+            end
 	end
 	
 	def whois(user)

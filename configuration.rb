@@ -123,6 +123,9 @@ class Configuration
         elsif value == 'false'
             return false
         else
+            if value.nil?
+                return nil
+            end
             values = value.split(':', 2)
             if values[0] == 'array'
                 x = []

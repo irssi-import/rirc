@@ -24,7 +24,6 @@ class Reply
         @command['command'] = attribs[0]
             
         attribs.each do |x|
-            puts x
             vals = x.split('=', 2)
             if vals[1] and vals[1] != ''
                 #unescape the original command values

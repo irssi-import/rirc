@@ -597,7 +597,7 @@ class BoxTabList < TabList
                 @model.set_active(buffer)
             end
             button.signal_connect('button_press_event')do |w, event|
-                if event.button == 3
+                if event.class == Gdk::EventKey and event.button == 3
                     buffer.rightclickmenu(event)
                 end
             end

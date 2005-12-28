@@ -15,7 +15,7 @@ class BufferView
         @view.modify_text(Gtk::STATE_PRELIGHT, Gdk::Color.new(*$config['scw_prelight']))
         @lines = []
         
-        @view.signal_connect("activate") do |view,id,data|
+        @view.signal_connect("activate") do |view,id,data, event|
           puts "Activated #{id} with #{data}"
           if id == 'url'
                 link = to_uri(data)
@@ -25,8 +25,11 @@ class BufferView
         
         @view.signal_connect('context_request') do |view, id, data, x, y|
             #TODO - connect up the menus
-            if id
-                puts id, data
+            if id == 'user'
+                puts data
+                menu = $main.window.create_user_popup(data)
+                menu.show_all
+                menu.popup(nil, nil, 3, Gdk::Event::CURRENT_TIME)# {[x, y]}
             end
         end
     end
