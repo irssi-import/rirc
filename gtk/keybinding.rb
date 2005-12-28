@@ -4,7 +4,7 @@
 module KeyBind
     def event_to_string(event)
         mods = []
-        
+        return unless event.class == Gdk::EventKey
         if (event.state & Gdk::Window::MOD1_MASK) != 0
             mods.push('Alt')
         end
