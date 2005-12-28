@@ -613,6 +613,7 @@ class MainWindow
 	end
     
     def window_buttons(widget, event)
+        return unless event.class == Gdk::EventKey #make sure we're only dealing with EventKeys
         x = event_to_string(event)
         unless x
             key = Gdk::Keyval.to_name(event.keyval)
