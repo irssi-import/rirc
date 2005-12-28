@@ -18,6 +18,7 @@ class MainWindow
 		
         @messageinput.grab_focus
         @messageinput.signal_connect("key_press_event") do |widget, event|
+            return unless event.class == Gdk::EventKey #ack, another guard against non EventKey events
             if event.keyval == Gdk::Keyval.from_name('Tab')
                 if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
                     substr = get_completion_substr
