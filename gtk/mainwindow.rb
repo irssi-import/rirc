@@ -17,30 +17,7 @@ class MainWindow
         @tooltips = Gtk::Tooltips.new
 		
         @messageinput.grab_focus
-        @messageinput.signal_connect("key_press_event") do |widget, event|
-            return unless event.class == Gdk::EventKey #ack, another guard against non EventKey events
-            if event.keyval == Gdk::Keyval.from_name('Tab')
-                if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
-                    substr = get_completion_substr
-                    nick = @currentbuffer.tabcomplete(substr) if substr
-                    replace_completion_substr(substr, nick) if nick
-                end
-            else
-                if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
-                    @currentbuffer.clear_tabcomplete
-                end
-            end
-                
-            if event.keyval == Gdk::Keyval.from_name('Up')
-                storecommand(false)
-                getlastcommand
-            elsif event.keyval == Gdk::Keyval.from_name('Down')
-                storecommand
-                getnextcommand
-            elsif event.keyval == Gdk::Keyval.from_name('Tab')
-                true
-            end
-        end
+        @messageinput.signal_connect("key_press_event"){|widget, event| input_buttons(widget, event)}
         
         #TODO, make this work only if the end of the buffer is visible?
         #force a scroll to end on resize events
@@ -115,7 +92,7 @@ class MainWindow
         y = -1
         
         x = $config['windowwidth'].to_i if $config['windowwidth']
-		y = $config['windowheight'].to_i if $config['windowheight']
+        y = $config['windowheight'].to_i if $config['windowheight']
         
         @glade['window1'].default_width = x
         @glade['window1'].default_height = y
@@ -612,6 +589,31 @@ class MainWindow
 		network, presence = @currentbuffer.getnetworkpresencepair
 		$main.send_command('whois'+user, 'presence status;network='+network+';mypresence='+presence+';presence='+user)
 	end
+        
+    def input_buttons(widget, event)
+        return unless event.class == Gdk::EventKey #ack, another guard against non EventKey events
+        if event.keyval == Gdk::Keyval.from_name('Tab')
+            if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
+                substr = get_completion_substr
+                nick = @currentbuffer.tabcomplete(substr) if substr
+                replace_completion_substr(substr, nick) if nick
+            end
+        else
+            if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
+                @currentbuffer.clear_tabcomplete
+            end
+        end
+            
+        if event.keyval == Gdk::Keyval.from_name('Up')
+            storecommand(false)
+            getlastcommand
+        elsif event.keyval == Gdk::Keyval.from_name('Down')
+            storecommand
+            getnextcommand
+        elsif event.keyval == Gdk::Keyval.from_name('Tab')
+            true
+        end
+    end
     
     def window_buttons(widget, event)
         return unless event.class == Gdk::EventKey #make sure we're only dealing with EventKeys
