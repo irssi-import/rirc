@@ -241,6 +241,7 @@ class NetworkPresenceConf < SingleWindow
         end
         @presencehandler = @glade['presence_ok'].signal_connect('clicked') { insert_presence}
         @glade['presence_autoconnect'].active = false
+        @glade['presence_name'].sensitive = false
         @glade['presence_name'].text = ''
         @glade['networkpresencewindow'].modal = false
         @glade['presenceproperties'].show_all
