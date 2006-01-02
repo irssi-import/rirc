@@ -1,3 +1,5 @@
+# a highlighter plugin
+
 class Highlighter < Plugin
     attr_accessor :terms
     def load

@@ -1,3 +1,5 @@
+#a now playing plugin for mpd
+
 require 'socket'
 
 class MPDPlay < Plugin

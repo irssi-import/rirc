@@ -1,3 +1,6 @@
+#inspects colors and adjusts any that would display poorly on your background color
+#algorithms borrowed from http://www.easyrgb.com/math.php
+
 class ColoRewrite < Plugin
     
     def rgb2xyz(r, g, b)
