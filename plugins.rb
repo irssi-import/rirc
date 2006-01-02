@@ -235,6 +235,7 @@ module PluginAPI
         
         #reader for cb_hash...?
         def cb_hash
+            @cb_hash ||= nil
             return @cb_hash
         end
         
@@ -270,7 +271,8 @@ module PluginAPI
         
         #reader for cb_hash_after
         def cb_hash_after
-            return @cb_hash_after
+            @cb_hash_after ||= nil
+            return @cb_hash_after if @cb_hash_after
         end
         
         #lookup parent classes for callback_after

@@ -29,6 +29,7 @@ class MainWindow
         drawuserlist(false)
         @messagescroll.add(@serverlist.view.view)
         @connection = nil
+        @tablist = nil
         
         even = $config['scw_even'].to_hex
         odd = $config['scw_odd'].to_hex

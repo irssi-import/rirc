@@ -28,6 +28,36 @@ class Color
         end
         hex
     end
+    
+    def to_256
+        res = []
+        to_a.each do |c|
+            t = c >> 8
+            res << t
+        end
+        return res
+    end
+    
+    def self.hex_to_a(string)
+        r = string[0, 2].hex
+        g = string[1, 2].hex
+        b = string[4, 2].hex
+        [r,g,b]
+    end
+    
+    def self.a_to_hex(a)
+        puts a.class
+        res = ''
+        a.each do |o|
+            o = 255 if o > 255
+            o = o.to_s(16)
+            if o.length == 1
+                o = '0'+o
+            end
+            res << o
+        end
+        res
+    end
 end
 
 def duration(seconds, precision=2)

@@ -14,6 +14,7 @@ class BufferView
         @view.modify_base(Gtk::STATE_ACTIVE, Gdk::Color.new(*$config['selectedbackgroundcolor']))
         @view.modify_text(Gtk::STATE_PRELIGHT, Gdk::Color.new(*$config['scw_prelight']))
         @lines = []
+        @lastread = nil
         
         @view.signal_connect("activate") do |view,id,data, event|
           puts "Activated #{id} with #{data}"
