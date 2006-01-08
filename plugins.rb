@@ -510,7 +510,7 @@ class PluginConfig
                 elsif option['type'] == String
                     #I guess we need some trick to allow combo boxes too...
                     widget = Gtk::Entry.new
-                    widget.text = option['value'] if option['value']
+                    widget.text = option['value'].to_s if option['value']
                     widget.signal_connect('changed') {|widget| text_changed(widget)}
                 elsif option['type'] == Integer
                     widget = Gtk::Entry.new

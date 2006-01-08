@@ -1,6 +1,7 @@
 class String
     def numeric?
-        if to_i == 0 and self != '0'
+        return false if self.scan('.').length > 1 #more then one floating points - bad
+        if to_i == 0 and self != '0' 
             return false
         end
         true
