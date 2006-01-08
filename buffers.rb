@@ -505,7 +505,11 @@ class Buffer
         else
             return
         end
-        pattern['%s'] = line[SOURCE_PRESENCE] if line[SOURCE_PRESENCE]
+        if line[SOURCE_PRESENCE]
+            pattern['%s'] = line[SOURCE_PRESENCE]
+        elsif line[:irc_source_nick]
+            pattern['%s'] = line[:irc_source_nick]
+        end
         #pattern['%m'] = line['mode']
         pattern['%u'] = line[PRESENCE]
         users.push(line[SOURCE_PRESENCE], line[PRESENCE])

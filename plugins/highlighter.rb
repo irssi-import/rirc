@@ -52,7 +52,7 @@ class Highlighter < Plugin
             replace = false
             replacements = []
             
-            $config['highlightstrings'].each do |term|
+            $config['highlightstrings'].sort{|x,y| y.length<=>x.length}.each do |term|
                 exists = false
                 replacement = nil
                 #check for a regexp
