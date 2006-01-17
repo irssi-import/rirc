@@ -1,6 +1,4 @@
-
-
-#derive from Hash and simply convert all keys to strings for internal storage
+#derive from Hash and simply convert all keys to symbols for internal storage
 #also convert all lookup keys to symbols
 class Line < Hash
     #convert keys to symbols

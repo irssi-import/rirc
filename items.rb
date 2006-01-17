@@ -73,10 +73,11 @@ class Network < Item
 end
 
 class Protocol < Item
-    attr_reader :name, :charset
-    def initialize(name, charset)
+    attr_reader :name, :charsets_in, :charset_out
+    def initialize(name, charset_in, charset_out)
         @name = name
-        @charset = charset
+        @charsets_in = charset_in.split(' ')
+        @charset_out = charset_out
     end
 end
 
