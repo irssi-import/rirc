@@ -138,7 +138,8 @@ class Main
     help :cmd_join, "Join a channel. usage: /join <channel>"
     def cmd_join(arguments, target)
         return unless target
-        unless arguments and target.respond_to? :join and !target.joined?
+        puts arguments
+        if !arguments and target.respond_to? :join and !target.joined?
             arguments = target.name
         end
         send_command('join', 'channel join;network='+target.network.name+';mypresence='+target.presence+';channel='+arguments)
