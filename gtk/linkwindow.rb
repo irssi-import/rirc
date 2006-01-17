@@ -1,7 +1,7 @@
 
 class LinkWindow
     def initialize(links)
-        @glade = GladeXML.new("glade/linkwindow.glade") {|handler| method(handler)}
+        @glade = GladeXML.new("gtk/glade/linkwindow.glade") {|handler| method(handler)}
         @linkstore = Gtk::ListStore.new(String, String, String)
         @linklist = @glade['linklist']
         @linklist.model = @linkstore

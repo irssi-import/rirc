@@ -7,9 +7,8 @@ require 'monitor'
 require 'yaml'
 require 'scw'
 require 'observer'
-require 'contrib/orderedhash'
-require 'iconv'
 require 'pathname'
+
 require 'utils'
 
 if RUBY_PLATFORM.include?('win32') or RUBY_PLATFORM.include?('mingw32')
@@ -50,14 +49,14 @@ end
 parse_args
 
 #useful for debugging
-#Thread.abort_on_exception = true
+Thread.abort_on_exception = true
 
 
 class SingleWindow
     def open?
         return @open
     end
-    
+
     def focus
         @window.present
     end
@@ -73,19 +72,24 @@ require 'queue'
 require 'lines'
 require 'configuration'
 require 'items'
+require 'bufferparser'
 require 'plugins'
+require 'aliases'
 require 'commandparser'
 require 'eventparser'
 require 'replyparser'
 require 'tabcomplete'
 require 'users'
+require 'userlistview'
 require 'bufferview'
-require 'buffers'
+require 'commandbuffer'
+#require 'buffers'
+require 'networks'
+require 'bufferlistview'
 require 'replies'
 require 'connections'
 require 'keybinding'
 require 'mainwindow'
-require 'tablist'
 require 'configwindow'
 require 'connectionwindow'
 require 'networkpresenceconf'
@@ -93,45 +97,51 @@ require 'linkwindow'
 require 'pluginwindow'
 
 class Main
-	attr_reader :serverlist, :window, :replies, :connectionwindow, :drift, :networks, :protocols, :quitting, :tabmodel
+    attr_reader :windows, :replies, :connectionwindow, :drift, :config, :console, :networks, :protocols, :buffers
     #extend Plugins
     include PluginAPI
     include EventParser
     include ReplyParser
     #include CommandParser
-    
+
     def initialize
-        @tabmodel = TabListModel.new
-        @serverlist = RootBuffer.new(self)
-        @tabmodel.root = @serverlist
         @connection = nil
         @replies = {}
         @buffer = []
         @buffer[0] = true
+        #hah awesome, look at that diagonal line of =s
         @keys = {}
         @drift = 0
+        @config = Configuration.new
+        @windows = []
         @networks = ItemList.new(Network)
         @protocols = ItemList.new(Protocol)
-        @quitting = false
         @inputqueue = MessageQueue.new
         @outputqueue = MessageQueue.new
-        
+        @console = ConsoleBuffer.new(self)
+
+        @buffers = {}
         @inputwatcher = Watcher.new(@inputqueue) {|x| command_parse(*x)}
         @outputwatcher = Watcher.new(@outputqueue) {|x| handle_output(x)}
+        Plugin.main = self
+#         Plugin.class_eval{@@main = 'bambams'}
+#         puts Plugin.class_variables
+#         puts Plugins.methods
+
+#         Plugins.main = self
     end
-    
+
     # start the GUI
     def start
         Gtk.init
         reply_reaper
-        @connectionwindow = ConnectionWindow.new unless @connectionwindow and @connectionwindow.open?
-        @window = MainWindow.new
+        @connectionwindow = ConnectionWindow.new(self) unless @connectionwindow and @connectionwindow.open?
         if @connectionwindow.autoconnect == true
             @connectionwindow.start_connect
         end
         Gtk.main
     end
-	
+
     def reply_reaper
         @reaperthread = Thread.new do
             Thread.current.priority = -3
@@ -154,61 +164,162 @@ class Main
             end
         end
     end
-    
-    #wrapper for window function
-    def switchchannel(channel)
-        @window.switchchannel(channel) if @window
-    end
-	
-    #wrapper for window function
-    def scroll_to_end(channel)
-        @window.scroll_to_end(channel)
-    end
-    
+
     def syncchannels
         @syncchannels = true
         Thread.new do
             Thread.current.priority = -2
-            @serverlist.servers.each do |server|
-                server.channels.each do |channel|
-                    if !channel.usersync and channel.connected
-                        send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
+            @windows.each do |win|
+                win.buffers.channels.each do |channel|
+                    if !channel.usersync and channel.joined?
+                        send_command('listchan-'+channel.network.name+channel.name, "channel names;network="+channel.network.name+";channel="+channel.name+";mypresence="+channel.presence)
                         while !channel.usersync
                             sleep 2
                         end
                     end
                 end
-                
-                server.channels.each do |channel|
-                    if !channel.eventsync and channel.connected
-                        send_command('events-'+server.name+channel.name, 'event get;end=*;limit=100;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))(time>1)')
+
+                win.buffers.channels.each do |channel|
+                    if !channel.eventsync and channel.joined?
+                        send_command('events-'+channel.network.name+channel.name, 'event get;end=*;limit=100;filter=&(channel='+channel.name+')(network='+channel.network.name+')(mypresence='+channel.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))(time>1)')
                         while !channel.eventsync
                             sleep 2
                         end
                     end
                 end
-                if server.connected
-                end
+
+                #~ @serverlist.servers.each do |server|
+                #~ server.channels.each do |channel|
+                #~ if !channel.usersync and channel.connected
+                #~ send_command('listchan-'+server.name+channel.name, "channel names;network="+server.name+";channel="+channel.name+";mypresence="+server.presence)
+                #~ while !channel.usersync
+                #~ sleep 2
+                #~ end
+                #~ end
+                #~ end
+
+                #~ server.channels.each do |channel|
+                #~ if !channel.eventsync and channel.connected
+                #~ send_command('events-'+server.name+channel.name, 'event get;end=*;limit=100;filter=&(channel='+channel.name+')(network='+server.name+')(mypresence='+server.presence+')(!(|(event=client_command_reply)(init=*)(deinit=*)(raw=*)))(time>1)')
+                #~ while !channel.eventsync
+                #~ sleep 2
+                #~ end
+                #~ end
+                #~ end
+                #~ if server.connected
+                #~ end
+                #~ end
             end
         end
         @syncchannels = nil
     end
-    
+
+    #~ #find what controller/buffer to send to, tries to cache for faster lookups
+    #~ def dispatch(*key)
+
+    #~ if key[2]
+    #~ testkey = key[0..2]
+    #~ elsif key[3]
+    #~ testkey = [key[0], key[1], key[3]]
+    #~ else
+    #~ testkey = key[0..1]
+    #~ end
+
+    #~ result = @bufferlookup[testkey] if @bufferlookup.has_key? testkey
+    #check for buffer that isn't a child of anything and remove it from the hash...
+    #~ return result if !result.nil?
+
+    #~ @windows.each do |window|
+    #~ #puts window
+    #~ if key[2]
+    #~ key = key[0..2]
+    #~ target = window.buffers.find_channel(*key)
+    #~ elsif key[3]
+    #~ key = [key[0], key[1], key[3]]
+    #~ target = window.buffers.find_chat(*key)
+    #~ else
+    #~ key = key[0..1]
+    #~ target = window.buffers.find_network(*key)
+    #~ end
+    #~ #puts target, key.inspect
+    #~ if target
+    #~ @bufferlookup[key] = target
+    #~ puts "matched #{target} for #{key.inspect}"
+    #~ return target
+    #~ end
+    #~ end
+    #~ nil
+    #~ end
+
+    def remove_buffer(buffer)
+        @buffers.delete_if{|k,v| v == buffer}
+    end
+
+    def add_buffer(*key)
+        if buffer = find_buffer(*key)
+            return buffer
+        end
+        #puts key.inspect
+        if key[2]
+            testkey = key[0..2]
+            if network = find_buffer(*key[0..1])
+                buffer = ChannelBuffer.new(key[2], network, self)
+            else
+                puts "undefined network #{key[0..1].inspect}"
+            end
+        elsif key[3]
+            testkey = [key[0], key[1], key[3]]
+            if network = find_buffer(*key[0..1])
+                buffer = ChatBuffer.new(key[3], network, self)
+            else
+                puts "undefined network #{key[0..1].inspect}"
+            end
+        else
+            testkey = key[0..1]
+            buffer = NetworkBuffer.new(key[0], key[1], self)
+        end
+        #puts buffer
+        assign_buffer_to_window(buffer) if buffer
+        @buffers[testkey] = buffer
+        buffer
+    end
+
+    def find_buffer(*key)
+        if key[2]
+            testkey = key[0..2]
+        elsif key[3]
+            testkey = [key[0], key[1], key[3]]
+        else
+            testkey = key[0..1]
+        end
+
+        @buffers[testkey]
+    end
+
+    def assign_buffer_to_window(buffer)
+        #TODO - filter to allow intelligent buffer assignment
+        @windows[0].buffers.add_buffer(buffer)
+    end
+
+    def reassign_buffer_to_window(buffer, window)
+        #TODO
+    end
+
     #connect to irssi2
     def connect(method, settings)
         return if @connection
         @connectionwindow.send_text('Connecting...')
         begin
             if method == 'ssh'
-                @connection = SSHConnection.new(settings, @connectionwindow)
+                @connection = SSHConnection.new(self, settings, @connectionwindow)
             elsif method == 'socket'
-                @connection = UnixSockConnection.new(settings, @connectionwindow)
+                @connection = UnixSockConnection.new(self, settings, @connectionwindow)
             elsif method == 'inetd'
-                @connection = InetdConnection.new(settings, @connectionwindow)
+                @connection = InetdConnection.new(self, settings, @connectionwindow)
             elsif method == 'local'
-                @connection = LocalConnection.new(settings, @connectionwindow)
+                @connection = LocalConnection.new(self, settings, @connectionwindow)
             elsif method == 'net_ssh'
-                @connection = NetSSHConnection.new(settings, @connectionwindow)
+                @connection = NetSSHConnection.new(self, settings, @connectionwindow)
             else
                 @connectionwindow.send_text('invalid connection method')
                 return
@@ -217,23 +328,37 @@ class Main
             @connectionwindow.send_text("Error: "+$!)
             return
         end
-            
+
         @connectionwindow.send_text("Connected to irssi2!")
         @connection.listen(self)
-            
-        $config.get_config
-        
-        $config['plugins'].each {|plugin| plugin_load(plugin)}
+
+        #@config.get_config
+        send_command('getconfig', 'config get;*')
+        while @replies['getconfig']
+            sleep 1
+#             puts 'foo'
+        end
+
+        @console.buffer.redraw
+
+        @config['plugins'].each {|plugin| plugin_load(plugin)}
+        @config['plugins'] = Plugin.list.values.map{|x| x['name']}#trim any plugins that failed to load
+        @config['windows'].each do |hash|
+            window = MainWindow.new(self, hash)
+            @windows.push(window)
+#             puts window
+            window.draw_from_config
+        end
         #@tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)
-        @tabmodel.draw_tree
-        @window.draw_from_config
-        @window.drawuserlist(false)
-        @serverlist.storedefault
+        #@tabmodel.draw_tree
+        #@window.draw_from_config
+        #@window.drawuserlist(false)
+        #@serverlist.storedefault
         @connectionwindow.destroy
-        
+
         send_command('protocols', 'protocol list')
     end
-	
+
     #what do do when we get disconnected from irssi2
     def disconnect
         @connection.close if @connection
@@ -244,7 +369,7 @@ class Main
         end
         @connectionwindow = ConnectionWindow.new unless @connectionwindow and @connectionwindow.open?
     end
-	
+
     #connect to a network
     def network_add(name, protocol, address, port)
         unless @serverlist.get_network_by_name(name)
@@ -257,7 +382,7 @@ class Main
             throw_error('Network '+network+' is already defined')
         end
     end
-    
+
     def network_connect(network, presence)
         if !@serverlist.get_network_by_name(network)  and !@networks[network]
             throw_error('Undefined network '+network)
@@ -267,7 +392,7 @@ class Main
             send_command('connect', "presence connect;network="+network+";mypresence="+presence)
         end
     end
-    
+
     def presence_add(network, presence)
         if !@serverlist.get_network_by_name(network) and !@networks[network]
             throw_error('Undefined network '+network)
@@ -276,10 +401,10 @@ class Main
         else
             cmdstring = "presence add;mypresence="+presence+";network="+network
             if @keys[presence] and @keys[presence]['silc_pub']
-            	cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
-            	cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
+                cmdstring += ";pub_key="+@keys[presence]['silc_pub']+";prv_key="+@keys[presence]['silc_priv']
+                cmdstring += ";passphrase="+@keys[presence]['silc_pass'] if @keys[presence]['silc_pass']
             end
-            
+
             cmdstring.gsub!("\n", "\\n")
             send_command('addpres', cmdstring)
             @networks[network].add_presence(presence)
@@ -287,7 +412,7 @@ class Main
         end
         return false
     end
-    
+
     def channel_add(network, presence, channel)
         if @serverlist[network, presence] and channel
             send_command('add', 'channel add;network='+network+';mypresence='+presence+';channel='+channel)
@@ -295,52 +420,60 @@ class Main
             throw_error('Invalid Network')
         end
     end
-    
-    def throw_error(error, buffer=@serverlist)
+
+    def throw_error(error, buffer=@console)
         line = Line[ERR => 'Client Error: '+error]
         buffer.send_user_event(line, EVENT_ERROR)
     end
-	
-    def throw_message(message, buffer=@serverlist)
-	line = Line[MSG => 'Client Message: '+message]
-	buffer.send_user_event(line, EVENT_NOTICE)
+
+    def throw_message(message, buffer=@console)
+        line = Line[MSG => 'Client Message: '+message]
+        @console.send_user_event(line, EVENT_NOTICE)
     end
-    
+
     def queue_input(msg)
         @inputqueue.enq(msg)
     end
-    
+
     def queue_output(msg)
         @outputqueue.enq(msg)
     end
-	
-    #split by line and parse each line
-    def parse_lines(string)
-        lines = string.split("\n")
+    
+    def parse_line(line)
+        @console.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
+        queue_output(line)
+    end
         
+    #split by line and parse each line
+    def parse_lines(lines)
+#         puts 'parsing lines'
+#         lines = string.split("\n")
+#         puts lines.inspect
         lines.each do |line|
-            $main.serverlist.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
+            @console.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
             queue_output(line)
         end
     end
-	
+
     #send a command to irssi2
     def send_command(tag, command, length=nil)
         if !@connection
             disconnect
             return
         end
-    
-        @replies[tag] = Reply.new(tag, command)
-            
+
+        @replies[tag] = Reply.new(self, tag, command)
+
         if length
             cmdstr = '+'+length.to_s+';'+tag+';'+command+"\n"
         else
             cmdstr = tag+';'+command+"\n"
         end
-    
+
+        puts "[SENT] #{cmdstr}" if $args['debug']
+
         sent = @connection.send(cmdstr)
-            
+
         if !sent
             @connection = nil
             disconnect
@@ -348,25 +481,24 @@ class Main
         end
         return @replies[tag]
     end
-	
+
     #handle output from irssi2
     def handle_output(string)
-        #string = Iconv.new("UTF-8", "UTF-8//IGNORE").iconv(string)
         return if string.length == 0
-        
+
         tag, event = string.split(';', 2)
-        
+
         #its an event
         if tag == '*'
             type, event = event.split(';', 2)
             #puts type, event
             line= Line.new
-        
+
             line[:event_type] = type
             line['original'] = string
-                
+
             items = event.split(';')
-            
+
             items.each do |x|
                 vals = x.split('=', 2)
                 if vals[1] and vals[1] != ''
@@ -376,17 +508,13 @@ class Main
                 end
             end
             calculate_clock_drift(line['time']) if line['time']
-            
-            if $config['canonicaltime'] == 'client'
-                line[:time] = Time.at(line[:time].to_i + $main.drift)
+
+            if @config['canonicaltime'] == 'client'
+                line[:time] = Time.at(line[:time].to_i + @drift)
             end
-            
+
             event_parse(line)
-            #num = line[:id].to_i
-            #@buffer[num] = line 
-        
-            #event_parse(@buffer[num])
-        #its a reply
+            #its a reply
         else
             if @replies[tag]
                 reply = @replies[tag]
@@ -404,27 +532,30 @@ class Main
             return
         end
     end
-	
+
     #keep an eye on the difference between client & server time
     def calculate_clock_drift(servertime)
         server = Time.at(servertime.to_i)
         client = Time.new
         @drift = (client - server).to_i
     end
-	
+
     def handle_error(line, reply)
         channel ||= reply.command['channel']
         network ||= reply.command['network']
         presence ||= reply.command['mypresence']
-        
-        if network = @serverlist[network, presence]
+
+        puts line
+        return
+
+        if network = assign_window.buffers.find_network(network, presence)
             target = network
         elsif @serverlist[network, presence] and channel = @serverlist[network, presence][channel]
             target = channel
         else
-            target = @serverlist
+            target = @window.networks.console
         end
-        
+
         if line['bad']
             err = 'Bad line - '+reply.origcommand
         elsif line['args']
@@ -456,33 +587,30 @@ class Main
             puts 'unhandled error '+line['original']
             return
         end
-        
-        target.send_user_event(Line['err' => err], EVENT_ERROR)
+
+        @window.networks.send_user_event(target, Line['err' => err], EVENT_ERROR)
     end
 
     def quit
         #if the connection is dead, don't bother trying to comunicate with irssi2
         if !@connection
-            @quitting = true
             do_quit
-        
-        #update the config and wait for quit response
+
+            #update the config and wait for quit response
         else
-            @quitting = true
-            $config.send_config
+            send_command('sendconfig', @config.changes)
             send_command('quit', 'quit')
-            puts 'sending quit (timeout 5 seconds...)'
-            sleep 5
-            unless @quit
-                puts 'failed to get quit confirmation, doing it manually'
-                do_quit
-            end
+            #             puts 'sending quit (timeout 5 seconds...)'
+            #             sleep 5
+            #             unless @quit
+            #                 puts 'failed to get quit confirmation, doing it manually'
+            #                 do_quit
+            #             end
         end
         true
     end
-    
+
     def do_quit
-        return unless @quitting
         @connection.close if @connection
         @reaperthread.kill if @reaperthread
         Gtk.main_quit

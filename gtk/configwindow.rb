@@ -1,7 +1,9 @@
 
 class ConfigWindow
-    def initialize
-        @glade = GladeXML.new("glade/config.glade") {|handler| method(handler)}
+    def initialize(main)
+        @main = main
+        @config = @main.config
+        @glade = GladeXML.new("gtk/glade/config.glade") {|handler| method(handler)}
         @window = @glade['config']
         @preferencesbar = @glade['preferencesbar']
         @configarea = @glade['configarea']
@@ -9,7 +11,7 @@ class ConfigWindow
         @preferencesbar.model = @treestore
         @treeselection = @preferencesbar.selection
         @treeselection.signal_connect('changed') do |widget|
-                switch_category(widget.selected)
+            switch_category(widget.selected)
         end
         
         @channellistposition = @glade['tablistposition']
@@ -51,7 +53,7 @@ class ConfigWindow
         fill_values
     end
 	
-    def fill_values(values = $config.values)
+    def fill_values(values = @config.values)
         #values = $config.get_all_values
 		
         values.each do | key, value|
@@ -123,7 +125,7 @@ class ConfigWindow
 
     def change_setting(widget, setting)
         #puts 'changed setting of '+widget.name+' to '+setting.to_s
-        @configarray[widget] = {'name' => widget.name, 'value' => setting}
+        @configarray[widget] = {'name' => widget.name, 'value' => setting} unless @configbackup[widget.name] == setting
     end
     
     def change_color(widget, color)
@@ -170,19 +172,20 @@ class ConfigWindow
     
     def revert_config
         #$config.revert_to_defaults
-        fill_values($config.defaults)
+        fill_values(@config.defaults)
     end
     
     def update_config
         #$config.create_config_snapshot
-        $config.update_snapshot(@configbackup)
+        @config.update_snapshot(@configbackup)
         #pass all the values back to $config
         @configarray.each do |k, v|
-            $config[v['name']] = v['value']
+            @config[v['name']] = v['value']
         end
         destroy
-        $main.window.draw_from_config
-        $config.send_config
+        @main.windows.each{|window| window.draw_from_config}
+        @main.buffers.values.select{|x| x.buffer}.each{|x| x.buffer.redraw}
+        @main.send_command('sendconfig', @config.changes)
     end
 	
     def show_all

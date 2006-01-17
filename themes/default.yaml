@@ -155,7 +155,11 @@ color7: !ruby/object:Color
   g: 0
   r: 0
 plugins: []
-aliases: []
-windowwidth: 800
-windowheight: 600
-panelposition: 650
+aliases: {}
+windows: 
+- ypos: 100
+  xpos: 100
+  panelposition: 650
+  height: 600
+  width: 800
+  console: true

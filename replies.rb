@@ -3,7 +3,8 @@ class Reply
     attr_writer :network, :channel, :retries
     attr_accessor :lineref
     
-    def initialize(name, command)
+    def initialize(main, name, command)
+        @main = main
         @start = Time.new
         @name = name
         @lines = []
@@ -69,11 +70,16 @@ class Reply
         end
         
         if @command['command'] != 'event get'
-            $main.calculate_clock_drift(temp['time'])
+            @main.calculate_clock_drift(temp['time'])
         end
         
-        if $config['canonicaltime'] == 'client'
-            temp['time'] = Time.at(temp['time'].to_i + $main.drift)
+        if @main.config['canonicaltime'] == 'client'
+            begin
+                temp['time'] = Time.at(temp['time'].to_i + @main.drift)
+            rescue RangeError
+                puts "#{temp['time']} is too large"
+                puts line
+            end
         end
         
         if temp[:reply_status] == '+'

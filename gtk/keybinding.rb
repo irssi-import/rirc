@@ -27,8 +27,10 @@ end
 class KeyBindingWindow < SingleWindow
     include KeyBind
     attr_accessor :sizegroups
-    def initialize(bindings, methods)
-        @glade = GladeXML.new("glade/keybindings.glade") {|handler| method(handler)}
+    def initialize(main, bindings, methods)
+        @main = main
+        @config = @main.config
+        @glade = GladeXML.new("gtk/glade/keybindings.glade") {|handler| method(handler)}
         @window = @glade['keywindow']
         @grabkeys = false
         @keybox = @glade['keybox']
@@ -180,7 +182,7 @@ class KeyBindingWindow < SingleWindow
     end
     
     def ok_clicked
-        $config['keybindings'] = save_bindings
+        @config['keybindings'] = save_bindings
         destroy
     end
     

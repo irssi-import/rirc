@@ -72,6 +72,8 @@ EVENT_USERNICKCHANGE = 'usernickchange'
 
 TAGMAP = {'color'=>'foreground', 'font-weight' => 'weight', 'font-style' => 'style', 'background-color' => 'background'}
 
+HYPERLINKREGEXP = %r{(?:\b|^)((((http|ftp|irc|https)://|)([\w\-]+\.)+[a-zA-Z]{2,4}|(\d{1,3}\.){3}(\d{1,3}))(\:[0-9]+|)([.\/]{1}[^\s\n\(\)\[\]\r]+|\b|$))}
+
 SENSITIVE = Proc.new {|x, y| x[0].name <=> y[0].name}
 SENSITIVE_NOHASH = Proc.new {|x, y| x[0].name.sub('#', '') <=> y[0].name.sub('#', '')}
 INSENSITIVE = Proc.new {|x, y| x[0].name.downcase <=> y[0].name.downcase}

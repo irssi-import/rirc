@@ -1,37 +1,38 @@
 #~ require 'libglade2'
 
 #~ class Object
-    #~ def deep_clone
-        #~ Marshal.load(Marshal.dump(self))
-    #~ end
+#~ def deep_clone
+#~ Marshal.load(Marshal.dump(self))
+#~ end
 #~ end
 
 class NetworkPresenceConf < SingleWindow
-    def initialize(networks, protocols)
-        @glade = GladeXML.new("glade/network-presences.glade") {|handler| method(handler)}
+    def initialize(main, networks, protocols)
+        @main = main
+        @glade = GladeXML.new("gtk/glade/network-presences.glade") {|handler| method(handler)}
         @window = @glade['networkpresencewindow']
         @networklist = Gtk::ListStore.new(String)
         @renderer = Gtk::CellRendererText.new
         @networkcolumn = Gtk::TreeViewColumn.new("Networks", @renderer, :text=>0)
         @presencelist = Gtk::ListStore.new(String)
         @presencecolumn = Gtk::TreeViewColumn.new("Presences", @renderer, :text=>0)
-        
+
         @gatewaylist = Gtk::ListStore.new(String)
         @gatewaycolumn = Gtk::TreeViewColumn.new("Gateways", @renderer, :text=>0)
-        
+
         @glade['networktreeview'].model = @networklist
         @glade['presencetreeview'].model = @presencelist
         @glade['gatewaytreeview'].model = @gatewaylist
 
         @glade['connect'].sensitive = false
-        
+
         @glade['networktreeview'].append_column(@networkcolumn)
         @glade['presencetreeview'].append_column(@presencecolumn)
         @glade['gatewaytreeview'].append_column(@gatewaycolumn)
-        
+
         @glade['networktreeview'].selection.signal_connect('changed') do |widget|
-			draw_presences
-		end
+            draw_presences
+        end
         @glade['presencetreeview'].selection.signal_connect('changed') do |widget|
             if iter = widget.selected and iter[0]
                 puts iter[0]
@@ -45,25 +46,25 @@ class NetworkPresenceConf < SingleWindow
             end
             false
         end
-        
+
         @orignetworks  = networks
         @networks = networks.deep_clone
         @protocols = protocols
-        
+
         @tempgateways = ItemList.new(Gateway)
-        
+
         @presencehandler = 0
         @networkhandler = 0
         @gatewayhandler = 0
-        
+
         draw_networks
-        
+
         @open = true
-        
+
         @glade['networkpresencewindow'].show_all
-        
+
     end
-    
+
     def draw_networks
         @networklist.clear
         @networks.list.each do |network|
@@ -71,7 +72,7 @@ class NetworkPresenceConf < SingleWindow
             iter[0] = network.name
         end
     end
-    
+
     def draw_presences
         network = get_selected_network
         unless network
@@ -93,7 +94,7 @@ class NetworkPresenceConf < SingleWindow
             iter[0] = presence.name
         end
     end
-    
+
     def fill_protocols(selected = nil)
         @glade['network_protocol'].model.clear
         match = false
@@ -106,12 +107,12 @@ class NetworkPresenceConf < SingleWindow
             end
             i += 1
         end
-        
+
         unless match
             @glade['network_protocol'].active = 0
         end
     end
-    
+
     def fill_gateways(gateways)
         @gatewaylist.clear
         return unless gateways
@@ -120,7 +121,7 @@ class NetworkPresenceConf < SingleWindow
             iter[0] = gateway.name
         end
     end
-    
+
     def fill_charsets(selected=nil)
         @glade['network_charset'].model.clear
         selected.downcase! if selected
@@ -129,32 +130,32 @@ class NetworkPresenceConf < SingleWindow
             charsets = [selected].concat(charsets) if selected
             index = 0
         end
-        
+
         charsets.each do |c|
             @glade['network_charset'].append_text(c)
         end
-        
+
         @glade['network_charset'].active  = index
     end
-    
+
     def get_selected_network
         iter = @glade['networktreeview'].selection.selected
         return nil unless iter
         return iter
     end
-    
+
     def get_selected_presence
         iter = @glade['presencetreeview'].selection.selected
         return nil unless iter
         return iter
     end
-    
+
     def get_selected_gateway
         iter = @glade['gatewaytreeview'].selection.selected
         return nil unless iter
         return iter
     end
-    
+
     def add_network 
         @tempgateways = ItemList.new(Gateway)
         @glade['network_protocol'].sensitive = true
@@ -172,7 +173,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['networkpresencewindow'].modal = false
         @glade['networkproperties'].show_all
     end
-    
+
     def edit_network
         if @glade['network_ok'].signal_handler_is_connected?(@networkhandler)
             @glade['network_ok'].signal_handler_disconnect(@networkhandler)
@@ -192,7 +193,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['networkpresencewindow'].modal = false
         @glade['networkproperties'].show_all
     end
-    
+
     def remove_network
         network = get_selected_network
         return unless network
@@ -201,7 +202,7 @@ class NetworkPresenceConf < SingleWindow
         @networks.remove(nw)
         @networklist.remove(network)
     end
-    
+
     def insert_network
         charset, name, protocol = nil
         charset = @glade['network_charset'].active_iter[0] if @glade['network_charset'].active_iter[0] != ''
@@ -216,7 +217,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['networkproperties'].hide
         @glade['networkpresencewindow'].modal = true
     end
-    
+
     def update_network
         charset, name, protocol = nil
         charset = @glade['network_charset'].active_iter[0] if @glade['network_charset'].active_iter 
@@ -232,7 +233,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['networkproperties'].hide
         @glade['networkpresencewindow'].modal = true
     end
-    
+
     def add_presence
         network = get_selected_network
         return unless network
@@ -246,7 +247,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['networkpresencewindow'].modal = false
         @glade['presenceproperties'].show_all
     end
-    
+
     def edit_presence
         network = get_selected_network
         return unless network
@@ -268,7 +269,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['networkpresencewindow'].modal = false
         @glade['presenceproperties'].show_all
     end
-    
+
     def remove_presence
         presence = get_selected_presence
         network = get_selected_network
@@ -277,17 +278,17 @@ class NetworkPresenceConf < SingleWindow
         @networks[network[0]].presences.remove(p)
         @presencelist.remove(presence)
     end
-    
+
     def insert_presence
         network = get_selected_network
         return unless network
         network = @networks[network[0]]
         return unless network
-        
+
         name = @glade['presence_name'].text if @glade['presence_name'].text != ''
         if name
             ps = network.presences.add(name)
-            
+
             if ps
                 ps.autoconnect = true if @glade['presence_autoconnect'].active?
                 draw_presences
@@ -297,7 +298,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['presenceproperties'].hide
         @glade['networkpresencewindow'].modal = true
     end
-    
+
     def update_presence
         network = get_selected_network
         return unless network
@@ -306,16 +307,16 @@ class NetworkPresenceConf < SingleWindow
         name, autoconnect = nil
         name = @glade['presence_name'].text if @glade['presence_name'].text != ''
         autoconnect = true if @glade['presence_autoconnect'].active?
-        
+
         presence = network.presences[name]
         return unless presence
-        
+
         presence.autoconnect = autoconnect
-        
+
         @glade['presenceproperties'].hide
         @glade['networkpresencewindow'].modal = true
     end
-    
+
     def add_gateway
         @glade['gateway_host'].text = ''
         @glade['gateway_port'].text = ''
@@ -327,7 +328,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['gatewayproperties'].show_all
         @glade['networkproperties'].modal = false
     end
-    
+
     def edit_gateway
         network = get_selected_network
         return unless network
@@ -348,7 +349,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['gatewayproperties'].show_all
         @glade['networkproperties'].modal = false
     end
-    
+
     def remove_gateway
         network = get_selected_network
         puts network[0]
@@ -360,7 +361,7 @@ class NetworkPresenceConf < SingleWindow
         @currentgateways.remove(gw)
         @gatewaylist.remove(gateway)
     end
-    
+
     def insert_gateway
         #puts network
         host, port, password = nil
@@ -380,7 +381,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['gatewayproperties'].hide
         @glade['networkproperties'].modal = true
     end
-    
+
     def update_gateway(gateway)
         host, port, password = nil
         host = @glade['gateway_host'].text if @glade['gateway_host'].text != ''
@@ -393,27 +394,27 @@ class NetworkPresenceConf < SingleWindow
         @glade['gatewayproperties'].hide
         @glade['networkproperties'].modal = true
     end
-    
+
     def cancel_networkproperties
         @glade['networkproperties'].hide
         @glade['networkpresencewindow'].modal = true
     end
-    
+
     def cancel_presenceproperties
         @glade['presenceproperties'].hide
         @glade['networkpresencewindow'].modal = true
     end
-    
+
     def cancel_gatewayproperties
         @glade['gatewayproperties'].hide
         @glade['networkproperties'].modal = true
     end
-    
+
     def hide(widget, event)
         widget.hide
         return true
     end
-    
+
     def connect
         network = get_selected_network
         return unless network
@@ -424,20 +425,20 @@ class NetworkPresenceConf < SingleWindow
             return unless presence
             apply
         end
-        $main.send_command('connect', 'presence connect;mypresence='+presence+';network='+network)
+        @main.send_command('connect', 'presence connect;mypresence='+presence+';network='+network)
         #connect to network presence
     end
-    
+
     def apply
         destroy
         diff_networks
     end
-    
+
     def diff_networks
         #~ i = 0
         #~ @networks.sort!
         #~ @orignetworks.sort!
-        
+
         #add and update
         @networks.list.each do |network|
             if @orignetworks.include?(network)
@@ -445,7 +446,7 @@ class NetworkPresenceConf < SingleWindow
                 diff = network.diff(@orignetworks[network.name])
                 if diff
                     puts 'update network'
-                    $main.send_command('editnetwork', 'network set;network='+network.name+';'+diff)
+                    @main.send_command('editnetwork', 'network set;network='+network.name+';'+diff)
                     #@orignetworks[network.name] = network
                 end
                 origpresences = @orignetworks[network.name].presences
@@ -455,12 +456,12 @@ class NetworkPresenceConf < SingleWindow
                         diff = presence.diff(origpresences[presence.name])
                         if diff
                             puts 'update presence'
-                            $main.send_command('editpresence', 'presence set;network='+network.name+';mypresence='+presence.name+';'+diff)
+                            @main.send_command('editpresence', 'presence set;network='+network.name+';mypresence='+presence.name+';'+diff)
                             #origpresences[presence.name] = presence
                         end
                     else
                         puts 'add presence '+presence.name
-                        $main.send_command('addpresence', presence.create(network.name))
+                        @main.send_command('addpresence', presence.create(network.name))
                         #origpresences.insert(presence)
                     end
                 end
@@ -471,31 +472,31 @@ class NetworkPresenceConf < SingleWindow
                         diff = gateway.diff(origgateways[gateway.name])
                         if diff
                             puts 'update gateway'
-                            $main.command_send('editgateway', 'gateway set;network='+gateway.name+';'+diff)
+                            @main.command_send('editgateway', 'gateway set;network='+gateway.name+';'+diff)
                             #origgateways[gateway.name] = gateway
                         end
                     else
                         puts 'add gateway '+gateway.name
-                        $main.send_command('addgateway', gateway.create(network.name))
+                        @main.send_command('addgateway', gateway.create(network.name))
                         #origgateways.insert(gateway)
                     end
                 end
             else
                 puts 'add network '+network.name
-                $main.send_command('addnetwork', network.create)
+                @main.send_command('addnetwork', network.create)
                 sleep 0.5
                 network.presences.list.each do |presence|
                     puts 'add presence '+presence.name
-                    $main.send_command('addpresence', presence.create(network.name))
+                    @main.send_command('addpresence', presence.create(network.name))
                 end
                 network.gateways.list.each do |gateway|
                     puts 'add gateway '+gateway.name
-                    $main.send_command('addgateway', gateway.create(network.name))
+                    @main.send_command('addgateway', gateway.create(network.name))
                 end
                 #@orignetworks.insert(network)
             end
         end
-        
+
         #remove
         @orignetworks.list.each do |network|
             if @networks.include?(network)
@@ -504,7 +505,7 @@ class NetworkPresenceConf < SingleWindow
                     if !newpresences.include?(presence)
                         #@orignetworks[network.name].presences.remove(presence)
                         puts 'remove presence '+presence.name
-                        $main.send_command('removepresence', 'presence remove;network='+network.name+';mypresence='+presence.name)
+                        @main.send_command('removepresence', 'presence remove;network='+network.name+';mypresence='+presence.name)
                     end
                 end
                 newgateways = @networks[network.name].gateways
@@ -512,7 +513,7 @@ class NetworkPresenceConf < SingleWindow
                     if !newgateways.include?(gateway)
                         #@orignetworks[network.name].gateways.remove(gateway)
                         puts 'remove gateway '+gateway.name
-                        $main.send_command('removegateway', 'gateway remove;network='+network.name+';host='+gateway.host)
+                        @main.send_command('removegateway', 'gateway remove;network='+network.name+';host='+gateway.host)
                     end
                 end
             else
@@ -522,7 +523,7 @@ class NetworkPresenceConf < SingleWindow
             end
         end
     end
-    
+
     def destroy
         @open = false
         @glade['networkpresencewindow'].destroy
@@ -530,6 +531,6 @@ class NetworkPresenceConf < SingleWindow
         @glade['presenceproperties'].destroy
         @glade['gatewayproperties'].destroy
         #Gtk.main_quit
-	end
-    
+    end
+
 end

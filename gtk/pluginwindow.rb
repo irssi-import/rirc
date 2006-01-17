@@ -1,8 +1,10 @@
 class PluginWindow < SingleWindow
-    def initialize
-        @glade = GladeXML.new("glade/plugins.glade") {|handler| method(handler)}
+    def initialize(main)
+        @main = main
+        @config = @main.config
+        @glade = GladeXML.new("gtk/glade/plugins.glade") {|handler| method(handler)}
         @window = @glade['pluginwindow']
-        @pluginstore = Gtk::ListStore.new(String, Integer)
+        @pluginstore = Gtk::ListStore.new(String, String)
         @pluginlist = @glade['pluginlist']
         @pluginlist.model = @pluginstore
         
@@ -19,7 +21,9 @@ class PluginWindow < SingleWindow
         end
         
         @pluginlist.append_column(col)
-        
+        col = Gtk::TreeViewColumn.new("Plugin", renderer, :text => 1)
+        @pluginlist.append_column(col)
+ 
         
         #puts Dir.entries('plugins')
         
@@ -46,11 +50,11 @@ class PluginWindow < SingleWindow
             name, extension = plugin.split('.')
             iter = @pluginstore.append
             iter[0] = name
-            if $config['plugins'].include?(name)
+            if Plugin[name]
                 puts name
-                iter[1] = 1
+                iter[1] = '*'
             else
-                iter[1] = 0
+                iter[1] = ''
             end
             #puts iter[0], iter[1]
         end
@@ -63,7 +67,7 @@ class PluginWindow < SingleWindow
     def update_buttons(widget)
         selection = widget.selected
         if selection
-            if selection[1] == 1
+            if selection[1] == '*'
                 @glade['plugin_unload'].sensitive = true
                 @glade['plugin_load'].sensitive = false
                 @glade['plugin_options'].sensitive = true
@@ -85,19 +89,19 @@ class PluginWindow < SingleWindow
     end
     
     def load_plugin
-        if selection = get_selection and selection[1] == 0
-            if $main.plugin_load(selection[0]) 
-                selection[1] = 1
+        if selection = get_selection and selection[1] == ''
+            if @main.plugin_load(selection[0]) 
+                selection[1] = '*'
             end
         end
         update_buttons(@pluginlist.selection)
     end
     
     def unload_plugin
-        if selection = get_selection and selection[1] == 1
+        if selection = get_selection and selection[1] == '*'
             if plugin = Plugin[selection[0]]
                 if Plugin.unregister(plugin)
-                    selection[1] = 0
+                    selection[1] = ''
                 end
             end
         end
@@ -105,9 +109,9 @@ class PluginWindow < SingleWindow
     end
     
     def config_plugin
-        if selection = get_selection and selection[1] == 1
+        if selection = get_selection and selection[1] == '*'
             if plugin = Plugin[selection[0]]
-                PluginConfig.new(plugin.configure)
+                PluginConfig.new(@main, plugin.configure)
             end
         end
     end

@@ -6,11 +6,11 @@ class TabComplete
         @position = 0
     end
     
-    def match(substr, userlist)
+    def match(substr, list)
         return if substr.length == 0
-        userlist.each do |user|
-            if user.name[0, substr.length].downcase	== substr.downcase
-                @results.push(user)
+        list.each do |item|
+            if item[0, substr.length].downcase == substr.downcase
+                @results.push(item)
             end
         end
     end
@@ -29,31 +29,40 @@ end
 #mixin for adding to buffers
 module TabCompleteModule
     def tabcomplete(substr)
+#         puts self
         if !@tabcomplete
-            if $config['tabcompletesort'] == 'activity'
-                #sort by activity
-                list = @users.sort{|x, y| y.lastspoke <=> x.lastspoke}
-            else	
-                #otherwise, sort by name
-                list = @users.sort
+            if substr[0].chr == '/'
+                list = @main.command_list
+            elsif self.respond_to? :users and  !self.network != self
+                puts self
+                if @config['tabcompletesort'] == 'activity'
+                    #sort by activity
+                    list = @users.users.sort{|x, y| y.lastspoke <=> x.lastspoke}
+                else	
+                    #otherwise, sort by name
+                    list = @users.users.sort
+                end
+                
+                currentuser = @users[username]
+                
+                if list.include?(currentuser)
+                    list.delete(currentuser)
+                    list.push(currentuser)
+                end
+                list = list.map{|x| x.name}
+            else
+                return nil
             end
-            
-            currentuser = @users[@server.username]
-            
-            if list.include?(currentuser)
-                list.delete(currentuser)
-                list.push(currentuser)
-            end 
             
             @tabcomplete = TabComplete.new(substr, list)
             if @tabcomplete.firstmatch
-                return @tabcomplete.firstmatch.name
+                return @tabcomplete.firstmatch
             else
                 clear_tabcomplete
                 return nil
             end
         else
-            return @tabcomplete.succ.name
+            return @tabcomplete.succ
         end
     end
     

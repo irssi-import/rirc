@@ -62,7 +62,7 @@ class Configuration
     end
  
     #send the config to irssi2
-    def send_config
+    def changes
         cmdstring = ''
  
         configs = []
@@ -84,60 +84,104 @@ class Configuration
         else
             cmdstring = 'config set;'+configs.join(';')
         end
- 
-        $main.send_command('sendconfig', cmdstring)
+        
+        cmdstring
+        #$main.send_command('sendconfig', cmdstring)
     end
  
     #request the config from irssi2
-    def get_config
-        $main.send_command('getconfig', 'config get;*')
-        while $main.replies['getconfig']
-            sleep 1
-        end
-    end
+    #~ def get_config
+        #~ $main.send_command('getconfig', 'config get;*')
+        #~ while $main.replies['getconfig']
+            #~ sleep 1
+        #~ end
+    #~ end
  
     #encode the values so they can be stored by irssi2
+    #this function recursively encodes arrays in hashes to handle n dimensional structures
     def encode_value(value)
         if value.class == Color
             colors = value.to_a[0..2]
-            'color:' + colors.map {|color| "#{color}" }.join(":")
+            'color{' + colors.map {|color| "#{color}" }.join(":")+'}'
         elsif value.class == Array
-            'array:' + value.map {|v| v.gsub(':', '\,') }.join(":")
+            'array{' + value.map {|v| encode_value(v)}.join(":")+'}'
         elsif value.class == Hash
-            'hash:' + value.map {|k, v| k.gsub(':', '\,') + ':' + v.gsub(':', '\,') }.join("::")
+            'hash{' + value.map {|k, v| encode_value(k) + ':' + encode_value(v) }.join("::")+'}'
         elsif value =~ /^(color|array|hash)\:(\d+)\:(\d+)\:(\d+)$/
             return value
-        elsif value.respond_to? :to_s
+        elsif value.nil? #we don't want nil being encoded to "", this fux0rs arrays...
+            return 'nil'
+        elsif value.respond_to? :to_s #everythign else gets converted to a string
             return value.to_s.gsub(':', '\,')
-        else
+        else #if we can't convert it to a string, don't store it
             return nil
         end
     end
  
     #decode values retrieved from irssi2
+    #recursively decodes arrays and hashes, gets a bit hairy though...
     def decode_value(value)
-        #puts value
         value = unescape(value) if value
         if value == 'true'
             return true
         elsif value == 'false'
             return false
+        elsif value == 'nil'
+            return nil
         else
             if value.nil?
                 return nil
             end
-            values = value.split(':', 2)
+            values = value.split('{', 2)
+            values[1].chomp!('}') if values[1]
             if values[0] == 'array'
                 x = []
-                values[1].split(':').each do |v|
-                    x.push(v.gsub('\,', ':'))
+                #~ values[1].split(':').each do |v|
+                    #~ if v =~ /^(array|hash|color)\{/
+                        #~ puts v
+                    #~ end
+                    #~ x.push(decode_value(v))
+                #~ end
+                string = values[1]
+                while string
+                    #check if the next part of the source string is an object
+                    if string =~ /^((?:array|hash|color)\{.+?\}(?:\:|$))/
+                        match = $1
+                        #trim the trailing : and decode it and then push it onto the array
+                        x.push(decode_value($1.chomp(':')))
+                        #remove the match from the source string and skip to the next loop iteration
+                        string.slice!(match)
+                        next
+                    end
+                    part, string = string.split(':', 2)
+                    x.push(decode_value(part)) if part
                 end
                 x
             elsif values[0] == 'hash'
                 x = {}
-                values[1].split('::').each do |y|
-                    k, v = y.split(':')
-                    x[k.gsub('\,', ':')] =v.gsub('\,', ':')
+                #~ values[1].split('::').each do |y|
+                    #~ k, v = y.split(':')
+                    #~ x[decode_value(k)] = decode_value(v)
+                #~ end
+                string = values[1]
+                while string
+                    #check for an object
+                    if string =~ /^((?:array|hash|color)\{.+?\}.+?(?:\:\:|\}$))/
+                        #store the match in a variable so it doesn't get clobbered later on
+                        match = $1
+                        #heh, trim the trailing :: and split by the last :
+                        key, value = $1.chomp('::').reverse.split(':', 2).map{|y| y.reverse}.reverse
+                        #stick it in the hash
+                        x[decode_value(key)] = decode_value(value)
+                        #remove the match from the string
+                        string.slice!(match)
+                        next
+                    end
+                    part, string = string.split('::', 2)
+                    if part
+                        k, v = part.split(':', 2)
+                        x[decode_value(k)] = decode_value(v)
+                    end
                 end
                 x
             elsif values[0] == 'color'
