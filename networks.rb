@@ -240,7 +240,7 @@ class BufferListModel
 
     #updates the view, then stores the new active
     def set_active(obj)
-        @active.set_status(0)
+        @active.set_status(0) if @active
 #         obj.set_status(0)
 #         @view.update_status(obj) if @view
         @view.set_active(obj) if @view

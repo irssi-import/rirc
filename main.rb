@@ -333,10 +333,12 @@ class Main
         @connection.listen(self)
 
         #@config.get_config
-        send_command('getconfig', 'config get;*')
-        while @replies['getconfig']
-            sleep 1
+        unless $args['noconfig']
+            send_command('getconfig', 'config get;*')
+            while @replies['getconfig']
+                sleep 1
 #             puts 'foo'
+            end
         end
 
         @console.buffer.redraw
