@@ -38,19 +38,7 @@ class BufferView
     end
     
     def redraw
-        even = @config['scw_even'].to_hex
-        odd = @config['scw_odd'].to_hex
-        
-#         puts even, odd
-        
-        #~ Gtk::RC.parse_string("style \"scwview\" {\
-                        #~ ScwView::even-row-color = \"#{even}\"\
-                        #~ ScwView::odd-row-color = \"#{odd}\"\
-                        #~ ScwView::column-spacing = 5\
-                        #~ ScwView::row-padding = 2\
-                        #~ }\n\
-                        #~ widget \"*.ScwView\" style \"scwview\"")
-        
+       
         @font = Pango::FontDescription.new(@config['main_font'])
         @view.reset_rc_styles
         @view.align_presences = @config['scw_align_presences']

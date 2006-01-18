@@ -124,11 +124,11 @@ class Main
         @inputwatcher = Watcher.new(@inputqueue) {|x| command_parse(*x)}
         @outputwatcher = Watcher.new(@outputqueue) {|x| handle_output(x)}
         Plugin.main = self
-#         Plugin.class_eval{@@main = 'bambams'}
-#         puts Plugin.class_variables
-#         puts Plugins.methods
+        #         Plugin.class_eval{@@main = 'bambams'}
+        #         puts Plugin.class_variables
+        #         puts Plugins.methods
 
-#         Plugins.main = self
+        #         Plugins.main = self
     end
 
     # start the GUI
@@ -250,6 +250,21 @@ class Main
     #~ end
     #~ nil
     #~ end
+    def restyle
+        even = @config['scw_even'].to_hex
+        odd = @config['scw_odd'].to_hex
+
+        #         puts even, odd
+
+        Gtk::RC.parse_string("style \"scwview\" {\
+                         ScwView::even-row-color = \"#{even}\"\
+                         ScwView::odd-row-color = \"#{odd}\"\
+                         ScwView::column-spacing = 5\
+                         ScwView::row-padding = 2\
+                         }\n\
+                         widget \"*.ScwView\" style \"scwview\"")
+
+    end
 
     def remove_buffer(buffer)
         @buffers.delete_if{|k,v| v == buffer}
@@ -337,10 +352,10 @@ class Main
             send_command('getconfig', 'config get;*')
             while @replies['getconfig']
                 sleep 1
-#             puts 'foo'
+                #             puts 'foo'
             end
         end
-
+        restyle
         @console.buffer.redraw
 
         @config['plugins'].each {|plugin| plugin_load(plugin)}
@@ -348,7 +363,7 @@ class Main
         @config['windows'].each do |hash|
             window = MainWindow.new(self, hash)
             @windows.push(window)
-#             puts window
+            #             puts window
             window.draw_from_config
         end
         #@tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)
@@ -440,17 +455,17 @@ class Main
     def queue_output(msg)
         @outputqueue.enq(msg)
     end
-    
+
     def parse_line(line)
         @console.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
         queue_output(line)
     end
-        
+
     #split by line and parse each line
     def parse_lines(lines)
-#         puts 'parsing lines'
-#         lines = string.split("\n")
-#         puts lines.inspect
+        #         puts 'parsing lines'
+        #         lines = string.split("\n")
+        #         puts lines.inspect
         lines.each do |line|
             @console.send_user_event({'msg' =>line.chomp}, EVENT_NOTICE) if $args['debug']
             queue_output(line)

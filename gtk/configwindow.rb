@@ -186,6 +186,7 @@ class ConfigWindow
         @main.windows.each{|window| window.draw_from_config}
         @main.buffers.values.select{|x| x.buffer}.each{|x| x.buffer.redraw}
         @main.send_command('sendconfig', @config.changes)
+        @main.restyle
     end
 	
     def show_all
