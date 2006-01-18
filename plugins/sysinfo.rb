@@ -68,11 +68,11 @@ class SysInfo < Plugin
     def load
         locale =self
         help :cmd_add_highlight, "show system information"
-        add_method(self, Main, 'cmd_sysinfo') do |args, channel, network, presence|
+        add_method(self, Main, 'cmd_sysinfo') do |args, target|
             
             [locale.get_hostname, locale.get_kernel, locale.get_cpu, locale.get_ram, locale.get_uptime].flatten.each do |line|
-                send_command('sysinfo', 'msg;mypresence='+presence+';network='+network.name+';channel='+channel.name+';msg='+escape(line)) if channel and network
-                @window.currentbuffer.send_user_event({'msg'=>line}, EVENT_USERMESSAGE)
+                send_command('sysinfo', "msg;#{target.identifier_string};msg=#{escape(line)}") if target.respond_to? :network and target.network != target
+                target.send_user_event({'msg'=>line}, EVENT_USERMESSAGE)
             end
         end
     end

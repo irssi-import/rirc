@@ -186,7 +186,7 @@ class MainWindow
         x = nil
         label = Gtk::Label.new("New username")
         entry = Gtk::Entry.new
-        entry.text = @currentbuffer.server.username
+        entry.text = @currentbuffer.network.username
         dialog = Gtk::Dialog.new("Username", nil,
                                  Gtk::Dialog::MODAL | Gtk::Dialog::DESTROY_WITH_PARENT,
                                  [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_ACCEPT],
@@ -201,7 +201,7 @@ class MainWindow
             end
             dialog.destroy
         end
-        @main.send_command('nick'+x, 'presence change;network='+@currentbuffer.server.name+';mypresence='+@currentbuffer.server.presence+';name='+x) if x
+        @main.send_command('nick'+x, "presence change;#{@currentbuffer.network.identifier_string};name=#{x}") if x
     end
 
     def topic_change(widget)
