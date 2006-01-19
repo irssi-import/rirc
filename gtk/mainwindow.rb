@@ -285,6 +285,7 @@ class MainWindow
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
         @panel.remove(@panel.child2) if @panel.child2
         @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
+        @currentbuffer.buffer.marklastread if @currentbuffer and @currentbuffer.buffer
         @currentbuffer = obj
         @commandbuffer = @currentbuffer.commandbuffer
         #         puts "commandbuffer: #{@commandbuffer}"

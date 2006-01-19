@@ -13,7 +13,7 @@ class PluginWindow < SingleWindow
         col = Gtk::TreeViewColumn.new("Plugin", renderer, :text => 0)
         
         col.set_cell_data_func(renderer) do |col, renderer, model, iter|
-            if iter[1] == 0
+            if iter[1] == ''
                 renderer.background = "#FFC8CA"
             else
                 renderer.background = "#C8FFCC"

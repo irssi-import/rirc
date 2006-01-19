@@ -36,7 +36,7 @@ class BufferView
             end
         end
     end
-    
+
     def redraw
        
         @font = Pango::FontDescription.new(@config['main_font'])
