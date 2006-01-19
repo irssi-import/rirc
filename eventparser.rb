@@ -284,6 +284,7 @@ module EventParser
     #a user has left irssi2's attention
     def event_presence_deinit(event, target)
         target = find_buffer(event[NETWORK], event[MYPRESENCE])
+        return unless target
         target.network.users.remove(event[PRESENCE])
     end
 

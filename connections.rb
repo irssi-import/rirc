@@ -327,42 +327,47 @@ class InetdConnection < Connection
         connectionwindow.send_text('Connected via TCP socket')
     end
 
-#     def send(data)
-#         begin
-#             @socket.send(data, 0)
-#         rescue SystemCallError
-#             puts 'Broken Pipe to Irssi, disconnecting '+$!
-#             close
-#             return false
-#         end
-#         return true
-#     end
+     def send(data)
+         begin
+             @socket.send(data, 0)
+         rescue SystemCallError
+             puts 'Broken Pipe to Irssi, disconnecting '+$!
+             close
+             return false
+         end
+         return true
+     end
 
-#     def listen(object)
-#         @listenthread = Thread.start{
-#             input = ''
-#             begin
-#                 while line = @socket.recv(70)
-#                     if line.length == 0
-#                         sleep 1
-#                     end
-#                     input += line
-#                     if input.count("\n") > 0
-#                         pos = input.rindex("\n")
-#                         string = input[0, pos]
-#                         input = input[pos, input.length]
-#                         Thread.start{
-#                             object.parse_lines(string)
-#                         }
-#                     end
-#                 end
+     def listen(object)
+         @listenthread = Thread.start{
+            loop do
+                if res = select([@socket], nil, nil, nil) and res[0]
+                    @main.parse_line(res[0][0].gets.chomp)
+                end
+            end
+             #~ input = ''
+             #~ begin
+                 #~ while line = @socket.recv(70)
+                     #~ if line.length == 0
+                         #~ sleep 1
+                     #~ end
+                     #~ input += line
+                     #~ if input.count("\n") > 0
+                         #~ pos = input.rindex("\n")
+                         #~ string = input[0, pos]
+                         #~ input = input[pos, input.length]
+                         #~ Thread.start{
+                             #~ object.parse_lines(string)
+                         #~ }
+                     #~ end
+                 #~ end
 
-#             rescue SystemCallError
-#                 puts 'Broken Pipe to Irssi, disconnecting '+$!
-#                 close
-#             end
-#         }
-#     end
+             #~ rescue SystemCallError
+                 #~ puts 'Broken Pipe to Irssi, disconnecting '+$!
+                 #~ close
+            #~ end
+         }
+     end
 
     def close
         @listenthread.kill

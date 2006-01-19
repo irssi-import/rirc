@@ -408,7 +408,7 @@ class Plugin
     def self.[](name)
 #         puts "looking up #{name}"
         @@plugins ||= {}
-        x = @@plugins.detect{|p| puts p[1]['name']; p[1]['name'] == name}
+        x = @@plugins.detect{|p| p[1]['name'] == name}
         x = x[0] if x
         return x
     end
@@ -460,11 +460,13 @@ class Plugin
 
     def self.find_plugin(name)
         name += '.rb'
-
-        if File.directory?(File.join($rircfolder, 'plugins')) and Dir.entries(File.join(@rircfolder, 'plugins')).include?(name)
-            return File.join($rircfolder, 'plugins', name)
-        elsif File.directory?('plugins') and Dir.entries('plugins').include?(name)
-            return File.join('plugins', name)
+        #puts $rircfolder
+        dir1 = File.join($rircfolder, 'plugins')
+        dir2 = 'plugins'
+        if File.directory?(dir1) and Dir.entries(dir1).include?(name)
+            return File.join(dir1, name)
+        elsif File.directory?(dir2) and Dir.entries(dir2).include?(name)
+            return File.join(dir2, name)
         else
             return false
         end

@@ -13,10 +13,10 @@ require 'utils'
 
 if RUBY_PLATFORM.include?('win32') or RUBY_PLATFORM.include?('mingw32')
     $platform = 'win32'
-    $rircfolder = ENV['APPDATA']+'/rirc'
+    $rircfolder = File.join(ENV['APPDATA'], 'rirc')
 else
     $platform = 'linux'
-    $rircfolder = ENV['HOME']+'/.rirc'
+    $rircfolder = File.join(ENV['HOME'], '.rirc')
 end
 
 begin
