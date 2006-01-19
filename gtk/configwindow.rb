@@ -64,13 +64,13 @@ class ConfigWindow
                         change_setting(widget, widget.text)
                     end
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
-                    @configbackup[key] = value
+                    @configbackup[key] ||= value
                 elsif @glade[key].class == Gtk::ComboBox
                     i = 0
                     match = false
                     #fill the combobox
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
-                    @configbackup[key] = value
+                    @configbackup[key] ||= value
                     puts key, @options[key]
                     next unless @options[key]
                     @options[key].each do |v|
@@ -87,13 +87,14 @@ class ConfigWindow
                     end
                     #	@glade[key].active = 1
                     #end
-                elsif @glade[key].class == Gtk::Button and value.class == Color
-                    color_button(@glade[key], Gdk::Color.new(*value))
+                elsif @glade[key].class == Gtk::ColorButton and value.class == Color
+                    #color_button(@glade[key], Gdk::Color.new(*value))
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
-                    @configbackup[key] = value
+                    @configbackup[key] ||= value
+                    @glade[key].color = Gdk::Color.new(*value)
                 elsif @glade[key].class == Gtk::CheckButton
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
-                    @configbackup[key] = value
+                    @configbackup[key] ||= value
                     if value
                         @glade[key].active = true
                     else
@@ -101,7 +102,7 @@ class ConfigWindow
                     end
                 elsif @glade[key].class == Gtk::FontButton
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
-                    @configbackup[key] = value
+                    @configbackup[key] ||= value
                     @glade[key].font_name = value
                 end
             end
@@ -124,38 +125,42 @@ class ConfigWindow
     end
 
     def change_setting(widget, setting)
-        #puts 'changed setting of '+widget.name+' to '+setting.to_s
+        puts 'changed setting of '+widget.name+' to '+setting.to_s
         @configarray[widget] = {'name' => widget.name, 'value' => setting} unless @configbackup[widget.name] == setting
     end
-    
-    def change_color(widget, color)
-        color_button(widget, color)
-        change_setting(widget, Color.new(*color.to_a))
-        #$config.set_value(widget.name, color)
+
+    def color_changed(widget)
+        change_setting(widget, Color.new(*widget.color.to_a))
     end
     
-    def select_color(widget)
-        button = widget
-        @configarray[widget] = {'name' => widget.name} unless @configarray[widget]
-        color = nil
-        color = Gdk::Color.new(*@configarray[widget]['value']) if @configarray[widget]['value']
-        selectordialog = Gtk::ColorSelectionDialog.new
-        selectordialog.modal = true
-        selector = selectordialog.colorsel
-        if color
-            selector.current_color = color
-            selector.previous_color = color
-        end
-        selectordialog.run do |response|
-            case response
-                when Gtk::Dialog::RESPONSE_OK
-                    change_color(button, selector.current_color)
-                #else
-                    #do_nothing_since_dialog_was_cancelled()
-            end
-            selectordialog.destroy
-        end
-    end
+#     def change_color(widget, color)
+#         color_button(widget, color)
+#         change_setting(widget, Color.new(*color.to_a))
+#         #$config.set_value(widget.name, color)
+#     end
+#     
+#     def select_color(widget)
+#         button = widget
+#         @configarray[widget] = {'name' => widget.name} unless @configarray[widget]
+#         color = nil
+#         color = Gdk::Color.new(*@configarray[widget]['value']) if @configarray[widget]['value']
+#         selectordialog = Gtk::ColorSelectionDialog.new
+#         selectordialog.modal = true
+#         selector = selectordialog.colorsel
+#         if color
+#             selector.current_color = color
+#             selector.previous_color = color
+#         end
+#         selectordialog.run do |response|
+#             case response
+#                 when Gtk::Dialog::RESPONSE_OK
+#                     change_color(button, selector.current_color)
+#                 #else
+#                     #do_nothing_since_dialog_was_cancelled()
+#             end
+#             selectordialog.destroy
+#         end
+#     end
     
     def combobox_changed(widget)
         change_setting(widget, @options[widget.name][widget.active].downcase)
@@ -185,7 +190,8 @@ class ConfigWindow
         destroy
         @main.windows.each{|window| window.draw_from_config}
         @main.buffers.values.select{|x| x.buffer}.each{|x| x.buffer.redraw}
-        @main.send_command('sendconfig', @config.changes)
+        changes = @config.changes
+        @main.send_command('sendconfig', changes) if changes
         @main.restyle
     end
 	

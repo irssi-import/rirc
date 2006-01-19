@@ -1329,204 +1329,6 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
       </child>
 
       <child>
-	<widget class="GtkButton" id="color1">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">1</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">2</property>
-	  <property name="right_attach">3</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color2">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">2</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">3</property>
-	  <property name="right_attach">4</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color3">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">3</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">4</property>
-	  <property name="right_attach">5</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color4">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">4</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">5</property>
-	  <property name="right_attach">6</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color5">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">5</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">6</property>
-	  <property name="right_attach">7</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color6">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">6</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">7</property>
-	  <property name="right_attach">8</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color7">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">7</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">8</property>
-	  <property name="right_attach">9</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="foregroundcolor">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">4</property>
-	  <property name="bottom_attach">5</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="scw_odd">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">8</property>
-	  <property name="right_attach">9</property>
-	  <property name="top_attach">4</property>
-	  <property name="bottom_attach">5</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
 	<widget class="GtkLabel" id="label16">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes">Action color:</property>
@@ -1575,28 +1377,6 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
       </child>
 
       <child>
-	<widget class="GtkButton" id="selectedforegroundcolor">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">7</property>
-	  <property name="bottom_attach">8</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
 	<widget class="GtkLabel" id="label19">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes">Background:</property>
@@ -1616,28 +1396,6 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	  <property name="top_attach">7</property>
 	  <property name="bottom_attach">8</property>
 	  <property name="x_options"></property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="selectedbackgroundcolor">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">8</property>
-	  <property name="right_attach">9</property>
-	  <property name="top_attach">7</property>
-	  <property name="bottom_attach">8</property>
-	  <property name="x_options">fill</property>
 	  <property name="y_options"></property>
 	</packing>
       </child>
@@ -1788,270 +1546,6 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
       </child>
 
       <child>
-	<widget class="GtkButton" id="neweventcolor">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">10</property>
-	  <property name="bottom_attach">11</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="newmessagecolor">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">11</property>
-	  <property name="bottom_attach">12</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="highlightcolor">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">12</property>
-	  <property name="bottom_attach">13</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color8">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">8</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color9">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">9</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">2</property>
-	  <property name="right_attach">3</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color10">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">10</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">3</property>
-	  <property name="right_attach">4</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color11">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">11</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">4</property>
-	  <property name="right_attach">5</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color12">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">12</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">5</property>
-	  <property name="right_attach">6</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color13">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">13</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">6</property>
-	  <property name="right_attach">7</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color14">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">14</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">7</property>
-	  <property name="right_attach">8</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color15">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">15</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">8</property>
-	  <property name="right_attach">9</property>
-	  <property name="top_attach">2</property>
-	  <property name="bottom_attach">3</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="color0">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes">0</property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">1</property>
-	  <property name="right_attach">2</property>
-	  <property name="top_attach">1</property>
-	  <property name="bottom_attach">2</property>
-	  <property name="x_options"></property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
 	<widget class="GtkLabel" id="label18">
 	  <property name="visible">True</property>
 	  <property name="label" translatable="yes">Background:
@@ -2072,50 +1566,6 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
 	  <property name="top_attach">4</property>
 	  <property name="bottom_attach">5</property>
 	  <property name="x_options"></property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="scw_even">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">7</property>
-	  <property name="right_attach">8</property>
-	  <property name="top_attach">4</property>
-	  <property name="bottom_attach">5</property>
-	  <property name="x_options">fill</property>
-	  <property name="y_options"></property>
-	</packing>
-      </child>
-
-      <child>
-	<widget class="GtkButton" id="scw_lastread">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
-	  <property name="visible">True</property>
-	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
-	</widget>
-	<packing>
-	  <property name="left_attach">8</property>
-	  <property name="right_attach">9</property>
-	  <property name="top_attach">5</property>
-	  <property name="bottom_attach">6</property>
-	  <property name="x_options">fill</property>
 	  <property name="y_options"></property>
 	</packing>
       </child>
@@ -2193,22 +1643,468 @@ NOTE: Do NOT nest tags, or style tag endings will become unpredictable.
       </child>
 
       <child>
-	<widget class="GtkButton" id="scw_prelight">
-	  <property name="width_request">30</property>
-	  <property name="height_request">30</property>
+	<widget class="GtkColorButton" id="color0">
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
-	  <property name="label" translatable="yes"></property>
-	  <property name="use_underline">True</property>
-	  <property name="relief">GTK_RELIEF_HALF</property>
-	  <property name="focus_on_click">False</property>
-	  <signal name="clicked" handler="select_color" last_modification_time="Sun, 12 Jun 2005 14:26:52 GMT"/>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color1">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">2</property>
+	  <property name="right_attach">3</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color2">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">3</property>
+	  <property name="right_attach">4</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color3">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">4</property>
+	  <property name="right_attach">5</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color4">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">5</property>
+	  <property name="right_attach">6</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color5">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">6</property>
+	  <property name="right_attach">7</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color6">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">7</property>
+	  <property name="right_attach">8</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color7">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">8</property>
+	  <property name="right_attach">9</property>
+	  <property name="top_attach">1</property>
+	  <property name="bottom_attach">2</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color8">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color9">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">2</property>
+	  <property name="right_attach">3</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color10">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">3</property>
+	  <property name="right_attach">4</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color11">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">4</property>
+	  <property name="right_attach">5</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color12">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">5</property>
+	  <property name="right_attach">6</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color13">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">6</property>
+	  <property name="right_attach">7</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color14">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">7</property>
+	  <property name="right_attach">8</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="color15">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">8</property>
+	  <property name="right_attach">9</property>
+	  <property name="top_attach">2</property>
+	  <property name="bottom_attach">3</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="foregroundcolor">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">4</property>
+	  <property name="bottom_attach">5</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="scw_even">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">7</property>
+	  <property name="right_attach">8</property>
+	  <property name="top_attach">4</property>
+	  <property name="bottom_attach">5</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="scw_odd">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">8</property>
+	  <property name="right_attach">9</property>
+	  <property name="top_attach">4</property>
+	  <property name="bottom_attach">5</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="scw_prelight">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
 	</widget>
 	<packing>
 	  <property name="left_attach">1</property>
 	  <property name="right_attach">2</property>
 	  <property name="top_attach">5</property>
 	  <property name="bottom_attach">6</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="scw_lastread">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">8</property>
+	  <property name="right_attach">9</property>
+	  <property name="top_attach">5</property>
+	  <property name="bottom_attach">6</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="selectedforegroundcolor">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">7</property>
+	  <property name="bottom_attach">8</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="selectedbackgroundcolor">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">8</property>
+	  <property name="right_attach">9</property>
+	  <property name="top_attach">7</property>
+	  <property name="bottom_attach">8</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="neweventcolor">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">10</property>
+	  <property name="bottom_attach">11</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="newmessagecolor">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">11</property>
+	  <property name="bottom_attach">12</property>
+	  <property name="x_options">fill</property>
+	  <property name="y_options"></property>
+	</packing>
+      </child>
+
+      <child>
+	<widget class="GtkColorButton" id="highlightcolor">
+	  <property name="visible">True</property>
+	  <property name="can_focus">True</property>
+	  <property name="use_alpha">False</property>
+	  <property name="focus_on_click">True</property>
+	  <signal name="color_set" handler="color_changed" last_modification_time="Thu, 19 Jan 2006 22:15:32 GMT"/>
+	</widget>
+	<packing>
+	  <property name="left_attach">1</property>
+	  <property name="right_attach">2</property>
+	  <property name="top_attach">12</property>
+	  <property name="bottom_attach">13</property>
 	  <property name="x_options">fill</property>
 	  <property name="y_options"></property>
 	</packing>
