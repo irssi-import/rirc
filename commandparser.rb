@@ -17,7 +17,7 @@ class Main
 
         if command and command[0].chr == '/'
             if result = @config['aliases'].detect{|k,v| '/'+k.downcase == command.downcase}
-                Alias.new(result[1], arguments, target).commands.each{|x| command_parse(x, target)}
+                Alias.new(result[1], arguments, target).commands.each{|x|sleep 0.1;command_parse(x, target)}
                 return
             else
                 cmd = command[1, command.length].downcase
@@ -138,11 +138,12 @@ class Main
     help :cmd_join, "Join a channel. usage: /join <channel>"
     def cmd_join(arguments, target)
         return unless target
-        puts arguments
+#         puts arguments, target, target.joined?
         if !arguments and target.respond_to? :join and !target.joined?
+#             puts target.name
             arguments = target.name
         end
-        send_command('join', "channel join;#{target.network.identifier_string};channel=#{arguments}")
+        send_command('join', "channel join;#{target.network.identifier_string};channel=#{arguments}") if arguments
     end
 
     #/server command

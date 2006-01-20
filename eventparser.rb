@@ -35,11 +35,11 @@ module EventParser
     #connecting to a server
     def event_gateway_connecting(event, target)
         if !target
-            network = add_buffer(event[NETWORK], event[MYPRESENCE])
+            target = add_buffer(event[NETWORK], event[MYPRESENCE])
         elsif !target.connected?
             puts 'network '+event[NETWORK]+' exists but is not connected, reconnecting'
-            network = @window.networks(event[NETWORK], event[MYPRESENCE])
-            network.reconnect
+            #network = (event[NETWORK], event[MYPRESENCE])
+            target.reconnect
         else
             puts 'request to create already existing network, ignoring'
             return
@@ -47,7 +47,7 @@ module EventParser
         msg = "Connecting to "+event['ip']
         msg += ":"+event[PORT] if event[PORT]
         event['msg'] = msg
-        @window.networks.send_event(network, event, EVENT_NOTICE)
+        target.send_event(event, EVENT_NOTICE)
     end
 
     #disconnected from a network

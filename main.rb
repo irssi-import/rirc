@@ -313,7 +313,7 @@ class Main
 
     def assign_buffer_to_window(buffer)
         #TODO - filter to allow intelligent buffer assignment
-        @windows[0].buffers.add_buffer(buffer) if @windows[0]
+        @windows[0].buffers.add_buffer(buffer)#if @windows[0]
     end
 
     def reassign_buffer_to_window(buffer, window)
