@@ -16,7 +16,7 @@ class Main
         end
 
         if command and command[0].chr == '/'
-            if result = @config['aliases'].detect{|k,v| '/'+k.downcase == command.downcase}
+            if result = @config['aliases'].detect{|k,v| '/'+k.downcase == message[0..k.length].downcase}
                 Alias.new(result[1], arguments, target).commands.each{|x|sleep 0.1;command_parse(x, target)}
                 return
             else
@@ -634,7 +634,7 @@ class Main
         command_methods.sort.each do |method|
 #             puts method, self.methods.include?('cmd_'+method[1..-1]), @config['aliases'][method[1..-1]]
             if self.methods.include? 'cmd_'+method[1..-1]
-                if self.help(method[1..-1])
+                if self.help('cmd_'+method[1..-1])
                     event = {'msg' => method+' : '+self.help('cmd_'+method[1..-1]).to_s}
                     target.send_user_event(event, EVENT_NOTICE)
                 else

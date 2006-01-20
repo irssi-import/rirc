@@ -3,9 +3,9 @@
 class Highlighter < Plugin
     attr_accessor :terms
     def load
-        @@main.config['highlightstrings'] = [] unless @@main.config['highlightstrings']
-        @@main.config['highlightplugincolor'] = Color.new(65535, 65535, 0) unless @@main.config['highlightplugincolor']
-        @@main.config['highlightcommand'] = 'none' unless @@main.config['highlightcommand']
+        @@main.config['highlightstrings'] ||= []
+        @@main.config['highlightplugincolor'] ||= Color.new(65535, 65535, 0)
+        @@main.config['highlightcommand'] ||= 'none'
 
         #/add_highlight adds a highlight
         help :cmd_add_highlight, "Add a highlight string"

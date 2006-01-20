@@ -11,6 +11,7 @@ Little things:
    add a irssi0 style activity bar as an alternative to the other Tablistviews
    reimplement tab numbering
    make the tab selected after the current one is closed try to find a channel and not just the next one to the left
+   fix error parsing
    
 Bugs:
     Can't set colors for input from config as the cursor becomes hidden

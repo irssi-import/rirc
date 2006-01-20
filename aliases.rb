@@ -32,11 +32,17 @@ class Alias
 
         while md
             if md[1] =~ /([\-0-9]+)([.]{2,3})([\-0-9]+)/
-                if $1.to_i > $3.to_i
+                puts md[1], @arguments.inspect
+                if ($1.to_i > $3.to_i and $3.to_i > 0) or ($1.to_i < 0 and $3.to_i >= 0) 
+                    puts 'less'
+                    puts eval("@arguments[#{$3}#{$2}#{$1}]").reverse.join(' ')   
                     string.sub!(md[0], eval("@arguments[#{$3}#{$2}#{$1}]").reverse.join(' '))
                 else
+                    puts 'not less'
+                    puts eval("@arguments[#{md[1]}]").join(' ')
                     string.sub!(md[0], eval("@arguments[#{md[1]}]").join(' '))
                 end
+                puts string
             elsif md[1].numeric?
                 if @arguments[md[1].to_i]
                     string.sub!(md[0], @arguments[md[1].to_i])
