@@ -313,7 +313,7 @@ class Main
 
     def assign_buffer_to_window(buffer)
         #TODO - filter to allow intelligent buffer assignment
-        @windows[0].buffers.add_buffer(buffer)
+        @windows[0].buffers.add_buffer(buffer) if @windows[0]
     end
 
     def reassign_buffer_to_window(buffer, window)
@@ -352,7 +352,6 @@ class Main
             send_command('getconfig', 'config get;*')
             while @replies['getconfig']
                 sleep 1
-                #             puts 'foo'
             end
         end
         restyle
@@ -363,7 +362,6 @@ class Main
         @config['windows'].each do |hash|
             window = MainWindow.new(self, hash)
             @windows.push(window)
-            #             puts window
             window.draw_from_config
         end
         #@tabmodel = TabListModel.new(@serverlist, *$config.gettabmodelconfig)

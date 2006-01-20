@@ -126,7 +126,7 @@ class ConfigWindow
 
     def change_setting(widget, setting)
         puts 'changed setting of '+widget.name+' to '+setting.to_s
-        @configarray[widget] = {'name' => widget.name, 'value' => setting} unless @configbackup[widget.name] == setting
+        @configarray[widget] = {'name' => widget.name, 'value' => setting}# unless @configbackup[widget.name] == setting
     end
 
     def color_changed(widget)

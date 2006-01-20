@@ -8,7 +8,8 @@ class Connection
             loop do
                 begin
                     if res = select([@output], nil, nil, nil) and res[0]
-                        @main.parse_line(res[0][0].gets.chomp)
+                        line = res[0][0].gets
+                        @main.parse_line(line.chomp) if line
                     end
                 end
             end

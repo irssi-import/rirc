@@ -142,7 +142,7 @@ class Main
         if !arguments and target.respond_to? :join and !target.joined?
             arguments = target.name
         end
-        send_command('join', 'channel join;network='+target.network.name+';mypresence='+target.presence+';channel='+arguments)
+        send_command('join', "channel join;#{target.network.identifier_string};channel=#{arguments}")
     end
 
     #/server command

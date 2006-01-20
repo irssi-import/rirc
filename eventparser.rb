@@ -330,8 +330,9 @@ module EventParser
             target.send_event(event, EVENT_USERMESSAGE)
         else
             unless target.users.include?(event[PRESENCE])
-                send_command('listchan-'+target.network.name+target.name, "channel names;#{target.identifier_string}")
-                puts 'Forcing a userlist sync'
+                puts "missing user #{event[PRESENCE]}"
+                #send_command('listchan-'+target.network.name+target.name, "channel names;#{target.identifier_string}")
+                #puts 'Forcing a userlist sync'
             end
             target.send_event(event, EVENT_MESSAGE)
         end

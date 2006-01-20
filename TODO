@@ -3,23 +3,14 @@ TODO
 Big things:
     Dynamic scrollback fetching
     On the fly replacement of user message timestamps and hostnames in event buffer as info is recieved from the server
-    Investigate dumping textview for some kind of line based, custom widget (use SCW when its got a ruby binding)
-    Clean up code, seperate functions into public/protected/private, standardize function/variable naming and lots more commenting (Ugh)
+    Intelligent assignment of tabs to windows(either by some user-set filters, or by some intelligent pattern recognizing magick)
     
 Little things:
-    Make the right click menus more useful
-    NetSplit detection (might be better in irssi2 itself)
-    Hide/Disconnect/Disconnect & Close All right click options for network tabs.
-    "Diff" topics so you can see what changed...? (probably a plugin)
-    pgup/down chat scrolling (wait for scw)
-    Possible bindable actions: Close tab, next tab, previous tab, move tab left, move tab right (problem is that you sort alphabetically, though). Close all tabs but current Close all tabs, disconnect. some kind of alias that lets you set a command to be sent on the current buffer...
-    Make Tab sorting configurable (Case sensitive, case insensitive, date of opening, date of most recent activity, date of your last activity)
-    Add predefined sorting that trumps the sorting algorithm
-    Add Local and Global tab numbering systems
-    Make irssi0's tab setup as an option
-
+   Add right click menus for tabs
+   reimplement the TreeView tablist
+   add a irssi0 style activity bar as an alternative to the other Tablistviews
+   reimplement tab numbering
+   make the tab selected after the current one is closed try to find a channel and not just the next one to the left
+   
 Bugs:
-    Slight issues with scrolling to end when tab switching. This seems to ba caused by a resize when the userlist is hidden.... calling a scroll_to_end after a size renegoitiation seems to improve things
     Can't set colors for input from config as the cursor becomes hidden
-    restoring colors from default doesn't work, the colors don't know they've been updated
-    fix forking for windows, highlight script and link clicking mess up
