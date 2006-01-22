@@ -1,7 +1,7 @@
 class Reply
     attr_reader :complete, :lines, :name, :command, :origcommand, :error, :network, :channel, :start, :retries
-    attr_writer :network, :channel, :retries
-    attr_accessor :lineref
+    attr_writer :retries
+    attr_accessor :lineref, :network, :presence, :channel
     
     def initialize(main, name, command)
         @main = main
@@ -15,6 +15,7 @@ class Reply
         parsecommand(command)
         @network = nil
         @channel = nil
+        @presence = nil
         @retries = 0
     end
 	

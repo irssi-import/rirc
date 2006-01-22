@@ -177,6 +177,15 @@ module ReplyParser
             send_command('networks', 'network list')
         end
     end
+
+    def reply_window_add(line, target, reply)
+       puts "#{reply.network}, #{reply.presence}, #{reply.channel}"
+       puts line['original']
+       if target = find_buffer(reply.network, reply.presence, reply.channel)
+           target.window_id = line['window'] if line['window']
+           target.last_seen = line['last_seen_event_id'] if line['last_seen_event_id']
+        end
+    end
     
     #list the connected channels
     def reply_channel_list(line, target, reply)
@@ -184,6 +193,10 @@ module ReplyParser
         if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL]
 #             puts 'adding channel'
             if channel = add_buffer(line[NETWORK], line[MYPRESENCE], line[CHANNEL])
+#                 reply = send_command("window#{rand(100)}", "window add;filter=&(network=#{line[NETWORK]})(mypresence=#{line[MYPRESENCE]})(channel=#{line[CHANNEL]})")
+#                 reply.network = line[NETWORK]
+#                 reply.presence = line[MYPRESENCE]
+#                 reply.channel = line[CHANNEL]
 #                 puts "new channel #{channel}"
                 if line[JOINED] and channel
                     if line[TOPIC]
@@ -238,7 +251,7 @@ module ReplyParser
         #if line[NETWORK] and line[MYPRESENCE] and line[CHANNEL] and line[PRESENCE]
         #puts "userlist #{target.class}"
         target = find_buffer(reply.command[NETWORK], reply.command[MYPRESENCE], reply.command[CHANNEL], line[PRESENCE])
-        if reply.command[NETWORK] and reply.command[MYPRESENCE] and reply.command[CHANNEL] and line[PRESENCE] and target
+        if reply.command[NETWORK] and reply.command[MYPRESENCE] and reply.command[CHANNEL] and line[PRESENCE] and target and !target.users.include?(line[PRESENCE])
             target.network.users.create(line[PRESENCE])
             chuser = target.users.add(target.network.users[line[PRESENCE]], false)
             if line[MODE] and chuser

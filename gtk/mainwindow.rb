@@ -550,7 +550,7 @@ class MainWindow
     #~ end
 
     def open_linkwindow
-        LinkWindow.new(@currentbuffer.links)
+#         LinkWindow.new(@currentbuffer.links)
     end
 
     def open_preferences

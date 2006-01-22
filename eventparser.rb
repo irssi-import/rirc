@@ -137,6 +137,10 @@ module EventParser
         else
             puts 'channel added'
             channel = add_buffer(event[NETWORK], event[MYPRESENCE], event[CHANNEL])
+#             reply = send_command("window#{rand(100)}", "window add;filter=&(network=#{event[NETWORK]})(mypresence=#{event[MYPRESENCE]})(channel=#{event[CHANNEL]})")
+#             reply.network = event[NETWORK]
+#             reply.presence = event[MYPRESENCE]
+#             reply.channel = event[CHANNEL]
             channel.usersync = channel.eventsync = true
             #send_command('events-'+network.name+channel.name, 'event get;end=*;limit=200;filter=&(channel='+channel.name+')(network='+network.name+')(presence='+network.presence+')(!(event=client_command_reply))')
         end
@@ -216,6 +220,7 @@ module EventParser
             end
         else
             puts 'unknown user '+event[PRESENCE]
+            send_command("usersync#{rand(100)}", "channel names;#{target.identifier_string}")
         end
     end
 
