@@ -212,7 +212,7 @@ module EventParser
             end
             if event[MODE]
                 chuser.mode=event[MODE]
-                puts 'set '+chuser.name+'\'s status to '+event[MODE]
+#                 puts 'set '+chuser.name+'\'s status to '+event[MODE]
                 #~ if !event[INIT]
                 #~ channel.drawusers
                 #~ end
@@ -240,9 +240,9 @@ module EventParser
             user = target.network.users[event[PRESENCE]]
 
             if user
-                puts user.inspect
+#                 puts user.inspect
                 user.rename(event[NAME])
-                puts user.inspect
+#                 puts user.inspect
                 @buffers.values.select{|x| x.network == target.network and  x.network != x and x.users}.each do |channel|
                     if chuser = channel.users[user.name]
                         channel.users.reorder(chuser)

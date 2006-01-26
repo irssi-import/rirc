@@ -178,46 +178,54 @@ class Main
     #/disconnect command
     help :cmd_disconnect, "Disconnect from a network. Usage: /disconnect [Network]"
     def cmd_disconnect(arguments, target)
-        unless network
-            if !arguments
-                throw_error('/disconnect does not function in this tab without a network argument')
-                return
-            end
-        end
-
-        if network and !arguments
-            servername = network.name
-            presence = network.presence
+        if target.respond_to? :network and target.network.connected?
+            send_command('disconnect', "presence_disconnect;#{target.network.identifier_string}")
+        elsif !target.network.connected?
+            throw_error('Cannot disconnect, network already disconnected')
         else
-            servername, presence = arguments.split(' ', 2)
+            throw_error('/disconnect does not function in this tab without a network argument')
         end
+    end
+#         unless target.respond
+#             if !arguments
+#                 throw_error('/disconnect does not function in this tab without a network argument')
+#                 return
+#             end
+#         end
 
-        if presence
-        elsif target.network.name == networkname
-            presence = target.presence
-        else
-            results = @serverlist.get_network_by_name(networkname)
+#         if network and !arguments
+#             servername = network.name
+#             presence = network.presence
+#         else
+#             servername, presence = arguments.split(' ', 2)
+#         end
 
-            if results
-                results.delete_if {|server| !server.connected}
-            end
+#         if presence
+#         elsif target.network.name == networkname
+#             presence = target.presence
+#         else
+#             results = @serverlist.get_network_by_name(networkname)
 
-            if results and results.length == 1
-                presence = results[0].presence
-            elsif results and results.length > 1
-                throw_error('Multiple networks named '+servername+' please specify a presence')
-            else
-                throw_error('No network named '+servernames)
-            end
-        end
+#             if results
+#                 results.delete_if {|server| !server.connected}
+#             end
 
-        if presence and servername
-            send_command('disconnect'+servername, "presence disconnect;network="+servername+";mypresence="+presence)
-            server = @serverlist[servername, presence]
-            server.disconnect
-            #
-            #server.close if server
-        end
+#             if results and results.length == 1
+#                 presence = results[0].presence
+#             elsif results and results.length > 1
+#                 throw_error('Multiple networks named '+servername+' please specify a presence')
+#             else
+#                 throw_error('No network named '+servernames)
+#             end
+#         end
+
+#         if presence and servername
+#             send_command('disconnect'+servername, "presence disconnect;network="+servername+";mypresence="+presence)
+#             server = @serverlist[servername, presence]
+#             server.disconnect
+#             #
+#             #server.close if server
+#         end
     end
 
     #/part command
