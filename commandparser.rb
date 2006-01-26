@@ -179,7 +179,7 @@ class Main
     help :cmd_disconnect, "Disconnect from a network. Usage: /disconnect [Network]"
     def cmd_disconnect(arguments, target)
         if target.respond_to? :network and target.network.connected?
-            send_command('disconnect', "presence_disconnect;#{target.network.identifier_string}")
+            send_command('disconnect', "presence disconnect;#{target.network.identifier_string}")
         elsif !target.network.connected?
             throw_error('Cannot disconnect, network already disconnected')
         else
@@ -226,7 +226,7 @@ class Main
 #             #
 #             #server.close if server
 #         end
-    end
+#     end
 
     #/part command
     help :cmd_part, "Leave a channel. Usage: /part [channel]"

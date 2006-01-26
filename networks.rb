@@ -468,11 +468,12 @@ class NetworkBuffer < Buffer
 
     def disconnect
         @connected = nil
-        @commandbuffer = nil
+#         @commandbuffer = nil
     end
 
     def close
         disconnect
+        @commandbuffer = nil
         super
     end
 
