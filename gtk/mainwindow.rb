@@ -303,8 +303,8 @@ class MainWindow
             if @currentbuffer.userlistview
                 @currentbuffer.userlistview.widget.show_all
                 @panel.pack2(@currentbuffer.userlistview.widget, false, true)
-                puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
-                puts 'setting panel position'
+#                 puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
+#                 puts 'setting panel position'
                 @panel.position = @confighash['panelposition'].to_i
                 #puts "userlist: #{@currentbuffer.userlistview}"
             end
