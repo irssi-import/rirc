@@ -460,8 +460,7 @@ class Plugin
 
     def self.find_plugin(name)
         name += '.rb'
-        #puts $rircfolder
-        dir1 = File.join($rircfolder, 'plugins')
+        dir1 = File.join($ratchetfolder, 'plugins')
         dir2 = 'plugins'
         if File.directory?(dir1) and Dir.entries(dir1).include?(name)
             return File.join(dir1, name)

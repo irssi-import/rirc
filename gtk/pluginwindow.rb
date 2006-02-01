@@ -33,8 +33,8 @@ class PluginWindow < SingleWindow
             plugins += Dir.entries('plugins')
         end
         
-        if File.directory?(File.join($rircfolder, 'plugins'))
-            plugins += Dir.entries(File.join($rircfolder, 'plugins'))
+        if File.directory?(File.join($ratchetfolder, 'plugins'))
+            plugins += Dir.entries(File.join($ratchetfolder, 'plugins'))
         end
         
         plugins = plugins.uniq.select do |i|

@@ -303,8 +303,9 @@ class MainWindow
             if @currentbuffer.userlistview
                 @currentbuffer.userlistview.widget.show_all
                 @panel.pack2(@currentbuffer.userlistview.widget, false, true)
-                #                 puts 'setting panel position'
-                @panel.position = @confighash['panelposition']
+                puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
+                puts 'setting panel position'
+                @panel.position = @confighash['panelposition'].to_i
                 #puts "userlist: #{@currentbuffer.userlistview}"
             end
         else
@@ -428,7 +429,7 @@ class MainWindow
 #         puts 'updating dimensions'
         width, height = @glade['window1'].size
         xpos, ypos = @glade['window1'].position
-        @confighash['panelposition'] = @panel.position
+        @confighash['panelposition'] = @panel.position if @panel.child2
         @confighash['width']=  width if width
         @confighash['height'] = height if height
         @confighash['xpos'] = xpos if xpos

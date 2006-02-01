@@ -74,6 +74,7 @@ class Configuration
  
                 configs.push(key+'='+escape(value)) if k and value
                 puts k+" HAS changed"
+                puts v.inspect
             else
             end
         end
