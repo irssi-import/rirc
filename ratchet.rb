@@ -2,7 +2,7 @@
 
 require 'main'
 
-$0 = "rirc"
+$0 = "ratchet"
 
 #start the ball rolling...
 if $args['debug']

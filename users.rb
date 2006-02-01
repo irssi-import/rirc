@@ -99,7 +99,7 @@ class UserList
     end
     
     def include?(newuser)
-        if newuser.class == User
+        if newuser.respond_to? :name
             @users.each do |user|
                 if user.name == newuser.name
                     return true
@@ -130,7 +130,7 @@ class UserList
     def[](name)
         result = nil
         @users.each do |user|
-            if user.name == name
+            if (user.respond_to? :name and user.name == name)
                 result = user
             end
         end

@@ -13,10 +13,10 @@ require 'utils'
 
 if RUBY_PLATFORM.include?('win32') or RUBY_PLATFORM.include?('mingw32')
     $platform = 'win32'
-    $rircfolder = File.join(ENV['APPDATA'], 'rirc')
+    $ratchetfolder = File.join(ENV['APPDATA'], 'ratchet')
 else
     $platform = 'linux'
-    $rircfolder = File.join(ENV['HOME'], '.rirc')
+    $ratchetfolder = File.join(ENV['HOME'], '.ratchet')
 end
 
 begin

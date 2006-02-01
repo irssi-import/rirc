@@ -13,11 +13,11 @@ class ConnectionWindow < SingleWindow
         @socket_button = @glade['socket'] 
         @net_ssh_button = @glade['net_ssh']
         @inetd_button = @glade['inetd']
-        @net_ssh_button.sensitive = false
-        @socket_button.sensitive = false
-        @net_ssh_button.sensitive = $netssh
+        @net_ssh_button.visible = false
+        @socket_button.visible = false
+        @net_ssh_button.visible= false# = $netssh
         if $platform == 'win32'
-            @local_button.sensitive = false
+            @local_button.visible = false
         end
         
         #@ssh_button.active = true
@@ -36,7 +36,9 @@ class ConnectionWindow < SingleWindow
         @config[@ssh_button]['port'] = '22'
         
         @config[@local_button] = {}
-        @config[@local_button] ['binpath'] = '/usr/bin/icecapd'
+        icecapdpath = ENV['PATH'].split(File::PATH_SEPARATOR).detect{|path| File.exist?(File.join(path, 'icecapd'))}
+        icecapdpath ||= '/usr/local/bin'
+        @config[@local_button] ['binpath'] = File.join(icecapdpath, 'icecapd')
         
         @config[@socket_button] = {}
         if $platform == 'linux'
@@ -94,15 +96,15 @@ class ConnectionWindow < SingleWindow
             end
         end
 
-        unless File.directory?($rircfolder)
-            Dir.mkdir($rircfolder)
+        unless File.directory?($ratchetfolder)
+            Dir.mkdir($ratchetfolder)
         end
-        File.open($rircfolder+'/settings.yaml', "w") {|f| YAML.dump(settings, f)}
+        File.open($ratchetfolder+'/settings.yaml', "w") {|f| YAML.dump(settings, f)}
     end
 	
     def load_settings
-        return if !File.exists?($rircfolder+'/settings.yaml')
-        settings = YAML.load_file($rircfolder+'/settings.yaml')
+        return if !File.exists?($ratchetfolder+'/settings.yaml')
+        settings = YAML.load_file($ratchetfolder+'/settings.yaml')
         
         group = @glade['ssh'].group
         group.each do |button|

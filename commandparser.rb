@@ -264,7 +264,7 @@ class Main
     end
 
     #/quit command
-    help :cmd_quit, "Quit RIRC"
+    help :cmd_quit, "Quit Ratchet"
     def cmd_quit(arguments, target)
         send_command('quit', 'quit')
         Gtk.main_quit
@@ -272,7 +272,7 @@ class Main
     end
 
     #/shutdown command
-    help :cmd_shutdown, "Kill Icecapd and quit rirc"
+    help :cmd_shutdown, "Kill Icecapd and quit Ratchet"
     def cmd_shutdown(arguments, target)
         send_command('shutdown', 'shutdown')
         Gtk.main_quit

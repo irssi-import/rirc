@@ -7,7 +7,7 @@ class MainWindow
         @confighash = confighash
         @config = @main.config
 
-        @glade = GladeXML.new("gtk/glade/rirc.glade") {|handler| method(handler)}
+        @glade = GladeXML.new("gtk/glade/mainwindow.glade") {|handler| method(handler)}
 
         @usernamebutton = @glade["username"]
         @topic = @glade["topic"]
