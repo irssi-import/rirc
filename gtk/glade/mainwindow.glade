@@ -282,7 +282,23 @@
 		      </child>
 
 		      <child>
-			<placeholder/>
+			<widget class="GtkVPaned" id="vpaned1">
+			  <property name="visible">True</property>
+			  <property name="can_focus">True</property>
+			  <property name="position">0</property>
+
+			  <child>
+			    <placeholder/>
+			  </child>
+
+			  <child>
+			    <placeholder/>
+			  </child>
+			</widget>
+			<packing>
+			  <property name="shrink">True</property>
+			  <property name="resize">True</property>
+			</packing>
 		      </child>
 		    </widget>
 		    <packing>

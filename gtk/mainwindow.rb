@@ -22,6 +22,7 @@ class MainWindow
 
         @userlist = @glade['userlist']
         @panel = @glade['hpaned1']
+        @vpanel = @glade['vpaned1']
         @mainbox = @glade['mainbox']
         @messagebox = @glade['vbox2']
         @preferencesbar = @glade['preferencesbar']
@@ -40,6 +41,7 @@ class MainWindow
             args.push(@main.console)
         end
         @buffers = BufferListController.new(*args)
+        redraw_channellist(true)
 
         #n = @buffers.add_network('Vagabond', 'TestNode')
         #@buffers.connect(n)
@@ -77,7 +79,7 @@ class MainWindow
     end
 
     def draw_from_config(unhide=true)
-#         puts 'drawing'
+        puts 'drawing from config'
         #~ return if $main.quitting
         #~ #@serverlist.redraw
         #~ redraw_channellist
@@ -117,60 +119,72 @@ class MainWindow
         @messageinput.grab_focus
     end
 
-    def redraw_channellist
-        @buffers.view.widget.show_all
-        @glade['v_top'].pack_start(@buffers.view.widget, false, false, 5)
+    def redraw_channellist(force=false)
+        oldview = @buffers.view
+        @buffers.recreate
+        puts "switch channellist? #{oldview != @buffers.view} #{oldview} #{@buffers.view}"
+        if oldview != @buffers.view or force
+            @buffers.view.widget.show_all
 
-        return
-
-        if @buffers
-            if @glade['h_top'].children.include?(@buffers.view.widget)
-                @glade['h_top'].remove(@buffers.view.widget)
-            elsif @glade['v_top'].children.include?(@buffers.view.widget)
-                @glade['v_top'].remove(@buffers.view.widget)
-            elsif @glade['u_pane'].children.include?(@buffers.view.widget)
-                @glade['u_pane'].remove(@buffers.view.widget)
+            if @config['tablisttype'] == 'button'
+                @vpanel.remove(@vpanel.child2)
+                @glade['v_top'].pack_start(@buffers.view.widget, false, false, 5)
+            elsif @config['tablisttype'] == 'treeview'
+                @glade['v_top'].remove(oldview.widget)
+                @vpanel.pack2(@buffers.view.widget, false, false)
             end
         end
 
-        if $config['tablisttype'] == 'treeview'
-            if $config['tablistposition'] != 'right' and $config['tablistposition'] != 'left' and $config['tablistposition'] != 'underuserlist'
-                $config['tablistposition'] = 'left'
-            end
-            unless @tablist.class == TreeTabList
-                $main.tabmodel.delete_observer(@tablist)
-                @tablist = TreeTabList.new($main.tabmodel)
-            end
-        else
-            if $config['tablistposition'] == 'right' or $config['tablistposition'] == 'left' or $config['tablistposition'] == 'underuserlist'
-                unless @tablist.class == VBoxTabList
-                    $main.tabmodel.delete_observer(@tablist)
-                    @tablist = VBoxTabList.new($main.tabmodel)
-                end
-            else
-                unless @tablist.class == HBoxTabList
-                    $main.tabmodel.delete_observer(@tablist)
-                    @tablist = HBoxTabList.new($main.tabmodel)
-                end
-            end
-        end
+#         return
 
-        $main.tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
-        @tablist.renumber
+#         if @buffers
+#             if @glade['h_top'].children.include?(@buffers.view.widget)
+#                 @glade['h_top'].remove(@buffers.view.widget)
+#             elsif @glade['v_top'].children.include?(@buffers.view.widget)
+#                 @glade['v_top'].remove(@buffers.view.widget)
+#             elsif @glade['u_pane'].children.include?(@buffers.view.widget)
+#                 @glade['u_pane'].remove(@buffers.view.widget)
+#             end
+#         end
 
-        if $config['tablistposition'] == 'right'
-            @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
-        elsif $config['tablistposition'] == 'left'
-            @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
-            @glade['h_top'].reorder_child(@tablist.widget, 0)
-        elsif $config['tablistposition'] == 'top'
-            @glade['v_top'].pack_start(@tablist.widget, false, false, 5)
-            @glade['v_top'].reorder_child(@tablist.widget, 0)
-        elsif $config['tablistposition'] == 'bottom'
-            @glade['v_top'].pack_start(@tablist.widget, false, false, 5)
-        elsif $config['tablistposition'] == 'underuserlist'
-            @glade['u_pane'].pack2(@tablist.widget, false, true)
-        end
+#         if $config['tablisttype'] == 'treeview'
+#             if $config['tablistposition'] != 'right' and $config['tablistposition'] != 'left' and $config['tablistposition'] != 'underuserlist'
+#                 $config['tablistposition'] = 'left'
+#             end
+#             unless @tablist.class == TreeTabList
+#                 $main.tabmodel.delete_observer(@tablist)
+#                 @tablist = TreeTabList.new($main.tabmodel)
+#             end
+#         else
+#             if $config['tablistposition'] == 'right' or $config['tablistposition'] == 'left' or $config['tablistposition'] == 'underuserlist'
+#                 unless @tablist.class == VBoxTabList
+#                     $main.tabmodel.delete_observer(@tablist)
+#                     @tablist = VBoxTabList.new($main.tabmodel)
+#                 end
+#             else
+#                 unless @tablist.class == HBoxTabList
+#                     $main.tabmodel.delete_observer(@tablist)
+#                     @tablist = HBoxTabList.new($main.tabmodel)
+#                 end
+#             end
+#         end
+
+#         $main.tabmodel.set_sort_and_structure(*$config.gettabmodelconfig)
+#         @tablist.renumber
+
+#         if $config['tablistposition'] == 'right'
+#             @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
+#         elsif $config['tablistposition'] == 'left'
+#             @glade['h_top'].pack_start(@tablist.widget, false, false, 5)
+#             @glade['h_top'].reorder_child(@tablist.widget, 0)
+#         elsif $config['tablistposition'] == 'top'
+#             @glade['v_top'].pack_start(@tablist.widget, false, false, 5)
+#             @glade['v_top'].reorder_child(@tablist.widget, 0)
+#         elsif $config['tablistposition'] == 'bottom'
+#             @glade['v_top'].pack_start(@tablist.widget, false, false, 5)
+#         elsif $config['tablistposition'] == 'underuserlist'
+#             @glade['u_pane'].pack2(@tablist.widget, false, true)
+#         end
         #@tablist.widget.show_all
     end
 
@@ -283,7 +297,7 @@ class MainWindow
     def switch_buffer(obj)
         update_dimensions
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
-        @panel.remove(@panel.child2) if @panel.child2
+#         @panel.remove(@panel.child2) if @panel.child2
         @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
         @currentbuffer.buffer.marklastread if @currentbuffer and @currentbuffer.buffer
         @currentbuffer = obj
@@ -300,17 +314,24 @@ class MainWindow
         if @currentbuffer.respond_to? :topic
             update_topic
             @topic.show
-            if @currentbuffer.userlistview
-                @currentbuffer.userlistview.widget.show_all
-                @panel.pack2(@currentbuffer.userlistview.widget, false, true)
-#                 puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
-#                 puts 'setting panel position'
-                @panel.position = @confighash['panelposition'].to_i
-                #puts "userlist: #{@currentbuffer.userlistview}"
-            end
         else
             @topic.hide
         end
+
+        if @currentbuffer.respond_to? :userlistview
+            @vpanel.show_all
+            @currentbuffer.userlistview.widget.show_all
+            @vpanel.pack1(@currentbuffer.userlistview.widget, false, true)
+#                 puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
+#                 puts 'setting panel position'
+            @panel.position = @confighash['panelposition'].to_i
+            #puts "userlist: #{@currentbuffer.userlistview}"
+        elsif @config['tablisttype'] == 'treeview'
+            @vpanel.remove(@vpanel.child1)
+        else
+            @vpanel.hide
+        end
+
         @messagescroll.child = @currentbuffer.buffer.view
         @currentbuffer.buffer.view.scroll_to_end
         @currentbuffer.buffer.view.show

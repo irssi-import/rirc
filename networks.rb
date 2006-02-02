@@ -14,13 +14,23 @@ class BufferListController
         set_sort(BufferListModel::HIERARCHICAL)
         set_comparator(BufferListModel::INSENSITIVE)
         #initialize the view with the references it needs
-        @view = HBoxBufferListView.new(self, @model)
+        @view = TreeBufferListView.new(self, @model)
         @model.view = view #give the model a reference to the view
         @window.switch_buffer(@model.console) if @model.console
     end
 
     def console
         @model.console
+    end
+
+    def recreate
+        if @config['tablisttype'] == 'button' and @view.class.superclass != BoxBufferListView
+            puts 'new buttonbox'
+            @view = HBoxBufferListView.new(self, @model)
+        elsif @config['tablisttype'] == 'treeview' and @view.class != TreeBufferListView
+            puts 'new treeview'
+            @view = TreeBufferListView.new(self, @model)
+        end
     end
 
     #most of these wrap model functions...
@@ -378,7 +388,7 @@ class BufferListModel
                 set_active(oldstructure[oldstructure.index(@active)-1])
             end
         end
-        @structure
+        @structure.uniq
     end
 end
 
