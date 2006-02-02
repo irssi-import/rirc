@@ -14,8 +14,9 @@ class BufferListController
         set_sort(BufferListModel::HIERARCHICAL)
         set_comparator(BufferListModel::INSENSITIVE)
         #initialize the view with the references it needs
-        @view = TreeBufferListView.new(self, @model)
-        @model.view = view #give the model a reference to the view
+#         @view = TreeBufferListView.new(self, @model)
+#         @model.view = view #give the model a reference to the view
+        recreate
         @window.switch_buffer(@model.console) if @model.console
     end
 
@@ -31,6 +32,7 @@ class BufferListController
             puts 'new treeview'
             @view = TreeBufferListView.new(self, @model)
         end
+        @model.view = view
     end
 
     #most of these wrap model functions...
