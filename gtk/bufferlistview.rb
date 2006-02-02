@@ -11,6 +11,27 @@ class BufferListView
         @filled
     end
 
+    def rightclickmenu(buffer, event)
+        puts buffer
+        menu = Gtk::Menu.new
+        if buffer.respond_to? :part
+            i = Gtk::MenuItem.new('Part')
+            i.signal_connect("activate"){buffer.part}
+            menu.append(i)
+        elsif buffer.respond_to? :disconnect
+            i = Gtk::MenuItem.new('Disconnect')
+            i.signal_connect("activate"){buffer.disconnect}
+            menu.append(i)
+        end
+        i = Gtk::MenuItem.new("Close")
+        i.signal_connect("activate"){buffer.close}
+        menu.append(i)
+        menu.show_all
+        menu.popup(nil, nil, event.button, event.time)
+    end
+
+
+
     def redraw
         #         puts 'redraw triggered'
         clear
@@ -167,8 +188,8 @@ class BoxBufferListView < BufferListView
                 end
             end
             button.signal_connect('button_press_event')do |w, event|
-                if event.class == Gdk::EventKey and event.button == 3
-                    buffer.rightclickmenu(event)
+                if event.button == 3
+                    rightclickmenu(buffer, event)
                 end
             end
             @buttons[buffer] = button
@@ -244,9 +265,21 @@ class TreeBufferListView < BufferListView
         @view.signal_connect('focus_in_event') do |w, event|
             set_active(@model.active)
         end
-        @view.signal_connect('button_press_event') do |w, event|
+        @view.signal_connect('button_press_event') do |widget, event|
+            #             if event.button == 3
+            #                 rightclickmenu(buffer, event)
+            #             end
             if event.button == 3
-                @model.active.rightclickmenu(event) if @model.active
+                path, column, x, y = widget.get_path_at_pos(event.x, event.y)
+                if  path
+                    puts "path is #{path}"
+#                 widget.set_cursor(path, nil, false)
+                    foo = @iters.values.detect{|x| x.path.to_s == path.to_s}
+                    puts "result #{foo}, #{@iters.index(foo)}"
+                    buffer = @iters.index(foo)
+                    rightclickmenu(buffer, event) if buffer
+                end
+                true
             end
         end
     end
@@ -290,9 +323,9 @@ class TreeBufferListView < BufferListView
     end
 
     def insert(object, after)
-#         puts after
+        #         puts after
         path = @iters[after].path
-#         puts path.depth
+        #         puts path.depth
         if !object.respond_to? :network or object == object.network
             if path.depth == 1
                 iter = @store.insert_after(nil, @store.get_iter(path))
@@ -434,6 +467,7 @@ class TreeBufferListView < BufferListView
             @view.selection.signal_handler_block(@selecthandler)
             @view.selection.select_iter(@store.get_iter(@iters[buffer].path)) if @iters[buffer]
             @view.selection.signal_handler_unblock(@selecthandler)
+            recolor(buffer)
             #             $main.window.switchchannel(buffer) if $main.window
         end
     end
