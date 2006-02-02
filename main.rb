@@ -360,6 +360,7 @@ class Main
         @config['plugins'].each {|plugin| plugin_load(plugin)}
         @config['plugins'] = Plugin.list.values.map{|x| x['name']}#trim any plugins that failed to load
         @config['windows'].each do |hash|
+            puts hash.inspect
             window = MainWindow.new(self, hash)
             @windows.push(window)
             window.draw_from_config

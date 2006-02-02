@@ -71,7 +71,7 @@ class ConfigWindow
                     #fill the combobox
                     @configarray[@glade[key]] = {'name' => key, 'value' => value}
                     @configbackup[key] ||= value
-                    puts key, @options[key]
+#                     puts key, @options[key]
                     next unless @options[key]
                     @options[key].each do |v|
                         @glade[key].append_text(v)

@@ -67,7 +67,7 @@ class MPDPlay < Plugin
             raise IOError, 'Failed to connect'
         end
         socket.recv(30)#grab the connect message
-        if  !@@main.config['mpdpass'].empty?
+        if  !@@main.config['mpdpass'] or !@@main.config['mpdpass'].empty?
             socket.send('password '+ @@main.config['mpdpass']+"\n", Socket::MSG_DONTROUTE)
             res = socket.recv(40)
             if res =~ /^ACK /

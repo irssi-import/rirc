@@ -23,6 +23,7 @@ class MainWindow
         @userlist = @glade['userlist']
         @panel = @glade['hpaned1']
         @vpanel = @glade['vpaned1']
+        @vpanel.hide
         @mainbox = @glade['mainbox']
         @messagebox = @glade['vbox2']
         @preferencesbar = @glade['preferencesbar']
@@ -131,7 +132,7 @@ class MainWindow
                 @glade['v_top'].pack_start(@buffers.view.widget, false, false, 5)
             elsif @config['tablisttype'] == 'treeview'
                 @glade['v_top'].remove(oldview.widget)
-                @vpanel.pack2(@buffers.view.widget, false, false)
+                @vpanel.pack2(@buffers.view.widget, false, true)
             end
         end
 
@@ -296,8 +297,9 @@ class MainWindow
 
     def switch_buffer(obj)
         update_dimensions
+        puts obj
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
-#         @panel.remove(@panel.child2) if @panel.child2
+        @vpanel.remove(@vpanel.child1) if @vpanel.child2
         @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
         @currentbuffer.buffer.marklastread if @currentbuffer and @currentbuffer.buffer
         @currentbuffer = obj
@@ -321,12 +323,14 @@ class MainWindow
         if @currentbuffer.respond_to? :userlistview
             @vpanel.show_all
             @currentbuffer.userlistview.widget.show_all
-            @vpanel.pack1(@currentbuffer.userlistview.widget, false, true)
-#                 puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
-#                 puts 'setting panel position'
+            @vpanel.pack1(@currentbuffer.userlistview.widget, false, false)
+            puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
+            puts 'setting panel position'
             @panel.position = @confighash['panelposition'].to_i
+            puts @panel.position
             #puts "userlist: #{@currentbuffer.userlistview}"
         elsif @config['tablisttype'] == 'treeview'
+            @panel.position = @confighash['panelposition'].to_i
             @vpanel.remove(@vpanel.child1)
         else
             @vpanel.hide
@@ -450,7 +454,7 @@ class MainWindow
 #         puts 'updating dimensions'
         width, height = @glade['window1'].size
         xpos, ypos = @glade['window1'].position
-        @confighash['panelposition'] = @panel.position if @panel.child2
+        @confighash['panelposition'] = @panel.position if @panel.child2.visible?
         @confighash['width']=  width if width
         @confighash['height'] = height if height
         @confighash['xpos'] = xpos if xpos

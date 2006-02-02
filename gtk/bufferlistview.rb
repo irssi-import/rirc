@@ -4,6 +4,11 @@ class BufferListView
     def initialize(controller, model)
         @controller = controller
         @model = model
+        @filled = false
+    end
+
+    def filled?
+        @filled
     end
 
     def redraw
@@ -54,12 +59,14 @@ class BoxBufferListView < BufferListView
             end
             @box.pack_start(add_button(o), false)
         end
+        @filled = true
     end
 
     def clear
         @buttons = {}
         @togglehandlers = {}
         @box.children.each {|child| @box.remove(child)}
+        @filled = false
     end
 
     def insert(object, after)
@@ -257,6 +264,7 @@ class TreeBufferListView < BufferListView
                 add_iter(o, get_last_parent)
             end
         end
+        @filled = true
         #         parent = add_iter(@model.root)
         #         @model.tree[@model.root].each do |k, v|
         #             child = add_iter(k, parent)
@@ -278,6 +286,7 @@ class TreeBufferListView < BufferListView
     def clear
         @iters = {}
         @store.clear
+        @filled = false
     end
 
     def insert(object, after)

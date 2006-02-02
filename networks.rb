@@ -32,7 +32,7 @@ class BufferListController
             puts 'new treeview'
             @view = TreeBufferListView.new(self, @model)
         end
-        @model.view = view
+        @model.view = @view
     end
 
     #most of these wrap model functions...
@@ -229,7 +229,7 @@ class BufferListModel
     def view=(view)
         @view = view
         sort
-        view.fill
+        view.fill unless view.filled?
     end
 
     def set_status(object, status)
