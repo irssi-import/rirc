@@ -133,6 +133,8 @@ class UserListView
     end
 
     def fill(model)
+        @userlist.clear
+        @useriters.clear
         model.users.each{|user| add_user(user, model.users.index(user))}
     end
 end

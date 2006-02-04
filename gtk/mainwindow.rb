@@ -299,7 +299,7 @@ class MainWindow
         update_dimensions
         puts obj
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
-        @vpanel.remove(@vpanel.child1) if @vpanel.child2
+        @vpanel.remove(@vpanel.child1) if @vpanel.child1
         @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
         @currentbuffer.buffer.marklastread if @currentbuffer and @currentbuffer.buffer
         @currentbuffer = obj
@@ -325,9 +325,9 @@ class MainWindow
             @currentbuffer.userlistview.widget.show_all
             @vpanel.pack1(@currentbuffer.userlistview.widget, false, false)
             puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
-            puts 'setting panel position'
+#             puts 'setting panel position'
             @panel.position = @confighash['panelposition'].to_i
-            puts @panel.position
+#             puts @panel.position
             #puts "userlist: #{@currentbuffer.userlistview}"
         elsif @config['tablisttype'] == 'treeview'
             @panel.position = @confighash['panelposition'].to_i

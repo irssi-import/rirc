@@ -24,7 +24,7 @@ class BufferListView
             menu.append(i)
         end
         i = Gtk::MenuItem.new("Close")
-        i.signal_connect("activate"){buffer.close}
+        i.signal_connect("activate"){@controller.close_buffer(buffer)}
         menu.append(i)
         menu.show_all
         menu.popup(nil, nil, event.button, event.time)
@@ -273,7 +273,7 @@ class TreeBufferListView < BufferListView
                 path, column, x, y = widget.get_path_at_pos(event.x, event.y)
                 if  path
                     puts "path is #{path}"
-#                 widget.set_cursor(path, nil, false)
+                    #                 widget.set_cursor(path, nil, false)
                     foo = @iters.values.detect{|x| x.path.to_s == path.to_s}
                     puts "result #{foo}, #{@iters.index(foo)}"
                     buffer = @iters.index(foo)
@@ -397,12 +397,12 @@ class TreeBufferListView < BufferListView
     #~ end
     #~ end
 
-    #~ def remove(item)
-    #~ if @iters[item] and @iters[item].valid?
-    #~ @store.remove(@store.get_iter(@iters[item].path))
-    #~ @iters.delete(item)
-    #~ end
-    #~ end
+    def remove(item)
+        if @iters[item] and @iters[item].valid?
+            @store.remove(@store.get_iter(@iters[item].path))
+            @iters.delete(item)
+        end
+    end
 
     #~ def renumber
     #~ @iters.each do |buffer, iter|
@@ -448,7 +448,7 @@ class TreeBufferListView < BufferListView
     def iter2buffer(iter)
         return nil unless iter
         @iters.each do |b, i|
-            if (i.path.to_s) == (iter.path.to_s)
+            if i.valid? and (i.path.to_s) == (iter.path.to_s)
                 return b
             end
         end

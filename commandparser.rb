@@ -152,7 +152,7 @@ class Main
         if arguments  =~ /^([a-zA-Z0-9_\-]+):([a-zA-Z]+):([a-zA-Z0-9_.\-]+)(?:$|:(\d+))/
             network_add($1, $2, $3, $4)
         else
-            error_throw('Usage: /server <name>:<protocol>:<address>[:<port>]')
+            throw_error('Usage: /server <name>:<protocol>:<address>[:<port>]')
         end
     end
 
