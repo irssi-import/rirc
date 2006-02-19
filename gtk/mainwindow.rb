@@ -297,7 +297,7 @@ class MainWindow
 
     def switch_buffer(obj)
         update_dimensions
-        puts obj
+#         puts obj
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
         @vpanel.remove(@vpanel.child1) if @vpanel.child1
         @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
@@ -324,7 +324,7 @@ class MainWindow
             @vpanel.show_all
             @currentbuffer.userlistview.widget.show_all
             @vpanel.pack1(@currentbuffer.userlistview.widget, false, false)
-            puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
+#             puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
 #             puts 'setting panel position'
             @panel.position = @confighash['panelposition'].to_i
 #             puts @panel.position

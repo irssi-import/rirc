@@ -24,11 +24,12 @@ module PluginAPI
             ret = nil
 
             #loop through the callbacks
-            cb_hash[method.to_sym].each do |hash|
+            cb_hash[method.to_sym].each do |callback|
 
                 #call the block and get the return value
                 #what about instance_eval here?
-                ret = hash.call(self, *args)
+                ret = self.instance_exec(*args, &callback)
+#                 ret = callback.call(self, *args)
 
                 #if return value is true, break off calling any more callbacks (like GTK's system)
                 if ret === true
@@ -73,9 +74,10 @@ module PluginAPI
             ret = nil
 
             #loop through the callbacks
-            cb_hash_after[method.to_sym].each do |hash|
+            cb_hash_after[method.to_sym].each do |callback|
                 #call the callback, and get the return stuff
-                ret = hash.call(self, *args)
+                ret = self.instance_exec(*args, &callback)
+#                 ret = callback.call(self, *args)
 
                 #if callback returns true, break off calling any other callbacks like GTK's signals
                 if ret === true
@@ -146,7 +148,7 @@ module PluginAPI
         return self.class.resolve_cb_hash_after
     end
 
-    #hyperextend!
+    #hyperextend!, these methods are added as class methods
     module Plugins
         #define a callback
         def add_callback(name, &block)
@@ -352,7 +354,7 @@ class Plugin
         @@plugins ||= {}
 
         #stuff the data in it
-        @@plugins[plugin] = {'name' => name, 'callbacks' => Array.new, 'callbacks_after' => Array.new, 'methods' => Array.new} if plugin and !@@plugins[plugin]
+        @@plugins[plugin] = {:name => name, :callbacks => Array.new, :callbacks_after => Array.new, :methods => Array.new} if plugin and !@@plugins[plugin]
 
         #call the plugins load() method
         @@main.console.send_user_event({'msg' => 'Loading Plugin '+name}, EVENT_NOTICE)
@@ -371,24 +373,24 @@ class Plugin
         return false unless @@plugins and @@plugins[plugin]
 
         #remove all the callbacks
-        @@plugins[plugin]['callbacks'].each do |c|
-            c[1].del_callback(c[0])
-            puts 'removed callback '+c[0]+' for class '+c[1].to_s
+        @@plugins[plugin][:callbacks].each do |c|
+            c[:class].del_callback(c[:callback])
+            puts 'removed callback '+c[:callback]+' for class '+c[:class].to_s
         end
 
         #remove all the callback_afters
-        @@plugins[plugin]['callbacks_after'].each do |c|
-            c[1].del_callback_after(c[0])
-            puts 'removed callback_after '+c[0]+' for class '+c[1].to_s
+        @@plugins[plugin][:callbacks_after].each do |c|
+            c[:class].del_callback_after(c[:callback])
+            puts 'removed callback_after '+c[:callback]+' for class '+c[:class].to_s
         end
 
         #remove all the methods
-        @@plugins[plugin]['methods'].each do |c|
-            c[1].del_method(c[0])
-            puts 'removed method '+c[0]+' for class '+c[1].to_s
+        @@plugins[plugin][:methods].each do |c|
+            c[:class].del_method(c[:method])
+            puts 'removed method '+c[:method]+' for class '+c[:class].to_s
         end
 
-        @@main.config['plugins'].delete(@@plugins[plugin]['name'])
+        @@main.config['plugins'].delete(@@plugins[plugin][:name])
 
         #delete the plugin from the hash
         @@plugins.delete(plugin)
@@ -408,7 +410,7 @@ class Plugin
     def self.[](name)
 #         puts "looking up #{name}"
         @@plugins ||= {}
-        x = @@plugins.detect{|p| p[1]['name'] == name}
+        x = @@plugins.detect{|p| p[1][:name] == name}
         x = x[0] if x
         return x
     end
@@ -419,8 +421,8 @@ class Plugin
         #make sure the plugin is registered
         if @@plugins[plugin]
             #add the callback, make sure its not already defined for this plugin and then define it iof add is sucessful
-            if callback = classname.add_callback(name, &block) and  !@@plugins[plugin]['callbacks'].include?([callback, classname])
-                @@plugins[plugin]['callbacks'].push([callback, classname])
+            if callback = classname.add_callback(name, &block) and  !@@plugins[plugin][:callbacks].include?({:callback=>callback, :class=>classname})
+                @@plugins[plugin][:callbacks].push({:callback=>callback, :class=>classname})
             end
 
             #error
@@ -434,8 +436,8 @@ class Plugin
         #make sure the plugin is registered
         if @@plugins[plugin]
             #add the callback, make sure its not already defined for this plugin and then define it if add is sucessful
-            if callback = classname.add_callback_after(name, &block) and  !@@plugins[plugin]['callbacks_after'].include?([callback, classname])
-                @@plugins[plugin]['callbacks_after'].push([callback, classname])
+            if callback = classname.add_callback_after(name, &block) and  !@@plugins[plugin][:callbacks_after].include?({:callback=>callback, :class=>classname})
+                @@plugins[plugin][:callbacks_after].push({:callback=>callback, :class=>classname})
             end
 
             #error
@@ -448,8 +450,8 @@ class Plugin
         #make sure the plugin is registered
         if @@plugins[plugin]
             #add the callback, make sure its not already defined for this plugin and then define it if add is sucessful
-            if method = classname.add_method(name, &block) and  !@@plugins[plugin]['methods'].include?([method, classname])
-                @@plugins[plugin]['methods'].push([method, classname]) 
+            if method = classname.add_method(name, &block) and  !@@plugins[plugin][:methods].include?({:method=>method, :class=>classname})
+                @@plugins[plugin][:methods].push({:method=>method, :class=>classname}) 
             end
 
             #error
@@ -459,6 +461,7 @@ class Plugin
     end
 
     def self.find_plugin(name)
+        return unless name
         name += '.rb'
         dir1 = File.join($ratchetfolder, 'plugins')
         dir2 = 'plugins'

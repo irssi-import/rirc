@@ -6,12 +6,17 @@ Big things:
     Intelligent assignment of tabs to windows(either by some user-set filters, or by some intelligent pattern recognizing magick)
     
 Little things:
-   Add right click menus for tabs
-   reimplement the TreeView tablist
    add a irssi0 style activity bar as an alternative to the other Tablistviews
    reimplement tab numbering
    make the tab selected after the current one is closed try to find a channel and not just the next one to the left
    fix error parsing
+   Add more BufferList positioning options(add a Vpaned on the left)
+   Allow the lookup of plugins for missing functions (remove the stupid local thing in plugins)
    
 Bugs:
     Can't set colors for input from config as the cursor becomes hidden
+    Catch kicks, and fix quit events to show the type of quit (part/kick/quit)
+    Tab right click menus don't work properly, provide a unified way to disconnect/part/close
+    Missing user inits (might be icecap's problem)
+    clean up the quit code
+    

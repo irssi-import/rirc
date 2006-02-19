@@ -46,7 +46,7 @@ class Highlighter < Plugin
             end
         end
 
-        add_callback_after(self, Buffer, 'buffer_message') do |local, uname, pattern, users, insert_location|
+        add_callback_after(self, Buffer, 'buffer_message') do |uname, pattern, users, insert_location|
             #puts uname, pattern, users, insert_location
 
             replace = false
@@ -88,7 +88,7 @@ class Highlighter < Plugin
                     if command != 'none'
                         system command
                     end
-                    local.set_status(HIGHLIGHT)
+                    set_status(HIGHLIGHT)
                 end
             end
 

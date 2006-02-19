@@ -11,6 +11,11 @@ require 'pathname'
 
 require 'utils'
 
+$: << 'gtk'
+$: << 'contrib'
+
+require 'instance_exec'
+
 if RUBY_PLATFORM.include?('win32') or RUBY_PLATFORM.include?('mingw32')
     $platform = 'win32'
     $ratchetfolder = File.join(ENV['APPDATA'], 'ratchet')
@@ -61,9 +66,6 @@ class SingleWindow
         @window.present
     end
 end
-
-
-$:.unshift 'gtk'
 
 #load all my home rolled ruby files here
 require 'help'
@@ -358,7 +360,7 @@ class Main
         @console.buffer.redraw
 
         @config['plugins'].each {|plugin| plugin_load(plugin)}
-        @config['plugins'] = Plugin.list.values.map{|x| x['name']}#trim any plugins that failed to load
+        @config['plugins'] = Plugin.list.values.map{|x| x[:name]}#trim any plugins that failed to load
         @config['windows'].each do |hash|
             puts hash.inspect
             window = MainWindow.new(self, hash)

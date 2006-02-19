@@ -507,7 +507,7 @@ class Main
         end
     end
 
-    if $args['debug']
+#     if $args['debug']
         def cmd_reload(arguments, target)
             if !arguments.include? '.'
                 arguments += '.rb'
@@ -520,7 +520,7 @@ class Main
                 puts "reload of #{arguments} sucessful"
             end
         end
-    end
+#     end
 
     help :cmd_load, "Specify a plugin to load. Usage: /load <name>"
     def cmd_load(arguments, target)
@@ -550,7 +550,7 @@ class Main
         plugins = Plugin.list
         plugins.each do |key, values|
             #             v.each do |key, values|
-            temp = values['name']
+            temp = values[:name]
             #                 values.each do |value|
             #                     #puts k.name, key, value
             #                     temp += ' '+value[1].to_s+'#'+value[0]
