@@ -339,7 +339,20 @@ class MainWindow
         @messagescroll.child = @currentbuffer.buffer.view
         @currentbuffer.buffer.view.scroll_to_end
         @currentbuffer.buffer.view.show
+        set_title
         @messageinput.grab_focus
+    end
+
+    def set_title
+        if @currentbuffer.respond_to? :network and @currentbuffer.network != @currentbuffer
+            if @currentbuffer.kind_of? ChatBuffer
+                @glade['window1'].title= "Query with #{@currentbuffer.name} on #{@currentbuffer.network.name} - Ratchet"
+            else
+                @glade['window1'].title= "#{@currentbuffer.name} on #{@currentbuffer.network.name} - Ratchet"
+            end
+        else
+            @glade['window1'].title = "#{@currentbuffer.name} - Ratchet"
+        end
     end
 
     #~ def switchchannel(channel)
