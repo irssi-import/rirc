@@ -9,12 +9,10 @@ class MPDPlay < Plugin
         @@main.config['mpdport'] = 6600 unless @@main.config['mpdport']
         @@main.config['mpdpass'] = '' unless @@main.config['mpdpass']
         
-        locale = self#we need a reference to the current location...
-        
         help :cmd_np, "Display the currently playing song in MPD"
         add_method(self, Main, 'cmd_np') do |args, target|
             begin
-                result = locale.query_mpd
+                result = query_mpd
             rescue IOError
                 throw_error("MPD error: #{$!}")
                 return
@@ -32,7 +30,7 @@ class MPDPlay < Plugin
         help :cmd_next, "Skip to next song in MPD"
         add_method(self, Main, 'cmd_next') do |args, channel, network, presence|
             begin
-                result = locale.command_mpd('next')
+                result = command_mpd('next')
             rescue IOError
                 throw_error("MPD error: #{$!}")
                 return
@@ -42,7 +40,7 @@ class MPDPlay < Plugin
         help :cmd_prev, "Skip to previous song in MPD"
         add_method(self, Main, 'cmd_prev') do |args, channel, network, presence|
             begin
-                result = locale.command_mpd('previous')
+                result = command_mpd('previous')
             rescue IOError
                 throw_error("MPD error: #{$!}")
                 return
@@ -52,7 +50,7 @@ class MPDPlay < Plugin
         help :cmd_pause, "Toggle play/pause in MPD"
         add_method(self, Main, 'cmd_pause') do |args, channel, network, presence|
             begin
-                result = locale.command_mpd('pause')
+                result = command_mpd('pause')
             rescue IOError
                 throw_error("MPD error: #{$!}")
                 return

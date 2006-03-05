@@ -8,40 +8,41 @@ module PluginAPI
     def callback(method, *args)
 
         #lookup the hash
-        cb_hash = self.class.cb_hash
-        cb_hash ||= resolve_cb_hash
+        #         cb_hash = self.class.cb_hashes
+        #         cb_hash ||= resolve_cb_hashes
 
         #return if we get nothing
-        unless cb_hash
-#             puts cb_hash
-#             puts 'empty callback hash for '+self.class.to_s
-            return *args 
-        end
+        #         callbacks = self.class.find_callbacks(method.to_sym)
+        #         unless cb_hash
+        #             puts cb_hash
+        #             puts 'empty callback hash for '+self.class.to_s
+        #             return *args 
+        #         end
 
         #check if the callback is in the hash
-        if cb_hash.has_key?(method.to_sym)
-            #initialize the return value as nil
-            ret = nil
+        #         if cb_hash.has_key?(method.to_sym)
+        #initialize the return value as nil
+        ret = nil
 
-            #loop through the callbacks
-            cb_hash[method.to_sym].each do |callback|
+        #loop through the callbacks
+        #             cb_hash[method.to_sym].each do |callback|
+        self.class.find_callbacks(method.to_sym).each do |callback|
 
-                #call the block and get the return value
-                #what about instance_eval here?
-                ret = self.instance_exec(*args, &callback)
-#                 ret = callback.call(self, *args)
+            #call the block and get the return value
+            #what about instance_eval here?
+            ret = self.instance_exec(*args, &callback)
+            #                 ret = callback.call(self, *args)
 
-                #if return value is true, break off calling any more callbacks (like GTK's system)
-                if ret === true
-                    break
-                    #if its an array, store the results so they can be passed to sucessive callbacks
-                elsif ret.class == Array
-                    ret.each_with_index { |z, i| args[i]=z}
+            #if return value is true, break off calling any more callbacks (like GTK's system)
+            if ret === true
+                break
+                #if its an array, store the results so they can be passed to sucessive callbacks
+            elsif ret.kind_of? Array
+                ret.each_with_index { |z, i| args[i]=z}
 
-                    #if a single value, assume first argument is returned
-                elsif ret
-                    args[0] = ret
-                end
+                #if a single value, assume first argument is returned
+            elsif ret
+                args[0] = ret
             end
         end
 
@@ -58,39 +59,39 @@ module PluginAPI
     #calls all the callback_after blocks associated with method, should exit if a block returns true
     def callback_after(method, *args)
         #lookup the hash
-        cb_hash_after = self.class.cb_hash_after
-        cb_hash_after ||= resolve_cb_hash_after
+        #         cb_hash_after = self.class.cb_hashes_after
+        #         cb_hash_after ||= resolve_cb_hashes_after
 
-        #return if nothing
-        unless cb_hash_after
-            puts 'empty callback_after hash for '+self.class.to_s
-            return *args 
-        end
+        #         #return if nothing
+        #         unless cb_hash_after
+        #             puts 'empty callback_after hash for '+self.class.to_s
+        #             return *args 
+        #         end
 
         #check if the callback is in the hash
-        if cb_hash_after.has_key?(method.to_sym)
+        #         if cb_hash_after.has_key?(method.to_sym)
 
-            #init the return value to nil
-            ret = nil
+        #init the return value to nil
+        ret = nil
 
-            #loop through the callbacks
-            cb_hash_after[method.to_sym].each do |callback|
-                #call the callback, and get the return stuff
-                ret = self.instance_exec(*args, &callback)
-#                 ret = callback.call(self, *args)
+        #loop through the callbacks
+        #             cb_hash_after[method.to_sym].each do |callback|
+        self.class.find_callbacks_after(method.to_sym).each do |callback|
+            #call the callback, and get the return stuff
+            ret = self.instance_exec(*args, &callback)
+            #                 ret = callback.call(self, *args)
 
-                #if callback returns true, break off calling any other callbacks like GTK's signals
-                if ret === true
-                    break
+            #if callback returns true, break off calling any other callbacks like GTK's signals
+            if ret === true
+                break
 
-                    #if its an array, update the original arguments (assume they're passed in order)
-                elsif ret.class == Array
-                    ret.each_with_index { |z, i| args[i]=z}
+                #if its an array, update the original arguments (assume they're passed in order)
+            elsif ret.kind_of? Array
+                ret.each_with_index { |z, i| args[i]=z}
 
-                    #if single return, assume first argument
-                elsif ret
-                    args[0] = ret
-                end
+                #if single return, assume first argument
+            elsif ret
+                args[0] = ret
             end
         end
 
@@ -138,13 +139,13 @@ module PluginAPI
 
     #wrapper function for class method
     def resolve_cb_hash
-#         puts 'resolving cb_hash'
+        #         puts 'resolving cb_hash'
         return self.class.resolve_cb_hash
     end
 
     #wrapper function for class method
     def resolve_cb_hash_after
-#         puts 'resolving cb_hash_after'
+        #         puts 'resolving cb_hash_after'
         return self.class.resolve_cb_hash_after
     end
 
@@ -153,7 +154,7 @@ module PluginAPI
         #define a callback
         def add_callback(name, &block)
             #initialize the hash if it doesn't exist
-            @cb_hash ||= Hash.new(nil)
+            @cb_hash ||= Hash.new
 
             #make sure there's a function to attach a callback to
             if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
@@ -165,10 +166,10 @@ module PluginAPI
                     #add the block to the array
                     @cb_hash[name.to_sym].push(block)
                     #puts 'added callback for '+name
-                    ObjectSpace.each_object(self) do |klass|
-                        #puts klass
-                        klass.class.resolve_cb_hash
-                    end
+                    #                     ObjectSpace.each_object(self) do |klass|
+                    #puts klass
+                    #                         klass.class.resolve_cb_hash
+                    #                     end
                     #return the name of the callback..?
                     return name
                 end
@@ -182,7 +183,7 @@ module PluginAPI
         #add a callback to be executed after a function
         def add_callback_after(name, &block)
             #again, make the hash if it doesn't exist
-            @cb_hash_after ||= Hash.new(nil)
+            @cb_hash_after ||= Hash.new
 
             #check to see if there's a function to attach to
             if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
@@ -192,10 +193,10 @@ module PluginAPI
                     @cb_hash_after[name.to_sym].push(block)
                     #puts 'added callback_after for '+name
 
-                    ObjectSpace.each_object(self) do |klass|
-                        #puts klass.class
-                        klass.class.resolve_cb_hash_after
-                    end
+                    #                     ObjectSpace.each_object(self) do |klass|
+                    #puts klass.class
+                    #                         klass.class.resolve_cb_hash_after
+                    #                     end
                     #return the name, not sure why...
                     return name
                 end
@@ -210,16 +211,21 @@ module PluginAPI
         def del_callback(name)
             #puts self.class
             puts @cb_hash.delete(name.to_sym)
+            puts @cb_hash.inspect
+            resolve_cb_hashes
         end
 
         #remove a callback_after
         def del_callback_after(name)
             @cb_hash_after.delete(name.to_sym)
+            puts @cb_hash_after.inspect
+            resolve_cb_hashes_after
         end
 
         #remove a method
         def del_method(name)
             self.send(:remove_method, name.to_sym)
+            puts self.methods.inspect
         end
 
         #add a new method
@@ -238,15 +244,20 @@ module PluginAPI
 
         #reader for cb_hash...?
         def cb_hash
-            @cb_hash ||= nil
+            @cb_hash ||= Hash.new
             return @cb_hash
+        end
+
+        def cb_hashes
+            resolve_cb_hashes unless @cb_hashes
+            @cb_hashes
         end
 
         #lookup parent classes for callbacks
         #TODO is there a way to do this less then once per callback call without messing up plugin unloading?
-        def resolve_cb_hash
+        def resolve_cb_hashes
             #a new hash to store the resulting callbacks
-            temphash = Hash.new
+            hashes = [cb_hash]
 
             #loop through the parent classes, and build an array of them....
             c = self
@@ -263,29 +274,52 @@ module PluginAPI
             #loop through, and add callbacks
             classes.each do |klass|
                 if klass.methods.include?('cb_hash')
-                    temphash.merge!(klass.cb_hash) if klass.cb_hash
+                    hashes << klass.cb_hash if klass.cb_hash
                 end
             end
 
             #return
             #return temphash
-            @cb_hash = temphash
+            @cb_hashes = hashes
+        end
+
+        def find_callbacks(method)
+            ret = []
+            x = cb_hashes.select{|x| x.has_key? method}
+            x.each do |y|
+                ret += y[method]
+            end
+            ret
+        end
+
+        def find_callbacks_after(method)
+            ret = []
+            x = cb_hashes_after.select{|x| x.has_key? method}
+            x.each do |y|
+                ret += y[method]
+            end
+            ret
         end
 
         #reader for cb_hash_after
         def cb_hash_after
-            @cb_hash_after ||= nil
+            @cb_hash_after ||= Hash.new
             return @cb_hash_after if @cb_hash_after
         end
 
+        def cb_hashes_after
+            resolve_cb_hashes_after unless @cb_hashes_after
+            @cb_hashes_after
+        end
+
         #lookup parent classes for callback_after
-        def resolve_cb_hash_after
+        def resolve_cb_hashes_after
 
             #new hash to store results
-            temphash = Hash.new
+            hashes = [cb_hash_after]
 
             #loop through parents and build an array
-           c = self
+            c = self
             classes = Array.new
 
             while c != Object || nil
@@ -298,14 +332,14 @@ module PluginAPI
 
             #build hash of callback_after
             classes.each do |klass|
-                if klass.methods.include?('cb_hash_after')
-                    temphash.merge!(klass.cb_hash_after) if klass.cb_hash_after
+                if klass.methods.include?(:resolve_cb_hash_after)
+                    hashes <<  klass.cb_hash_after if klass.cb_hash_after
                 end
             end
 
             #return
             #return temphash
-            @cb_hash_after = temphash
+            @cb_hashes_after = hashes
         end
     end
 
@@ -315,6 +349,17 @@ module PluginAPI
         super
         klass.extend(Plugins)
     end
+
+    def method_missing(symbol, *args)
+        plugin = Plugin.find_plugin_method(symbol)
+        if plugin
+            plugin[0].send(symbol, *args)
+        else
+            puts "cannot find method #{symbol} in plugins"
+            nil
+            #             raise NoMethodError
+        end
+    end
 end
 
 #the plugin class, all plugins are derivatives of this class
@@ -323,12 +368,12 @@ class Plugin
 
     def self.main=(main)
         @@main= main
-#         puts "set main to #{main}"
+        #         puts "set main to #{main}"
     end
 
     #register a plugin
     def self.register(plugin)
-#         puts 'registeting'
+        #         puts 'registeting'
         if /([\w\-]+)\.rb/.match(caller[0])
             unless find_plugin($1)
                 raise SystemCallError, 'No such file '+$1+' to load as plugin', caller
@@ -359,11 +404,19 @@ class Plugin
         #call the plugins load() method
         @@main.console.send_user_event({'msg' => 'Loading Plugin '+name}, EVENT_NOTICE)
         plugin.load
-#         puts self, self.class
+        #         puts self, self.class
     end
 
     def help(a, b)
         self.class.help(a, b)
+    end
+
+    #TODO - what if the function we lookup is shared between multiple plugins?
+    def self.find_plugin_method(method)
+        plugin = @@plugins.detect do |p, info|
+            p.respond_to? method
+        end
+        plugin
     end
 
     #unload a plugin and remove all methods/callbacks added by it...
@@ -408,7 +461,7 @@ class Plugin
 
     #lookup a string as a plugin name
     def self.[](name)
-#         puts "looking up #{name}"
+        #         puts "looking up #{name}"
         @@plugins ||= {}
         x = @@plugins.detect{|p| p[1][:name] == name}
         x = x[0] if x
