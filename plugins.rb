@@ -138,16 +138,16 @@ module PluginAPI
     end
 
     #wrapper function for class method
-    def resolve_cb_hash
-        #         puts 'resolving cb_hash'
-        return self.class.resolve_cb_hash
-    end
+#     def resolve_cb_hash
+#                 puts 'resolving cb_hash'
+#         return self.class.resolve_cb_hash
+#     end
 
-    #wrapper function for class method
-    def resolve_cb_hash_after
-        #         puts 'resolving cb_hash_after'
-        return self.class.resolve_cb_hash_after
-    end
+#     #wrapper function for class method
+#     def resolve_cb_hash_after
+#                 puts 'resolving cb_hash_after'
+#         return self.class.resolve_cb_hash_after
+#     end
 
     #hyperextend!, these methods are added as class methods
     module Plugins
@@ -165,7 +165,8 @@ module PluginAPI
 
                     #add the block to the array
                     @cb_hash[name.to_sym].push(block)
-                    #puts 'added callback for '+name
+                    puts 'added callback for '+name
+                    puts @cb_hash.inspect
                     #                     ObjectSpace.each_object(self) do |klass|
                     #puts klass
                     #                         klass.class.resolve_cb_hash
@@ -191,8 +192,8 @@ module PluginAPI
                 @cb_hash_after[name.to_sym] ||= Array.new
                 if block_given?
                     @cb_hash_after[name.to_sym].push(block)
-                    #puts 'added callback_after for '+name
-
+                    puts 'added callback_after for '+name
+                    puts @cb_hash_after.inspect
                     #                     ObjectSpace.each_object(self) do |klass|
                     #puts klass.class
                     #                         klass.class.resolve_cb_hash_after
@@ -212,20 +213,21 @@ module PluginAPI
             #puts self.class
             puts @cb_hash.delete(name.to_sym)
             puts @cb_hash.inspect
-            resolve_cb_hashes
+#             resolve_cb_hashes
         end
 
         #remove a callback_after
         def del_callback_after(name)
             @cb_hash_after.delete(name.to_sym)
             puts @cb_hash_after.inspect
-            resolve_cb_hashes_after
+#             resolve_cb_hashes_after
+            puts @cb_hashes_after.inspect
         end
 
         #remove a method
         def del_method(name)
             self.send(:remove_method, name.to_sym)
-            puts self.methods.inspect
+#             puts self.methods.inspect
         end
 
         #add a new method
@@ -273,8 +275,8 @@ module PluginAPI
 
             #loop through, and add callbacks
             classes.each do |klass|
-                if klass.methods.include?('cb_hash')
-                    hashes << klass.cb_hash if klass.cb_hash
+                if klass.respond_to? :cb_hash
+                    hashes << klass.cb_hash# if klass.cb_hash
                 end
             end
 
@@ -286,25 +288,30 @@ module PluginAPI
         def find_callbacks(method)
             ret = []
             x = cb_hashes.select{|x| x.has_key? method}
+#             puts x.inspect, @cb_hashes.inspect
             x.each do |y|
                 ret += y[method]
             end
+#             puts "found callbacks: #{ret.inspect}"
             ret
         end
 
         def find_callbacks_after(method)
+#             puts method
             ret = []
             x = cb_hashes_after.select{|x| x.has_key? method}
+#             puts x.inspect, @cb_hashes_after.inspect
             x.each do |y|
                 ret += y[method]
             end
+#             puts "found callbacks after: #{ret.inspect}"
             ret
         end
 
         #reader for cb_hash_after
         def cb_hash_after
             @cb_hash_after ||= Hash.new
-            return @cb_hash_after if @cb_hash_after
+            return @cb_hash_after
         end
 
         def cb_hashes_after
@@ -332,13 +339,17 @@ module PluginAPI
 
             #build hash of callback_after
             classes.each do |klass|
-                if klass.methods.include?(:resolve_cb_hash_after)
-                    hashes <<  klass.cb_hash_after if klass.cb_hash_after
+                puts klass, klass.respond_to?(:cb_hash_after)
+                if klass.respond_to? :cb_hash_after
+#                     puts "#{klass} has cb_hash_after"
+#                     puts klass.cb_hash_after.inspect
+                    hashes <<  klass.cb_hash_after# if klass.cb_hash_after
                 end
             end
 
             #return
             #return temphash
+            puts "resolved cb_hashes_after to: #{hashes.inspect} for class #{self}"
             @cb_hashes_after = hashes
         end
     end

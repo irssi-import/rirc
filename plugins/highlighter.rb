@@ -78,7 +78,9 @@ class Highlighter < Plugin
                     replace = true
                     replacements.push(term)
                     color = @@main.config['highlightplugincolor'].to_hex
+                    puts pattern
                     pattern.gsub!(replacement, '<span color="'+color+'">'+replacement+'</span>')#you can change the highlight color here...
+                    puts pattern
                 end
             end
 

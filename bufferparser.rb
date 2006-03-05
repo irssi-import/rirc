@@ -176,6 +176,7 @@ module BufferParser
 		
         while md.class == MatchData
             if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
+                puts md[0]
                 #links.push(md[0])
                 string.sub!(md[0], '<action id="url">'+md[0]+'</action>')
             end
