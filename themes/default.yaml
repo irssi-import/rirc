@@ -58,6 +58,8 @@ keybindings:
 scw_align_presences: false
 userjoin: -%C1->%C1 You are now talking on %c
 part: <%C1--%C1 %u (%C1%h%C1) has left %c (%r)
+quit: <%C1--%C1 %u has quit (%r)
+kick: <%C1--%C1 %u was kicked from %c (%r)
 remove_mode: -%C1--%C1 %s removed %m from %u
 usermessage: "%m"
 scw_lastread: !ruby/object:Color 
@@ -111,6 +113,8 @@ color3: !ruby/object:Color
   g: 65535
   r: 65535
 userpart: <%C1--%C1 You have left %c
+userkick: <%C1--%C1 You have been kicked from %c
+userquit: <%C1--%C1 You have quit
 commandbuffersize: 10
 color4: !ruby/object:Color 
   b: 65535

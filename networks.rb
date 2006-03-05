@@ -387,7 +387,12 @@ class BufferListModel
             if oldstructure.index(@active) == 0
                 set_active(@structure[0])
             elsif oldstructure.include? @active
-                set_active(oldstructure[oldstructure.index(@active)-1])
+                #try to go to the next channel, but don't try too hard
+                if oldstructure[oldstructure.index(@active)+1].kind_of? ChannelBuffer
+                    set_active(oldstructure[oldstructure.index(@active)+1])
+                else
+                    set_active(oldstructure[oldstructure.index(@active)-1])
+                end
             end
         end
         @structure.uniq

@@ -176,7 +176,6 @@ module BufferParser
 		
         while md.class == MatchData
             if md[0].scan('.').size >= 2 or md[0].scan('://').size > 0
-                puts md[0]
                 #links.push(md[0])
                 string.sub!(md[0], '<action id="url">'+md[0]+'</action>')
             end
@@ -277,15 +276,15 @@ module BufferParser
     def buffer_part(line, pattern, uname, users, insert_location)
         return true if @config['dropjoinpart']
         set_status(NEWDATA) if insert_location == BUFFER_END
-        pattern = @config.get_pattern('part')
-        pattern['%u'] = line[PRESENCE]
+        pattern = @config.get_pattern(line[:type])
+        pattern.sub!('%u', line[PRESENCE])
         users.push(line[PRESENCE])
-        pattern['%r'] = line[REASON].to_s
-        pattern['%c'] = line[CHANNEL]
+        pattern.sub!('%r', line[REASON].to_s)
+        pattern.sub!('%c', line[CHANNEL])
         if user = @users[line[PRESENCE]] and user.hostname
-            pattern['%h'] = user.hostname
+            pattern.sub!('%h', user.hostname)
         else
-            pattern['%h'] = line[ADDRESS].to_s
+            pattern.sub!('%h', line[ADDRESS].to_s)
         end
         pattern = escape_xml(pattern)
        return [uname, pattern, users, insert_location]
@@ -293,8 +292,8 @@ module BufferParser
     
     def buffer_userpart(line, pattern, uname, users, insert_location)
         set_status(NEWDATA) if insert_location == BUFFER_END
-        pattern = @config.get_pattern('userpart')
-        pattern['%c'] = line[CHANNEL]
+        pattern = @config.get_pattern('user'+line[:type])
+        pattern.sub!('%c', line[CHANNEL])
         pattern = escape_xml(pattern)
         return [uname, pattern, users, insert_location]
     end

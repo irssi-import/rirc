@@ -11,7 +11,6 @@ Little things:
    make the tab selected after the current one is closed try to find a channel and not just the next one to the left
    fix error parsing
    Add more BufferList positioning options(add a Vpaned on the left)
-   Allow the lookup of plugins for missing functions (remove the stupid local thing in plugins)
    
 Bugs:
     Can't set colors for input from config as the cursor becomes hidden

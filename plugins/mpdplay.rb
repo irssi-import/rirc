@@ -66,7 +66,7 @@ class MPDPlay < Plugin
         end
         socket.recv(30)#grab the connect message
         if  !@@main.config['mpdpass'] or !@@main.config['mpdpass'].empty?
-            socket.send('password '+ @@main.config['mpdpass']+"\n", Socket::MSG_DONTROUTE)
+            socket.send('password '+ @@main.config['mpdpass'].to_s+"\n", Socket::MSG_DONTROUTE)
             res = socket.recv(40)
             if res =~ /^ACK /
                 raise IOError, 'Incorrect Password'

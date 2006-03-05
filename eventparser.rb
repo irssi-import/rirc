@@ -174,7 +174,9 @@ module EventParser
     #you left the channel
     def event_channel_presence_removed(event, target)
         return unless target
-        if ! event[DEINIT]
+        if !event[DEINIT]
+            event[:line] ||= 'part' #defaults to part
+            puts event.inspect
             if event[PRESENCE] == target.username
                 target.send_event(event, EVENT_USERPART)
             else
@@ -191,6 +193,7 @@ module EventParser
     #you left the channel
     def event_channel_part(event, target)
         return unless target
+        event[:type] ||= 'part'
         target.send_event(event, EVENT_USERPART)
         target.part
         #@serverlist.renumber

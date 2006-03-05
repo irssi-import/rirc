@@ -339,7 +339,7 @@ module PluginAPI
 
             #build hash of callback_after
             classes.each do |klass|
-                puts klass, klass.respond_to?(:cb_hash_after)
+#                 puts klass, klass.respond_to?(:cb_hash_after)
                 if klass.respond_to? :cb_hash_after
 #                     puts "#{klass} has cb_hash_after"
 #                     puts klass.cb_hash_after.inspect
@@ -349,7 +349,7 @@ module PluginAPI
 
             #return
             #return temphash
-            puts "resolved cb_hashes_after to: #{hashes.inspect} for class #{self}"
+#             puts "resolved cb_hashes_after to: #{hashes.inspect} for class #{self}"
             @cb_hashes_after = hashes
         end
     end
