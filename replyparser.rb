@@ -339,7 +339,7 @@ module ReplyParser
             
         elsif line[EVENT] == 'channel_presence_removed'
             return if line[DEINIT]
-            
+            line[:type] = 'part'
             if line[PRESENCE] == target.username
                 target.send_event(line, EVENT_USERPART, BUFFER_START)
             else
@@ -347,6 +347,7 @@ module ReplyParser
             end
         
         elsif line[EVENT] == 'channel_part'
+            line[:type] = 'part'
             target.send_event(line, EVENT_USERPART, BUFFER_START)
             
         elsif line[EVENT] == 'channel_join'

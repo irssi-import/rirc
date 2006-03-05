@@ -30,9 +30,9 @@ class BufferView
             #TODO - connect up the menus
             if id == 'user'
 #                 puts data
-                menu = $main.window.create_user_popup(data)
-                menu.show_all
-                menu.popup(nil, nil, 3, Gdk::Event::CURRENT_TIME)# {[x, y]}
+#                 menu = $main.window.create_user_popup(data)
+#                 menu.show_all
+#                 menu.popup(nil, nil, 3, Gdk::Event::CURRENT_TIME)# {[x, y]}
             end
         end
     end

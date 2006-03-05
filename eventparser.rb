@@ -175,7 +175,7 @@ module EventParser
     def event_channel_presence_removed(event, target)
         return unless target
         if !event[DEINIT]
-            event[:line] ||= 'part' #defaults to part
+            event[:type] ||= 'part' #defaults to part
             puts event.inspect
             if event[PRESENCE] == target.username
                 target.send_event(event, EVENT_USERPART)
