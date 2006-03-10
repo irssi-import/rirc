@@ -167,16 +167,16 @@ class ColoRewrite < Plugin
         add_callback_after(self, Buffer, 'buffer_message') do |uname, pattern, users, insert_location|
             #puts pattern
             pattern.scan(/\<span foreground\s*=\s*\"#([0-9a-f]+)/i) do |m|
-                puts pattern, m
-                puts Color.hex_to_a($1), @@main.config['scw_even'].to_256
+#                 puts pattern, m
+#                 puts Color.hex_to_a($1), @@main.config['scw_even'].to_256
                 res = colorcompare(*(@@main.config['scw_even'].to_256+Color.hex_to_a($1)))
-                puts res
+#                 puts res
                 if res.class == Array
                     hexcolor = Color.a_to_hex(res)
-                    puts 'match'
+#                     puts 'match'
                     pattern.sub!($1, hexcolor)
                 end
-                puts pattern
+#                 puts pattern
             end
             [uname, pattern, users, insert_location]
         end

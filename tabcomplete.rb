@@ -33,7 +33,7 @@ module TabCompleteModule
         if !@tabcomplete
             if substr[0].chr == '/'
                 list = @main.command_list
-            elsif self.respond_to? :users and  !self.network != self
+            elsif self.respond_to? :users and  !self.network != self and !users.nil?
 #                 puts self
                 if @config['tabcompletesort'] == 'activity'
                     #sort by activity

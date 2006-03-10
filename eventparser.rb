@@ -148,7 +148,7 @@ module EventParser
 
     def event_channel_join(event, target)
         puts 'channel join'
-        puts "TARGET: #{target}"
+#         puts "TARGET: #{target}"
         #return unless target.respond_to? :join
         #~ if !assign_window.find_network(event[NETWORK], event[MYPRESENCE])
         #~ puts 'Error, non existant channel init event caught for non existant network, ignoring'
@@ -176,7 +176,7 @@ module EventParser
         return unless target
         if !event[DEINIT]
             event[:type] ||= 'part' #defaults to part
-            puts event.inspect
+#             puts event.inspect
             if event[PRESENCE] == target.username
                 target.send_event(event, EVENT_USERPART)
             else
