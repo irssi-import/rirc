@@ -322,6 +322,15 @@ class Main
         #TODO
     end
 
+    def find_windows_with_buffer(buffer)
+        res = []
+        @windows.each do |window|
+            res << window if  window.buffers.include? buffer
+        end
+#         puts res, res.length
+        res
+    end
+
     #connect to irssi2
     def connect(method, settings)
         return if @connection

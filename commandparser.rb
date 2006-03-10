@@ -29,6 +29,13 @@ class Main
                 res = callback('cmd_'+cmd, arguments, target)
                 return if res === true
                 self.send('cmd_'+cmd, *res)
+            #unhandled command
+            elsif cmd
+#                 puts cmd
+#                 puts caller
+                res = callback(:command_missing, cmd, arguments, target)
+                return if res === true
+                command_missing(*res)
             else
                 res = callback('cmd_message', message, target)
                 self.send('cmd_message', *res)
@@ -654,12 +661,17 @@ class Main
                 target.send_user_event(event, EVENT_NOTICE)
             end
         end
-    end    
+    end
 
     def command_list
         a = (self.methods).select{|method| method =~ /^cmd_/}.map{|x| '/'+(x[4..-1])}
         a += @config['aliases'].keys.map{|x| '/'+x}
         #TODO - aliases too
         a.sort
+    end
+    
+    #sorta like method_missing
+    def command_missing(command, arguments, target)
+        throw_error("Unknown command /#{command}")
     end
 end

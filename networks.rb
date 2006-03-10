@@ -6,7 +6,7 @@ require 'gtk/bufferlistview'
 class BufferListController
     #include PluginAPI
     #include BufferParser
-    attr_reader :view, :config, :window
+    attr_reader :view, :config, :window, :model
     def initialize(window, console=false)
         @window = window
         @config = window.config
@@ -130,6 +130,14 @@ class BufferListController
         end
         @model.sort
         @window.switch_buffer(@model.active)
+    end
+
+    def include?(object)
+#         puts networks.include?(object)
+#         puts channels.include?(object)
+#         puts chats.include?(object)
+#         puts console == object
+        networks.include?(object) || channels.include?(object) || chats.include?(object) || console == object
     end
 
     def active
@@ -305,6 +313,8 @@ class BufferListModel
     #~ set_active(chat)
     #~ chat
     #~ end
+    
+    
 
     #takes a Network object
     def remove_network(network)

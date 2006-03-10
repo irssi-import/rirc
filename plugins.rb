@@ -48,7 +48,7 @@ module PluginAPI
 
         #if it returned true, let the calling function know
         if ret === true
-            puts 'returned true, disabling further callbacks or functions for '+method
+            puts "returned true, disabling further callbacks or functions for #{method}"
             return true
         end
 
@@ -157,7 +157,7 @@ module PluginAPI
             @cb_hash ||= Hash.new
 
             #make sure there's a function to attach a callback to
-            if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
+            if self.private_instance_methods.include?(name.to_s) or self.instance_methods.include?(name.to_s)
 
                 #make a new array for the callback if need be, this allows multiple callbacks per function, executed in the order they were added
                 @cb_hash[name.to_sym] ||= Array.new
@@ -165,7 +165,7 @@ module PluginAPI
 
                     #add the block to the array
                     @cb_hash[name.to_sym].push(block)
-                    puts 'added callback for '+name
+                    puts "added callback for #{name}"
                     puts @cb_hash.inspect
                     #                     ObjectSpace.each_object(self) do |klass|
                     #puts klass
@@ -176,7 +176,7 @@ module PluginAPI
                 end
             else
                 #no function to attach to...
-                puts 'no event function called '+name+', not adding callback'
+                puts "no event function called #{name}, not adding callback"
                 return nil
             end
         end
@@ -187,12 +187,12 @@ module PluginAPI
             @cb_hash_after ||= Hash.new
 
             #check to see if there's a function to attach to
-            if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
+            if self.private_instance_methods.include?(name.to_s) or self.instance_methods.include?(name.to_s)
                 #make an array for the callbacks if there isn't one
                 @cb_hash_after[name.to_sym] ||= Array.new
                 if block_given?
                     @cb_hash_after[name.to_sym].push(block)
-                    puts 'added callback_after for '+name
+                    puts "added callback_after for #{name}"
                     puts @cb_hash_after.inspect
                     #                     ObjectSpace.each_object(self) do |klass|
                     #puts klass.class
@@ -203,7 +203,7 @@ module PluginAPI
                 end
             else
                 #no function!
-                puts 'no event function called '+name+', not adding callback'
+                puts "no event function called #{name}, not adding callback"
                 return nil
             end
         end
@@ -233,7 +233,7 @@ module PluginAPI
         #add a new method
         def add_method(name, &block)
             #make sure its not already defined....
-            if self.private_instance_methods.include?(name) or self.instance_methods.include?(name)
+            if self.private_instance_methods.include?(name.to_s) or self.instance_methods.include?(name.to_s)
                 puts 'method '+name+' already defined, not redefining'
                 return nil
             end
@@ -439,19 +439,19 @@ class Plugin
         #remove all the callbacks
         @@plugins[plugin][:callbacks].each do |c|
             c[:class].del_callback(c[:callback])
-            puts 'removed callback '+c[:callback]+' for class '+c[:class].to_s
+            puts "removed callback #{c[:callback]} for class #{c[:class]}"
         end
 
         #remove all the callback_afters
         @@plugins[plugin][:callbacks_after].each do |c|
             c[:class].del_callback_after(c[:callback])
-            puts 'removed callback_after '+c[:callback]+' for class '+c[:class].to_s
+            puts "removed callback_after #{c[:callback]} for class #{c[:class]}"
         end
 
         #remove all the methods
         @@plugins[plugin][:methods].each do |c|
             c[:class].del_method(c[:method])
-            puts 'removed method '+c[:method]+' for class '+c[:class].to_s
+            puts "removed method #{c[:method]} for class #{c[:class]}"
         end
 
         @@main.config['plugins'].delete(@@plugins[plugin][:name])
