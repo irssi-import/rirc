@@ -70,7 +70,7 @@ class PluginWindow < SingleWindow
             if selection[1] == '*'
                 @glade['plugin_unload'].sensitive = true
                 @glade['plugin_load'].sensitive = false
-                @glade['plugin_options'].sensitive = true
+                @glade['plugin_options'].sensitive = Plugin[selection[0]].respond_to? :configure
             else
                 @glade['plugin_load'].sensitive = true
                 @glade['plugin_unload'].sensitive = false

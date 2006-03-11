@@ -7,6 +7,10 @@ class MainWindow
         @confighash = confighash
         @config = @main.config
 
+        #try to setup the Gtk::Entry to not select-on-focus
+#         Gtk::RC.parse_string("style \"message_input\" {\
+#                              gtk-select-on-focus=0}")
+
         @glade = GladeXML.new("gtk/glade/mainwindow.glade") {|handler| method(handler)}
 
         @usernamebutton = @glade["username"]
@@ -19,6 +23,7 @@ class MainWindow
 
         @messageinput.grab_focus
         @messageinput.signal_connect("key_press_event"){|widget, event| input_buttons(widget, event)}
+        @messageinput.buffer.signal_connect_after("changed"){|widget| @currentbuffer.buffer.view.scroll_to_end if @currentbuffer and widget.text.include? "\n"}
 
         @userlist = @glade['userlist']
         @panel = @glade['hpaned1']
@@ -228,9 +233,14 @@ class MainWindow
 
     #get the substring to use for tab completion.
     def get_completion_substr
-        string = @messageinput.text
-        position = @messageinput.position
-        string = string[0, position]
+#         string = @messageinput.buffer.text
+#         position = @messageinput.position
+#         string = string[0, position]
+        buffer = @messageinput.buffer
+
+        #get the string between the beginning of the buffer and the cursor position
+        string = buffer.get_text(buffer.start_iter, buffer.get_iter_at_mark(buffer.get_mark("insert")))
+        #get the string between the end of the string and the last space (the fragment we use for matching)
         name, whatever = string.reverse.split(' ', 2)
 
         return nil unless name
@@ -242,57 +252,84 @@ class MainWindow
 
     #function to do the nick replace for tab completion
     def replace_completion_substr(substr, match)
-        string = @messageinput.text.rstrip
-        position = @messageinput.position
-        index = string.rindex(substr, position)
+        string = @messageinput.buffer.text
+#         position = @messageinput.position
 
+        buffer = @messageinput.buffer
+        insertmark = buffer.get_mark("insert")
+        #create a mark at the cursor location with right gravity (so it moves right when we insert text behind it)
+        mark = buffer.create_mark(nil, buffer.get_iter_at_mark(insertmark), false)
+        
         #split the string by the cursor position
-        a = string[0, position]
-        b = string[position, string.length-position]
+#         a = string[0, position]
+#         b = string[position, string.length-position]
 
         #use rstrip to ignore traling whitespace for calculating the start of the nick
-        nickstart = a.rstrip.length-substr.length
+#         nickstart = a.rstrip.length-substr.length
         #nick replace
-        a = a.reverse.sub(substr.reverse, match.reverse)
-        a.reverse!
+#         a = a.reverse.sub(substr.reverse, match.reverse)
+#         a.reverse!
         #reassemble the string, converting the pieces to strings if they're nulls
-        a ||= ''
-        b ||= ''
-        string = a+b
+#         a ||= ''
+#         b ||= ''
+#         string = a+b
+        
+        #create a new position, move it backwards by the length of the substr and use it to set the position of the insert mark
+        newpos = buffer.get_iter_at_mark(insertmark)
+        
+        #get the index of the beginning of the substring
+        index = string.rindex(substr, newpos.offset)
+        #move the cursor to the index
+        newpos.offset = index
+        buffer.move_mark(insertmark, newpos)
 
-        cursorposition = match.length
+        #because we only moved the insert mark, we should have some text selected
+        buffer.delete_selection(false, true)
+        
+        insertiter = buffer.get_iter_at_mark(insertmark)
+#         nextchar =
+        
+#         cursorposition = match.length
         #determine current position and take action
-        if index == 0
+        if insertiter == buffer.start_iter
             #the beginning
             if match[0].chr == '/'
-                unless string[match.length, 1] == ' '
-                    string.insert(match.length, ' ')
-                    cursorposition = match.length+1
+                unless insertiter.char == ' '
+#                     string.insert(match.length, ' ')
+                    replacement = match+' '
+#                     cursorposition = match.length+1
                 end
-            elsif string[match.length, 1] == ' '
-                string.insert(match.length, @config['tabcompletesuffix'])
-                cursorposition = match.length+1
+            elsif insertiter.char == ' '
+#                 string.insert(match.length, @config['tabcompletesuffix'])
+#                 cursorposition = match.length+1
+                replacement = match+@config['tabcompletesuffix']
             else
-                string.insert(match.length, @config['tabcompletesuffix']+' ')
-                cursorposition = match.length+2
+#                 string.insert(match.length, @config['tabcompletesuffix']+' ')
+#                 cursorposition = match.length+2
+                replacement = match+@config['tabcompletesuffix']+' '
             end
-        elsif index+match.length == string.length
+        elsif insertiter == buffer.end_iter
             #we're at the end
-            string += ' '
-            cursorposition += 1
+#             string += ' '
+#             cursorposition += 1
+            replacement = match+' '
         else
             #somewhere in the middle
-            if string[index+match.length, 1] != ' '
-                string.insert(nickstart+match.length, ' ')
-                cursorposition = match.length+1
+            if insertiter.char != ' '
+#                 string.insert(nickstart+match.length, ' ')
+#                 cursorposition = match.length+1
+                replacement = match+' '
             else
-                cursorposition = match.length+1
+#                 cursorposition = match.length+1
+                replacement = match
             end
         end
         #update the content of the entry
-        @messageinput.text = string
+        buffer.insert_at_cursor(replacement)
+        buffer.place_cursor(buffer.get_iter_at_mark(mark))
+#         @messageinput.buffer.text = string
         #reposition the cursor
-        @messageinput.set_position(nickstart+cursorposition)
+#         @messageinput.set_position(nickstart+cursorposition)
     end
 
     def switch_buffer(obj)
@@ -300,12 +337,13 @@ class MainWindow
 #         puts obj
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
         @vpanel.remove(@vpanel.child1) if @vpanel.child1
-        @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
+        @commandbuffer.currentcommand = @messageinput.buffer.text if @commandbuffer
         @currentbuffer.buffer.marklastread if @currentbuffer and @currentbuffer.buffer
         @currentbuffer = obj
         @commandbuffer = @currentbuffer.commandbuffer
+        @messageinput.buffer.text = @commandbuffer.currentcommand
         #         puts "commandbuffer: #{@commandbuffer}"
-        @messageinput.text = @commandbuffer.currentcommand
+        
         #puts "switching view to #{obj.buffer.view}"
         if @currentbuffer.respond_to? :username
             @usernamebutton.label = @currentbuffer.username.gsub('_', '__')
@@ -337,8 +375,8 @@ class MainWindow
         end
 
         @messagescroll.child = @currentbuffer.buffer.view
+        @currentbuffer.buffer.view.show 
         @currentbuffer.buffer.view.scroll_to_end
-        @currentbuffer.buffer.view.show
         set_title
         @messageinput.grab_focus
     end
@@ -436,9 +474,9 @@ class MainWindow
     #~ end
     #~ end
 
-    def message_input(widget)
-        return if widget.text.length == 0
-        @commandbuffer.add_command(widget.text)
+    def message_input
+        return if @messageinput.buffer.text.length == 0
+        @commandbuffer.add_command(@messageinput.buffer.text)
 
         if @currentbuffer.respond_to? 'parent'
             network = @currentbuffer.parent
@@ -450,9 +488,18 @@ class MainWindow
 
         end
 
-        message = widget.text
+        message = @messageinput.buffer.text.dup
         @main.queue_input([message, @currentbuffer])
-        widget.text = ''
+        
+#         @messageinput.buffer.place_cursor(@messageinput.buffer.start_iter)
+        @messageinput.buffer.text = ''
+#         @messageinput.buffer.delete(*@messageinput.buffer.bounds)
+#         @messageinput.select_all(true)
+#         @messageinput.move_cursor(Gtk::MOVEMENT_VISUAL_POSITIONS, -3, false)
+    end
+
+    def message_input_focus
+        true
     end
 
     def get_username
@@ -508,20 +555,32 @@ class MainWindow
             substr = get_completion_substr
             nick = @currentbuffer.tabcomplete(substr) if substr
             replace_completion_substr(substr, nick) if nick
+            return true #block the signal
             #end
         else
             #if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
             @currentbuffer.clear_tabcomplete
             #end
         end
+        
+        #A return key is pressed, check to see if shift is pressed too...
+        if event.keyval == Gdk::Keyval.from_name('Return') and (event.state & Gdk::Window::SHIFT_MASK) == 0
+            #shift ain't pressed
+            message_input #handle the input
+            return true #block the signal
+#         elsif event.keyval == Gdk::Keyval.from_name('Return')
+            #shift was pressed
+#             @messageinput.buffer.insert_at_cursor("\n") #stick a newline in
+#             @currentbuffer.buffer.view.scroll_to_end #scroll the scwview to end
+#             return true #block the signal
+        end
 
         if event.keyval == Gdk::Keyval.from_name('Up')
-            @messageinput.text = commandbuffer.last_command if commandbuffer
+            @messageinput.buffer.text = commandbuffer.last_command if commandbuffer
         elsif event.keyval == Gdk::Keyval.from_name('Down')
-            @messageinput.text = commandbuffer.next_command if commandbuffer
-        elsif event.keyval == Gdk::Keyval.from_name('Tab')
-            true
+            @messageinput.buffer.text = commandbuffer.next_command if commandbuffer
         end
+        false
     end
 
     def window_buttons(widget, event)

@@ -543,9 +543,9 @@ class Plugin
     end
 
     #stub for configure function
-    def configure
-        []
-    end
+#     def configure
+#         []
+#     end
 end
 
 class PluginConfig
