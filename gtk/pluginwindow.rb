@@ -60,8 +60,6 @@ class PluginWindow < SingleWindow
         end
         
         @pluginlist.selection.signal_connect('changed') {|widget| update_buttons(widget)}
-        
-        @open = true
     end
     
     def update_buttons(widget)
@@ -117,7 +115,7 @@ class PluginWindow < SingleWindow
     end
     
     def destroy
-        @open = false
         @glade['pluginwindow'].destroy
+        self.class.destroy
     end
 end

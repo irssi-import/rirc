@@ -56,13 +56,23 @@ parse_args
 #useful for debugging
 Thread.abort_on_exception = true
 
-
+#A class that tries to make sure only one instance is allowed at a time
 class SingleWindow
-    def open?
-        return @open
+    #override the constructor
+    def self.new(*args)
+        return @instance if @instance #this is a class instance var, FYI
+        @instance = super
+        @instance
     end
 
-    def focus
+    #clean up a dead instance
+    def self.destroy
+        @instance = nil
+    end
+    
+    #show and/or raise a window
+    def show
+        @window.show_all
         @window.present
     end
 end

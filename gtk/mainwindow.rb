@@ -662,27 +662,23 @@ class MainWindow
     end
 
     def open_networks
-        if @networkpresence and @networkpresence.open?
-            @networkpresence.focus
-        else
-            @networkpresence = NetworkPresenceConf.new(@main, @main.networks, @main.protocols)
-        end
+#         if @networkpresence and @networkpresence.open?
+#             @networkpresence.focus
+#         else
+        @networkpresence = NetworkPresenceConf.new(@main, @main.networks, @main.protocols).show
+#         end
     end
 
     def open_plugins
-        if @pluginwindow and @pluginwindow.open?
-            @pluginwindow.focus
-        else
-            @pluginwindow = PluginWindow.new(@main)
-        end
+        @pluginwindow = PluginWindow.new(@main).show
     end
 
     def open_keybindings
-        if  @keybindingwindow and @keybindingwindow.open?
-            @keybindingswindow.open
-        else
-            @keybindingwindow = KeyBindingWindow.new(@main, @config['keybindings'], @bindable_functions)
-        end
+#         if  @keybindingwindow and @keybindingwindow.open?
+#             @keybindingswindow.open
+#         else
+        @keybindingwindow = KeyBindingWindow.new(@main, @config['keybindings'], @bindable_functions).show
+#         end
     end
 
     def quit(notifymain=true)

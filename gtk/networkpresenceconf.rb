@@ -61,7 +61,7 @@ class NetworkPresenceConf < SingleWindow
 
         @open = true
 
-        @glade['networkpresencewindow'].show_all
+        @window.show_all
 
     end
 
@@ -170,7 +170,7 @@ class NetworkPresenceConf < SingleWindow
         fill_charsets
         fill_protocols
         @gatewaylist.clear
-        @glade['networkpresencewindow'].modal = false
+        @window.modal = false
         @glade['networkproperties'].show_all
     end
 
@@ -190,7 +190,7 @@ class NetworkPresenceConf < SingleWindow
         fill_gateways(network.gateways)
         fill_charsets(network.charset)
         @glade['network_protocol'].sensitive = false
-        @glade['networkpresencewindow'].modal = false
+        @window.modal = false
         @glade['networkproperties'].show_all
     end
 
@@ -215,7 +215,7 @@ class NetworkPresenceConf < SingleWindow
         end
         draw_networks
         @glade['networkproperties'].hide
-        @glade['networkpresencewindow'].modal = true
+        @window.modal = true
     end
 
     def update_network
@@ -244,7 +244,7 @@ class NetworkPresenceConf < SingleWindow
         @glade['presence_autoconnect'].active = false
         @glade['presence_name'].sensitive = true
         @glade['presence_name'].text = ''
-        @glade['networkpresencewindow'].modal = false
+        @window.modal = false
         @glade['presenceproperties'].show_all
     end
 
@@ -266,7 +266,7 @@ class NetworkPresenceConf < SingleWindow
         if presence.autoconnect
             @glade['presence_autoconnect'].active = true
         end
-        @glade['networkpresencewindow'].modal = false
+        @window.modal = false
         @glade['presenceproperties'].show_all
     end
 
@@ -296,7 +296,7 @@ class NetworkPresenceConf < SingleWindow
             end
         end
         @glade['presenceproperties'].hide
-        @glade['networkpresencewindow'].modal = true
+        @window.modal = true
     end
 
     def update_presence
@@ -525,11 +525,11 @@ class NetworkPresenceConf < SingleWindow
     end
 
     def destroy
-        @open = false
-        @glade['networkpresencewindow'].destroy
+        @window.destroy
         @glade['networkproperties'].destroy
         @glade['presenceproperties'].destroy
         @glade['gatewayproperties'].destroy
+        self.class.destroy
         #Gtk.main_quit
     end
 

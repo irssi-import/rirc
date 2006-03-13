@@ -59,9 +59,9 @@ class KeyBindingWindow < SingleWindow
         
         @open = true
         
-        @glade['keywindow'].signal_connect('key_release_event') { |widget, event| window_buttons(widget, event)}
+        @window.signal_connect('key_release_event') { |widget, event| window_buttons(widget, event)}
         
-        @glade['keywindow'].show_all
+        @window.show_all
     end
     
     def action2index(action)
@@ -187,8 +187,8 @@ class KeyBindingWindow < SingleWindow
     end
     
     def destroy
-        @open = false
-        @glade['keywindow'].destroy
+        @window.destroy
+        self.class.destroy
     end
     
 end
