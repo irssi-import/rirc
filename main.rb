@@ -58,23 +58,23 @@ Thread.abort_on_exception = true
 
 #A class that tries to make sure only one instance is allowed at a time
 class SingleWindow
-    #override the constructor
-    def self.new(*args)
-        return @instance if @instance #this is a class instance var, FYI
-        @instance = super
-        @instance
-    end
+	#override the constructor
+	def self.new(*args)
+		return @instance if @instance #this is a class instance var, FYI
+		@instance = super
+		@instance
+	end
 
-    #clean up a dead instance
-    def self.destroy
-        @instance = nil
-    end
-    
-    #show and/or raise a window
-    def show
-        @window.show_all
-        @window.present
-    end
+	#clean up a dead instance
+	def self.destroy
+		@instance = nil
+	end
+
+	#show and/or raise a window
+	def show
+		@window.show_all
+		@window.present
+	end
 end
 
 #load all my home rolled ruby files here
@@ -147,28 +147,16 @@ class Main
 	end
 
 	#connect to icecap, called from connectionwindow
-	def connect(method, settings)
+	def connect(type, settings)
 		return if @connection
 		@connectionwindow.send_text('Connecting...')
 		begin
-			# Make this more abstract by using a ConnectionFactory
-			# (inside the connection factory use a hash to generate objects)
-			if method == 'ssh'
-				@connection = SSHConnection.new(self, settings, @connectionwindow)
-			elsif method == 'socket'
-				@connection = UnixSockConnection.new(self, settings, @connectionwindow)
-			elsif method == 'inetd'
-				@connection = InetdConnection.new(self, settings, @connectionwindow)
-			elsif method == 'local'
-				@connection = LocalConnection.new(self, settings, @connectionwindow)
-			elsif method == 'net_ssh'
-				@connection = NetSSHConnection.new(self, settings, @connectionwindow)
-			else
-				@connectionwindow.send_text('invalid connection method')
-				return
-			end				
+			@connection = ConnectionFactory.spawn(type, self, settings, @connectionwindow)
 		rescue IOError
 			@connectionwindow.send_text("Error: "+$!)
+			return
+		rescue ArgumentError
+			@connectionwindow.send_text("Error: "+$!+" This is a bug.  Please report it.")
 			return
 		end
 
@@ -276,7 +264,7 @@ class Main
 		end
 		@syncchannels = nil
 	end
-	
+
 	# Resets the scw configuration after a ratchet configuration change
 	# This is an ugly function, just by the means it has to be done,
 	# but there's nothing that can be done about it for the time being
@@ -597,12 +585,12 @@ class Main
 		else
 			send_command('sendconfig', @config.changes)
 			send_command('quit', 'quit')
-			#			 puts 'sending quit (timeout 5 seconds...)'
-			#			 sleep 5
-			#			 unless @quit
-			#				 puts 'failed to get quit confirmation, doing it manually'
-			#				 do_quit
-			#			 end
+#             puts 'sending quit (timeout 5 seconds...)'
+#             sleep 5
+#                 unless @quit
+#                 puts 'failed to get quit confirmation, doing it manually'
+#                  do_quit
+#             end
 		end
 		true
 	end
