@@ -7,10 +7,6 @@ class MainWindow
         @confighash = confighash
         @config = @main.config
 
-        #try to setup the Gtk::Entry to not select-on-focus
-#         Gtk::RC.parse_string("style \"message_input\" {\
-#                              gtk-select-on-focus=0}")
-
         @glade = GladeXML.new("gtk/glade/mainwindow.glade") {|handler| method(handler)}
 
         @usernamebutton = @glade["username"]
@@ -23,7 +19,6 @@ class MainWindow
 
         @messageinput.grab_focus
         @messageinput.signal_connect("key_press_event"){|widget, event| input_buttons(widget, event)}
-        @messageinput.buffer.signal_connect_after("changed"){|widget| @currentbuffer.buffer.view.scroll_to_end if @currentbuffer and widget.text.include? "\n"}
 
         @userlist = @glade['userlist']
         @panel = @glade['hpaned1']
@@ -48,15 +43,6 @@ class MainWindow
         end
         @buffers = BufferListController.new(*args)
         redraw_channellist(true)
-
-        #n = @buffers.add_network('Vagabond', 'TestNode')
-        #@buffers.connect(n)
-
-        #n = @buffers.add_network('Freenode', 'Foo')
-        #@buffers.connect(n)
-
-        #Gtk::Window.new.add(@buffers.view.widget).show_all
-        #switch_buffer(@buffers.active.buffer.view)
 
         @glade['window1'].signal_connect('key_press_event') { |widget, event| window_buttons(widget, event)}
 
@@ -228,18 +214,14 @@ class MainWindow
         if widget.text != @currentbuffer.topic and @currentbuffer.class == ChannelBuffer
             @main.send_command('topicchange', 'channel change;network='+@currentbuffer.network.name+';mypresence='+@currentbuffer.presence+';channel='+@currentbuffer.name+';topic='+escape(widget.text))
         end
-        #add_message("Topic changed to: "+ widget.text, 'notice')
     end
 
     #get the substring to use for tab completion.
     def get_completion_substr
-#         string = @messageinput.buffer.text
-#         position = @messageinput.position
-#         string = string[0, position]
-        buffer = @messageinput.buffer
+		string = @messageinput.text
+		position = @messageinput.position
+		string = string[0, position]
 
-        #get the string between the beginning of the buffer and the cursor position
-        string = buffer.get_text(buffer.start_iter, buffer.get_iter_at_mark(buffer.get_mark("insert")))
         #get the string between the end of the string and the last space (the fragment we use for matching)
         name, whatever = string.reverse.split(' ', 2)
 
@@ -252,100 +234,37 @@ class MainWindow
 
     #function to do the nick replace for tab completion
     def replace_completion_substr(substr, match)
-        string = @messageinput.buffer.text
-#         position = @messageinput.position
+        string = @messageinput.text.strip
+		position = @messageinput.position
 
-        buffer = @messageinput.buffer
-        insertmark = buffer.get_mark("insert")
-        #create a mark at the cursor location with right gravity (so it moves right when we insert text behind it)
-        mark = buffer.create_mark(nil, buffer.get_iter_at_mark(insertmark), false)
-        
-        #split the string by the cursor position
-#         a = string[0, position]
-#         b = string[position, string.length-position]
+		index = string.rindex(substr, position)
+		endindex = index+substr.length
 
-        #use rstrip to ignore traling whitespace for calculating the start of the nick
-#         nickstart = a.rstrip.length-substr.length
-        #nick replace
-#         a = a.reverse.sub(substr.reverse, match.reverse)
-#         a.reverse!
-        #reassemble the string, converting the pieces to strings if they're nulls
-#         a ||= ''
-#         b ||= ''
-#         string = a+b
-        
-        #create a new position, move it backwards by the length of the substr and use it to set the position of the insert mark
-        newpos = buffer.get_iter_at_mark(insertmark)
-        
-        #get the index of the beginning of the substring
-        index = string.rindex(substr, newpos.offset)
-        #move the cursor to the index
-        newpos.offset = index
-        buffer.move_mark(insertmark, newpos)
+		replacement = match
 
-        #because we only moved the insert mark, we should have some text selected
-        buffer.delete_selection(false, true)
-        
-        insertiter = buffer.get_iter_at_mark(insertmark)
-#         nextchar =
-        
-#         cursorposition = match.length
-        #determine current position and take action
-        if insertiter == buffer.start_iter
-            #the beginning
-            if match[0].chr == '/'
-                unless insertiter.char == ' '
-#                     string.insert(match.length, ' ')
-                    replacement = match+' '
-#                     cursorposition = match.length+1
-                end
-            elsif insertiter.char == ' '
-#                 string.insert(match.length, @config['tabcompletesuffix'])
-#                 cursorposition = match.length+1
-                replacement = match+@config['tabcompletesuffix']
-            else
-#                 string.insert(match.length, @config['tabcompletesuffix']+' ')
-#                 cursorposition = match.length+2
-                replacement = match+@config['tabcompletesuffix']+' '
-            end
-        elsif insertiter == buffer.end_iter
-            #we're at the end
-#             string += ' '
-#             cursorposition += 1
-            replacement = match+' '
-        else
-            #somewhere in the middle
-            if insertiter.char != ' '
-#                 string.insert(nickstart+match.length, ' ')
-#                 cursorposition = match.length+1
-                replacement = match+' '
-            else
-#                 cursorposition = match.length+1
-                replacement = match
-            end
-        end
+		#pad the replacement string with a space if appropiate
+		if string[endindex, 1] != ' '
+			replacement += ' '
+		end
+		
         #update the content of the entry
-        buffer.insert_at_cursor(replacement)
-        buffer.place_cursor(buffer.get_iter_at_mark(mark))
-#         @messageinput.buffer.text = string
-        #reposition the cursor
-#         @messageinput.set_position(nickstart+cursorposition)
+		string[index, substr.length] = replacement
+		@messageinput.text = string
+		@messageinput.position = index+replacement.length
     end
 
     def switch_buffer(obj)
         update_dimensions
-#         puts obj
         @messagescroll.remove(@messagescroll.child) if @messagescroll.child
         @vpanel.remove(@vpanel.child1) if @vpanel.child1
-        @commandbuffer.currentcommand = @messageinput.buffer.text if @commandbuffer
+        @commandbuffer.currentcommand = @messageinput.text if @commandbuffer
         @currentbuffer.buffer.marklastread if @currentbuffer and @currentbuffer.buffer
         @currentbuffer = obj
         @commandbuffer = @currentbuffer.commandbuffer
-        @messageinput.buffer.text = @commandbuffer.currentcommand
-        #         puts "commandbuffer: #{@commandbuffer}"
+        @messageinput.text = @commandbuffer.currentcommand
+		@messageinput.position = -1 #puts the cursor position at the end
         
-        #puts "switching view to #{obj.buffer.view}"
-        if @currentbuffer.respond_to? :username
+		if @currentbuffer.respond_to? :username
             @usernamebutton.label = @currentbuffer.username.gsub('_', '__')
             @usernamebutton.show
         else
@@ -362,11 +281,7 @@ class MainWindow
             @vpanel.show_all
             @currentbuffer.userlistview.widget.show_all
             @vpanel.pack1(@currentbuffer.userlistview.widget, false, false)
-#             puts @panel.position, @confighash['panelposition'], @confighash['panelposition'].class
-#             puts 'setting panel position'
             @panel.position = @confighash['panelposition'].to_i
-#             puts @panel.position
-            #puts "userlist: #{@currentbuffer.userlistview}"
         elsif @config['tablisttype'] == 'treeview'
             @panel.position = @confighash['panelposition'].to_i
             @vpanel.remove(@vpanel.child1)
@@ -393,90 +308,9 @@ class MainWindow
         end
     end
 
-    #~ def switchchannel(channel)
-    #~ #make the new channel the current one, and toggle the buttons accordingly
-    #~ return unless channel
-    #~ #update_dimensions
-
-    #~ @currentbuffer.currentcommand = @messageinput.text
-    #~ if @currentbuffer.class == ChannelBuffer
-    #~ @userlist.remove_column(@currentbuffer.modecolumn)
-    #~ @userlist.remove_column(@currentbuffer.usercolumn)
-    #~ end
-    #~ @currentbuffer = channel
-    #~ drawuserlist(@currentbuffer.class == ChannelBuffer)
-    #~ @messageinput.text = @currentbuffer.currentcommand
-    #~ @messageinput.select_region(0, 0)
-    #~ @messageinput.position=-1
-    #~ @messagescroll.children.each {|child| @messagescroll.remove(child)}
-    #~ @messagescroll.add(@currentbuffer.view.view)
-    #~ @messagescroll.show_all
-
-    #~ @messagescroll.set_size_request(0, -1)#magical diamond skill 7 hack to stop window resizing
-    #~ @usernamebutton.label = @currentbuffer.username.gsub('_', '__') if @currentbuffer.username
-    #~ @currentbuffer.view.view.scroll_to_end
-    #~ @messageinput.grab_focus
-    #~ end
-
-    #~ def updateusercount
-    #~ return unless @currentbuffer.class == ChannelBuffer
-    #~ modes = {}
-    #~ modeorder = []
-    #~ @currentbuffer.users.users.each do |user|
-    #~ mode = user.get_mode
-    #~ if modes[mode]
-    #~ modes[mode] += 1
-    #~ elsif mode != ''
-    #~ modes[mode] = 1
-    #~ modeorder[user.decodemode(mode)] = mode
-    #~ end
-    #~ end
-
-    #~ modeorder.reverse!
-    #~ text = ''
-    #~ modeorder.each do |m|
-    #~ next if m == nil
-    #~ text +=modes[m].to_s+m+', '
-    #~ end
-
-    #~ text += @currentbuffer.users.users.length.to_s+' total'
-    #~ @usercount.text = text
-    #~ end
-
-    #~ def drawuserlist(toggle)
-    #~ if toggle
-    #~ @mainbox.remove(@messagebox)
-    #~ @mainbox.pack_start(@panel)
-    #~ @panel.add1(@messagebox)
-    #~ @messageinput.grab_focus
-    #~ @userlist.model = @currentbuffer.userlist
-    #~ @userlist.append_column(@currentbuffer.modecolumn)
-    #~ @userlist.append_column(@currentbuffer.usercolumn)
-    #~ @userlist.search_column=1
-    #~ @userlist.show_all
-    #~ @topic.show
-    #~ @topic.text =@currentbuffer.topic
-    #~ @tooltips.set_tip(@topic, @currentbuffer.topic, '')
-    #~ @usernamebutton.show
-    #~ updateusercount
-    #~ else
-    #~ @mainbox.remove(@panel)
-    #~ @panel.remove(@messagebox)
-    #~ @mainbox.pack_start(@messagebox)
-    #~ @messageinput.grab_focus
-    #~ @topic.hide
-    #~ @topic.text = ''
-    #~ if @currentbuffer.class == Console
-    #~ @usernamebutton.hide
-    #~ else
-    #~ @usernamebutton.show
-    #~ end
-    #~ end
-    #~ end
-
-    def message_input
-        return if @messageinput.buffer.text.length == 0
-        @commandbuffer.add_command(@messageinput.buffer.text)
+    def message_inputted
+        return if @messageinput.text.length == 0
+        @commandbuffer.add_command(@messageinput.text)
 
         if @currentbuffer.respond_to? 'parent'
             network = @currentbuffer.parent
@@ -488,18 +322,9 @@ class MainWindow
 
         end
 
-        message = @messageinput.buffer.text.dup
+        message = @messageinput.text
         @main.queue_input([message, @currentbuffer])
-        
-#         @messageinput.buffer.place_cursor(@messageinput.buffer.start_iter)
-        @messageinput.buffer.text = ''
-#         @messageinput.buffer.delete(*@messageinput.buffer.bounds)
-#         @messageinput.select_all(true)
-#         @messageinput.move_cursor(Gtk::MOVEMENT_VISUAL_POSITIONS, -3, false)
-    end
-
-    def message_input_focus
-        true
+		@messageinput.text = ''
     end
 
     def get_username
@@ -526,20 +351,7 @@ class MainWindow
         @tooltips.set_tip(@topic, @currentbuffer.topic, '')
     end
 
-
-
-    #~ def create_link_popup(link)
-    #~ menu = Gtk::Menu.new
-    #~ link = to_uri(link)
-    #~ item = Gtk::MenuItem.new(link)
-    #~ item.sensitive = false
-    #~ menu.append(item)
-    #~ menu.append(Gtk::MenuItem.new("Open link in browser"))
-    #~ menu.append(Gtk::MenuItem.new("Copy link location"))
-    #~ end
-
-
-    def whois(user)
+	def whois(user)
         return unless @currentbuffer.respond_to? :users
         @main.send_command('whois'+user, "presence status;#{@currentbuffer.network.identifier_string};presence=#{user}")
     end
@@ -551,34 +363,21 @@ class MainWindow
     def input_buttons(widget, event)
         return unless event.class == Gdk::EventKey #ack, another guard against non EventKey events
         if event.keyval == Gdk::Keyval.from_name('Tab')
-            #if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
             substr = get_completion_substr
             nick = @currentbuffer.tabcomplete(substr) if substr
             replace_completion_substr(substr, nick) if nick
             return true #block the signal
-            #end
         else
             #if @currentbuffer.class == ChannelBuffer || @currentbuffer.class == ChatBuffer
             @currentbuffer.clear_tabcomplete
-            #end
         end
         
-        #A return key is pressed, check to see if shift is pressed too...
-        if event.keyval == Gdk::Keyval.from_name('Return') and (event.state & Gdk::Window::SHIFT_MASK) == 0
-            #shift ain't pressed
-            message_input #handle the input
-            return true #block the signal
-#         elsif event.keyval == Gdk::Keyval.from_name('Return')
-            #shift was pressed
-#             @messageinput.buffer.insert_at_cursor("\n") #stick a newline in
-#             @currentbuffer.buffer.view.scroll_to_end #scroll the scwview to end
-#             return true #block the signal
-        end
-
         if event.keyval == Gdk::Keyval.from_name('Up')
-            @messageinput.buffer.text = commandbuffer.last_command if commandbuffer
+            @messageinput.text = commandbuffer.last_command if commandbuffer
+			return true
         elsif event.keyval == Gdk::Keyval.from_name('Down')
-            @messageinput.buffer.text = commandbuffer.next_command if commandbuffer
+            @messageinput.text = commandbuffer.next_command if commandbuffer
+			return true
         end
         false
     end
@@ -642,11 +441,6 @@ class MainWindow
         adjustment.value = x
     end
 
-    #~ def switchtab(number)
-    #~ tab = @main.tabmodel.number2tab(number.to_i)
-    #~ @main.tabmodel.set_active(tab)
-    #~ end
-
     def open_linkwindow
 #         LinkWindow.new(@currentbuffer.links)
     end
@@ -662,11 +456,7 @@ class MainWindow
     end
 
     def open_networks
-#         if @networkpresence and @networkpresence.open?
-#             @networkpresence.focus
-#         else
         @networkpresence = NetworkPresenceConf.new(@main, @main.networks, @main.protocols).show
-#         end
     end
 
     def open_plugins
@@ -674,11 +464,7 @@ class MainWindow
     end
 
     def open_keybindings
-#         if  @keybindingwindow and @keybindingwindow.open?
-#             @keybindingswindow.open
-#         else
         @keybindingwindow = KeyBindingWindow.new(@main, @config['keybindings'], @bindable_functions).show
-#         end
     end
 
     def quit(notifymain=true)

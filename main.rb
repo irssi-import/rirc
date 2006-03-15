@@ -138,6 +138,9 @@ class Main
 	# start the GUI
 	def start
 		Gtk.init
+		settings = Gtk::Settings.default
+		settings.gtk_entry_select_on_focus = false
+
 		reply_reaper
 		@connectionwindow = ConnectionWindow.new(self) unless @connectionwindow and @connectionwindow.open?
 		if @connectionwindow.autoconnect == true
