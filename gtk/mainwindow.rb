@@ -241,7 +241,11 @@ class MainWindow
 		endindex = index+substr.length
 
 		replacement = match
-
+		
+		#append the tabcompletionsuffix if we're at the start of the line and it's not a command
+		if index == 0 and string[0, 1] != '/'
+			replacement += @config['tabcompletesuffix']
+		end
 		#pad the replacement string with a space if appropiate
 		if string[endindex, 1] != ' '
 			replacement += ' '

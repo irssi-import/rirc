@@ -288,19 +288,18 @@ class Main
 
     help :cmd_topic, "Get or print the topic. Usage: /topic [newtopic]"
     def cmd_topic(arguments, target)
-        unless channel
+        unless target.kind_of? ChannelBuffer
             error_throw('/topic only functions in a channel tab')
             return
         end
 
         if arguments
-            $main.send_command('topicchange', 'channel change;network='+network.name+';mypresence='+network.presence+';channel='+channel.name+';topic='+escape(arguments))
+			#update the topic
+            send_command('topicchange', 'channel change;network='+target.network.name+';mypresence='+target.network.presence+';channel='+target.name+';topic='+escape(arguments))
         else
-#             puts channel.topic
-            event = {'init' => true, 'line'=>1, CHANNEL=>channel.name, TOPIC=>channel.topic}
+			#print the topic
+            event = {'init' => true, 'line'=>1, CHANNEL=>target.name, TOPIC=>target.topic}
             target.send_user_event(event, EVENT_TOPIC)
-            #event = {'msg' => channel.topic}
-            #@window.currentbuffer.send_user_event(event, EVENT_NOTICE)
         end
     end
 
@@ -520,9 +519,11 @@ class Main
                 arguments += '.rb'
             end
             begin
-                eval("load '#{arguments}'")
+                load "#{arguments}"
             rescue LoadError
                 puts "failed to load #{arguments}"
+			rescue SyntaxError
+				puts "Failed to load #{arguments}, syntax error" 
             else
                 puts "reload of #{arguments} sucessful"
             end
